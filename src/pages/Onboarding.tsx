@@ -27,7 +27,7 @@ export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(0);
   const navigate = useNavigate();
   
-  const fitsEmail = "jamie@fits.com";
+  const fitsEmail = "jamie@myfits.co";
 
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);

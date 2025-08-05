@@ -18,7 +18,7 @@ const Index = () => {
             Welcome to Fits
           </h1>
           <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-            Get your own @fits.com email address and keep your inbox clean. 
+            Get your own @myfits.co email address and keep your inbox clean. 
             We organize all your promotional emails in one beautiful dashboard.
           </p>
           <div className="flex gap-4 justify-center">
@@ -40,7 +40,7 @@ const Index = () => {
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Mail className="h-6 w-6 text-primary" />
               </div>
-              <CardTitle>Personal @fits.com Email</CardTitle>
+              <CardTitle>Personal @myfits.co Email</CardTitle>
               <CardDescription>
                 Get your unique email address for all brand signups
               </CardDescription>

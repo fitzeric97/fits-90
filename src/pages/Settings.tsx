@@ -16,7 +16,7 @@ export default function Settings() {
   });
 
   const userEmail = "jamie@gmail.com";
-  const fitsEmail = "jamie@fits.com";
+  const fitsEmail = "jamie@myfits.co";
 
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
