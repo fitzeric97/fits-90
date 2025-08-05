@@ -14,7 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      promotional_emails: {
+        Row: {
+          body_html: string | null
+          body_text: string | null
+          brand_name: string
+          created_at: string
+          expires_at: string | null
+          gmail_message_id: string
+          id: string
+          is_expired: boolean | null
+          labels: string[] | null
+          received_date: string
+          sender_email: string
+          sender_name: string | null
+          snippet: string | null
+          subject: string
+          thread_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body_html?: string | null
+          body_text?: string | null
+          brand_name: string
+          created_at?: string
+          expires_at?: string | null
+          gmail_message_id: string
+          id?: string
+          is_expired?: boolean | null
+          labels?: string[] | null
+          received_date: string
+          sender_email: string
+          sender_name?: string | null
+          snippet?: string | null
+          subject: string
+          thread_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body_html?: string | null
+          body_text?: string | null
+          brand_name?: string
+          created_at?: string
+          expires_at?: string | null
+          gmail_message_id?: string
+          id?: string
+          is_expired?: boolean | null
+          labels?: string[] | null
+          received_date?: string
+          sender_email?: string
+          sender_name?: string | null
+          snippet?: string | null
+          subject?: string
+          thread_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_gmail_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string
+          id: string
+          refresh_token: string
+          scope: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          refresh_token: string
+          scope: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          refresh_token?: string
+          scope?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
