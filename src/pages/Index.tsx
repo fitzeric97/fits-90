@@ -22,11 +22,11 @@ const Index = () => {
             We organize all your promotional emails in one beautiful dashboard.
           </p>
           <div className="flex gap-4 justify-center">
-            <Button size="lg" onClick={() => navigate("/onboarding")}>
+            <Button size="lg" onClick={() => navigate("/auth")}>
               Get Started
             </Button>
-            <Button variant="outline" size="lg" onClick={() => navigate("/dashboard")}>
-              View Demo
+            <Button variant="outline" size="lg" onClick={() => navigate("/auth")}>
+              Sign In
             </Button>
           </div>
         </div>
@@ -129,7 +129,7 @@ const Index = () => {
             <p className="text-muted-foreground mb-6">
               Join thousands of users who've already cleaned up their inbox with Fits.
             </p>
-            <Button size="lg" onClick={() => navigate("/onboarding")}>
+            <Button size="lg" onClick={() => navigate("/auth")}>
               Start Your Free Account
             </Button>
           </CardContent>

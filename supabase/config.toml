@@ -1,1 +1,44 @@
 project_id = "ijawvesjgyddyiymiahk"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1:54321"
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+enabled = true
+port = 54327
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+port = 54328
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = ["https://08f391db-8e85-41a6-b6ae-20821228cf40.lovableproject.com"]
+jwt_expiry = 3600
+enable_signup = true
+enable_email_confirmations = false
+
+[functions.gmail-oauth]
+verify_jwt = false
+
+[functions.scan-gmail]
+verify_jwt = false

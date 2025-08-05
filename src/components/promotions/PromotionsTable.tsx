@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Filter, MoreHorizontal, Eye, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,83 +7,139 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
+import { GmailConnector } from "@/components/gmail/GmailConnector";
 
 interface Promotion {
   id: string;
-  brand: string;
+  brand_name: string;
   subject: string;
-  expiresIn: string;
-  isExpired: boolean;
-  receivedDate: string;
-  brandLogo?: string;
+  expires_at: string | null;
+  is_expired: boolean;
+  received_date: string;
+  sender_name: string;
+  snippet: string;
 }
 
-const mockPromotions: Promotion[] = [
-  {
-    id: "1",
-    brand: "Nike",
-    subject: "30% off new arrivals",
-    expiresIn: "3 days",
-    isExpired: false,
-    receivedDate: "2024-08-02",
-  },
-  {
-    id: "2",
-    brand: "Everlane",
-    subject: "Members get early access",
-    expiresIn: "1 day",
-    isExpired: false,
-    receivedDate: "2024-08-03",
-  },
-  {
-    id: "3",
-    brand: "LL Bean",
-    subject: "Free shipping + bundles",
-    expiresIn: "Expired",
-    isExpired: true,
-    receivedDate: "2024-07-28",
-  },
-  {
-    id: "4",
-    brand: "Uniqlo",
-    subject: "Summer sale up to 50% off",
-    expiresIn: "5 days",
-    isExpired: false,
-    receivedDate: "2024-08-01",
-  },
-];
-
 export function PromotionsTable() {
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortOrder, setSortOrder] = useState("latest");
+  const { user } = useAuth();
 
-  const filteredPromotions = mockPromotions
+  useEffect(() => {
+    if (user) {
+      fetchPromotions();
+    }
+  }, [user]);
+
+  const fetchPromotions = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('promotional_emails')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('received_date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching promotions:', error);
+        return;
+      }
+
+      setPromotions(data || []);
+    } catch (error) {
+      console.error('Error fetching promotions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatExpiryTime = (expiresAt: string | null) => {
+    if (!expiresAt) return "No expiry";
+    
+    const expiry = new Date(expiresAt);
+    const now = new Date();
+    const diffTime = expiry.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return "Expired";
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "1 day";
+    return `${diffDays} days`;
+  };
+
+  const filteredPromotions = promotions
     .filter((promo) => {
-      const matchesSearch = promo.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const matchesSearch = promo.brand_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            promo.subject.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = filterStatus === "all" || 
-                           (filterStatus === "active" && !promo.isExpired) ||
-                           (filterStatus === "expired" && promo.isExpired);
+                           (filterStatus === "active" && !promo.is_expired) ||
+                           (filterStatus === "expired" && promo.is_expired);
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
       if (sortOrder === "latest") {
-        return new Date(b.receivedDate).getTime() - new Date(a.receivedDate).getTime();
+        return new Date(b.received_date).getTime() - new Date(a.received_date).getTime();
       }
-      return a.brand.localeCompare(b.brand);
+      return a.brand_name.localeCompare(b.brand_name);
     });
 
   const getBrandInitial = (brand: string) => brand.charAt(0).toUpperCase();
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <GmailConnector />
+        <Card>
+          <CardContent className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading your promotional emails...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (promotions.length === 0) {
+    return (
+      <div className="space-y-6">
+        <GmailConnector />
+        <Card>
+          <CardContent className="flex items-center justify-center py-16">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                <Search className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">No promotional emails found</h3>
+                <p className="text-muted-foreground">
+                  Connect your Gmail account and scan your emails to get started!
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>All Promotions</CardTitle>
-        <CardDescription>
-          Manage your promotional emails in one place
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-6">
+      <GmailConnector />
+      <Card>
+        <CardHeader>
+          <CardTitle>All Promotions</CardTitle>
+          <CardDescription>
+            Your promotional emails from Gmail ({promotions.length} total)
+          </CardDescription>
+        </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4 mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -130,22 +186,22 @@ export function PromotionsTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPromotions.map((promotion) => (
-                <TableRow key={promotion.id}>
-                  <TableCell>
-                    <div className="w-8 h-8 bg-primary/10 rounded-md flex items-center justify-center">
-                      <span className="text-xs font-semibold text-primary">
-                        {getBrandInitial(promotion.brand)}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium">{promotion.brand}</TableCell>
-                  <TableCell>{promotion.subject}</TableCell>
-                  <TableCell>
-                    <Badge variant={promotion.isExpired ? "destructive" : "default"}>
-                      {promotion.expiresIn}
-                    </Badge>
-                  </TableCell>
+                {filteredPromotions.map((promotion) => (
+                  <TableRow key={promotion.id}>
+                    <TableCell>
+                      <div className="w-8 h-8 bg-primary/10 rounded-md flex items-center justify-center">
+                        <span className="text-xs font-semibold text-primary">
+                          {getBrandInitial(promotion.brand_name)}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">{promotion.brand_name}</TableCell>
+                    <TableCell className="max-w-xs truncate">{promotion.subject}</TableCell>
+                    <TableCell>
+                      <Badge variant={promotion.is_expired ? "destructive" : "default"}>
+                        {formatExpiryTime(promotion.expires_at)}
+                      </Badge>
+                    </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -171,12 +227,13 @@ export function PromotionsTable() {
           </Table>
         </div>
 
-        {filteredPromotions.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            No promotions found matching your criteria.
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          {filteredPromotions.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              No promotions found matching your criteria.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

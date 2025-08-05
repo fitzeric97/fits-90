@@ -1,5 +1,5 @@
 import { Home, ShirtIcon, Bell, Settings, LogOut } from "lucide-react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -11,6 +11,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const navigationItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
@@ -22,7 +23,7 @@ const navigationItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
-  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
 
@@ -30,9 +31,8 @@ export function AppSidebar() {
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50";
 
-  const handleLogout = () => {
-    // TODO: Implement logout logic with Supabase
-    navigate("/");
+  const handleLogout = async () => {
+    await signOut();
   };
 
   return (
