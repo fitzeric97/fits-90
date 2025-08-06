@@ -114,8 +114,12 @@ export default function Auth() {
           throw authError;
         }
       } else {
-        // Start Gmail OAuth flow
-        await initiateGmailOAuth(authData.user?.id, gmailAddress, generateMyFitsEmail(gmailAddress));
+        console.log('User signed up successfully, redirecting to dashboard');
+        toast({
+          title: "Account created!",
+          description: "Check your email for the login link.",
+        });
+        // Don't initiate Gmail OAuth here, let them complete email verification first
       }
     } catch (error: any) {
       setError(error.message);
@@ -124,32 +128,6 @@ export default function Auth() {
     }
   };
 
-  const initiateGmailOAuth = async (userId: string | undefined, gmailAddress: string, myFitsEmail: string) => {
-    if (!userId) return;
-
-    try {
-      // Create Gmail OAuth URL
-      const scopes = 'https://www.googleapis.com/auth/gmail.readonly';
-      const redirectUri = 'https://ijawvesjgyddyiymiahk.supabase.co/functions/v1/gmail-oauth';
-      
-      const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-      authUrl.searchParams.set('client_id', '285808769366-lqlshgojp9cjesg92dcd5a0ige10si7d.apps.googleusercontent.com');
-      authUrl.searchParams.set('redirect_uri', redirectUri);
-      authUrl.searchParams.set('response_type', 'code');
-      authUrl.searchParams.set('scope', scopes);
-      authUrl.searchParams.set('access_type', 'offline');
-      authUrl.searchParams.set('prompt', 'consent');
-      authUrl.searchParams.set('login_hint', gmailAddress);
-      authUrl.searchParams.set('state', JSON.stringify({ userId, gmailAddress, myFitsEmail }));
-
-      // Redirect to Gmail OAuth
-      window.location.href = authUrl.toString();
-      
-    } catch (error: any) {
-      console.error('Gmail OAuth error:', error);
-      setError("Failed to connect to Gmail. Please try again.");
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
