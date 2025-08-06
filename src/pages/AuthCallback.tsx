@@ -65,8 +65,43 @@ export default function AuthCallback() {
             console.error('Connected account error:', accountError);
           }
 
-          // Start Gmail OAuth flow to get API access
-          await initiateGmailOAuth(data.session.user.id, userEmail);
+          // Check if we have the Gmail scope in the provider token
+          const providerToken = data.session.provider_token;
+          const providerRefreshToken = data.session.provider_refresh_token;
+          
+          if (providerToken) {
+            console.log('Using provider token for Gmail access');
+            
+            // Store the provider tokens directly for Gmail API access
+            const { error: tokenError } = await supabase
+              .from('user_gmail_tokens')
+              .upsert({
+                user_id: data.session.user.id,
+                gmail_address: userEmail,
+                access_token: providerToken,
+                refresh_token: providerRefreshToken || '',
+                expires_at: new Date(Date.now() + 3600 * 1000).toISOString(), // 1 hour default
+                scope: 'https://www.googleapis.com/auth/gmail.readonly',
+              }, {
+                onConflict: 'user_id,gmail_address'
+              });
+
+            if (tokenError) {
+              console.error('Token storage error:', tokenError);
+            }
+
+            // Show success and redirect to dashboard
+            toast({
+              title: "Welcome to Fits!",
+              description: "Your account has been set up successfully.",
+            });
+            
+            navigate("/dashboard");
+          } else {
+            console.log('No provider token found, initiating separate Gmail OAuth');
+            // Fallback to separate Gmail OAuth flow
+            await initiateGmailOAuth(data.session.user.id, userEmail);
+          }
           
         } else {
           // No session, redirect to auth
