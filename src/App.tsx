@@ -7,6 +7,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import GmailCallback from "./pages/GmailCallback";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Onboarding from "./pages/Onboarding";
@@ -26,6 +27,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/gmail/callback" element={<GmailCallback />} />
             <Route path="/onboarding" element={
               <ProtectedRoute>
                 <Onboarding />
