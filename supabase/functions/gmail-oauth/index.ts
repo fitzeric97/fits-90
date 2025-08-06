@@ -89,6 +89,8 @@ const handler = async (req: Request): Promise<Response> => {
         refresh_token: tokens.refresh_token,
         expires_at: expiresAt,
         scope: tokens.scope || 'https://www.googleapis.com/auth/gmail.readonly',
+      }, {
+        onConflict: 'user_id'
       });
 
     if (dbError) {
