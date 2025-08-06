@@ -27,10 +27,12 @@ export default function Auth() {
   }, [user, navigate]);
 
   const handleGoogleSignIn = async () => {
+    console.log('Google Sign In clicked - starting OAuth flow');
     setLoading(true);
     setError("");
 
     try {
+      console.log('Initiating Supabase Google OAuth...');
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -43,10 +45,14 @@ export default function Auth() {
         }
       });
 
+      console.log('OAuth result:', { error });
+
       if (error) {
+        console.error('Supabase OAuth error:', error);
         throw error;
       }
     } catch (error: any) {
+      console.error('handleGoogleSignIn error:', error);
       setError(error.message);
       setLoading(false);
     }

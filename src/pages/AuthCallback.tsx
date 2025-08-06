@@ -10,10 +10,14 @@ export default function AuthCallback() {
   const { user } = useAuth();
 
   useEffect(() => {
+    console.log('AuthCallback component mounted');
     const handleAuthCallback = async () => {
+      console.log('Starting auth callback processing...');
       try {
         // Handle the OAuth callback
+        console.log('Getting session from Supabase...');
         const { data, error } = await supabase.auth.getSession();
+        console.log('Session result:', { data: !!data?.session, error });
         
         if (error) {
           console.error('Auth callback error:', error);
