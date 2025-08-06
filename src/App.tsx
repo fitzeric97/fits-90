@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Onboarding from "./pages/Onboarding";
 import Closet from "./pages/Closet";
+import Likes from "./pages/Likes";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
@@ -43,6 +44,11 @@ const App = () => (
             <Route path="/closet" element={
               <ProtectedRoute>
                 <Closet />
+              </ProtectedRoute>
+            } />
+            <Route path="/likes" element={
+              <ProtectedRoute>
+                <Likes />
               </ProtectedRoute>
             } />
             <Route path="/notifications" element={

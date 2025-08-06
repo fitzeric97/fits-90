@@ -274,6 +274,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_likes: {
+        Row: {
+          brand_name: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          price: string | null
+          source_email: string | null
+          title: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          brand_name?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          price?: string | null
+          source_email?: string | null
+          title: string
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          brand_name?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          price?: string | null
+          source_email?: string | null
+          title?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
