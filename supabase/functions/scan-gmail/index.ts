@@ -199,6 +199,19 @@ async function processEmail(messageId: string, accessToken: string, userId: stri
     return null;
   }
   
+  // Check if user has unsubscribed from this brand
+  const { data: unsubscribedData } = await supabase
+    .from('unsubscribed_brands')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('brand_name', brandName)
+    .single();
+    
+  if (unsubscribedData) {
+    console.log(`Skipping unsubscribed brand ${brandName}: ${subject}`);
+    return null;
+  }
+  
   console.log(`Processing fashion email from ${brandName}: ${subject}`);
   
   // Parse received date
