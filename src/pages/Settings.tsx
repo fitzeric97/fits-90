@@ -6,17 +6,48 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Copy, Check } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ConnectedMailboxes } from "@/components/settings/ConnectedMailboxes";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Settings() {
+  const { user } = useAuth();
   const [emailCopied, setEmailCopied] = useState(false);
   const [notifications, setNotifications] = useState({
     daily: true,
     weekly: false,
   });
+  const [userProfile, setUserProfile] = useState<{
+    gmail_address: string | null;
+    myfits_email: string | null;
+  }>({
+    gmail_address: null,
+    myfits_email: null,
+  });
 
-  const userEmail = "jamie@gmail.com";
-  const fitsEmail = "jamie@myfits.co";
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('gmail_address, myfits_email')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setUserProfile(data);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
@@ -34,44 +65,48 @@ export default function Settings() {
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Email Configuration</CardTitle>
-            <CardDescription>
-              Your primary email and Fits forwarding address
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Your Primary Email</Label>
-              <div className="p-3 bg-muted rounded-md">
-                <span className="text-sm">{userEmail}</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Your Fits Email</Label>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 p-3 bg-muted rounded-md">
-                  <span className="text-sm font-mono">{fitsEmail}</span>
+        <ConnectedMailboxes />
+
+        {userProfile.gmail_address && userProfile.myfits_email && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Email Configuration</CardTitle>
+              <CardDescription>
+                Your primary email and Fits forwarding address
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Your Primary Email</Label>
+                <div className="p-3 bg-muted rounded-md">
+                  <span className="text-sm">{userProfile.gmail_address}</span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => copyToClipboard(fitsEmail)}
-                >
-                  {emailCopied ? (
-                    <Check className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Use this email when signing up for brand newsletters
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="space-y-2">
+                <Label>Your Fits Email</Label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 p-3 bg-muted rounded-md">
+                    <span className="text-sm font-mono">{userProfile.myfits_email}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => copyToClipboard(userProfile.myfits_email || '')}
+                  >
+                    {emailCopied ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Use this email when signing up for brand newsletters
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
