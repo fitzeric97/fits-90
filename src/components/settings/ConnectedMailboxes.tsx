@@ -94,7 +94,7 @@ export function ConnectedMailboxes() {
       <CardHeader>
         <CardTitle>Connected Mailboxes</CardTitle>
         <CardDescription>
-          Manage your connected Gmail accounts and Fits email addresses
+          Manage your connected Gmail accounts and @fits.co forwarding addresses
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -150,7 +150,7 @@ export function ConnectedMailboxes() {
           <div className="mt-4 p-4 border rounded-lg bg-muted/50">
             <h3 className="font-medium mb-2">Connect New Gmail Account</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              This will create a separate account with its own data. To combine data from multiple mailboxes, use the "Combine Mailboxes" feature below.
+              This will automatically create a @fits.co email for you to use with new brands (e.g., your-gmail@fits.co). Each Gmail account gets its own separate data.
             </p>
             <GmailConnector />
             <Button 

@@ -24,7 +24,10 @@ export default function GmailCallback() {
         }
 
         const stateData = JSON.parse(state);
-        const { userId, gmailAddress, myFitsEmail } = stateData;
+        const { userId, gmailAddress } = stateData;
+        
+        // Generate @fits.co email from Gmail address
+        const fitsEmail = gmailAddress.replace('@gmail.com', '@fits.co');
 
         // Exchange code for tokens
         const { data, error: oauthError } = await supabase.functions.invoke('gmail-oauth', {
@@ -53,12 +56,12 @@ export default function GmailCallback() {
 
         toast({
           title: "Welcome to Fits!",
-          description: `Your @myfits.co email is ready! We've scanned ${scanData?.processed || 0} promotional emails.`,
+          description: `Your @fits.co email is ready! We've scanned ${scanData?.processed || 0} promotional emails.`,
         });
 
         // Sign in the user
         const { error: signInError } = await supabase.auth.signInWithOtp({
-          email: myFitsEmail,
+          email: fitsEmail,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
           }
@@ -93,7 +96,7 @@ export default function GmailCallback() {
         <div>
           <h1 className="text-2xl font-bold">Setting up your Fits account...</h1>
           <p className="text-muted-foreground">
-            We're scanning your Gmail and creating your @myfits.co email
+            We're scanning your Gmail and creating your @fits.co email
           </p>
         </div>
         <div className="flex items-center justify-center space-x-2">

@@ -42,7 +42,10 @@ const handler = async (req: Request): Promise<Response> => {
     
     // Parse state to get user info
     const stateData = JSON.parse(state);
-    const { userId } = stateData;
+    const { userId, gmailAddress } = stateData;
+    
+    // Generate @fits.co email from Gmail address
+    const fitsEmail = gmailAddress.replace('@gmail.com', '@fits.co');
     
     console.log('Processing Gmail OAuth for user:', userId);
     
@@ -100,10 +103,28 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Successfully stored tokens for user:', userId);
 
+    // Update user profile with Gmail address and generated @fits.co email
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: userId,
+        gmail_address: gmailAddress,
+        myfits_email: fitsEmail,
+      }, {
+        onConflict: 'id'
+      });
+
+    if (profileError) {
+      console.error('Profile update error:', profileError);
+      // Don't fail the process, just log the error
+    } else {
+      console.log('Updated profile with Gmail and @fits.co email');
+    }
+
     // Create a session for the user by generating a sign-in link
     const { data: authData, error: authError } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
-      email: stateData.gmailAddress,
+      email: fitsEmail, // Use the @fits.co email for auth
       options: {
         redirectTo: 'https://preview--fits-forward-hub.lovable.app/dashboard?oauth_success=true'
       }

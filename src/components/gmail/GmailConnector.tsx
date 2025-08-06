@@ -31,8 +31,7 @@ export function GmailConnector() {
       authUrl.searchParams.set('prompt', 'consent');
       authUrl.searchParams.set('state', JSON.stringify({ 
         userId: user.id, 
-        gmailAddress: user.email,
-        myFitsEmail: user.email 
+        gmailAddress: user.email
       }));
 
       // Redirect directly to Gmail OAuth (same as auth page approach)
