@@ -18,9 +18,9 @@ export function GmailConnector() {
     setConnecting(true);
     
     try {
-      // Create Gmail OAuth URL
+      // Create Gmail OAuth URL  
       const scopes = 'https://www.googleapis.com/auth/gmail.readonly';
-      const redirectUri = `${window.location.origin}/auth/gmail/callback`;
+      const redirectUri = 'https://ijawvesjgyddyiymiahk.supabase.co/functions/v1/gmail-oauth';
       
       const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       authUrl.searchParams.set('client_id', '285808769366-lqlshgojp9cjesg92dcd5a0ige10si7d.apps.googleusercontent.com');
@@ -29,24 +29,14 @@ export function GmailConnector() {
       authUrl.searchParams.set('scope', scopes);
       authUrl.searchParams.set('access_type', 'offline');
       authUrl.searchParams.set('prompt', 'consent');
-      authUrl.searchParams.set('state', user.id);
+      authUrl.searchParams.set('state', JSON.stringify({ 
+        userId: user.id, 
+        gmailAddress: user.email,
+        myFitsEmail: user.email 
+      }));
 
-      // Open OAuth popup
-      const popup = window.open(
-        authUrl.toString(),
-        'gmail-oauth',
-        'width=500,height=600'
-      );
-
-      // Listen for popup completion
-      const checkClosed = setInterval(() => {
-        if (popup?.closed) {
-          clearInterval(checkClosed);
-          setConnecting(false);
-          // Check if connection was successful
-          checkGmailConnection();
-        }
-      }, 1000);
+      // Redirect directly to Gmail OAuth (same as auth page approach)
+      window.location.href = authUrl.toString();
 
     } catch (error: any) {
       console.error('Gmail connection error:', error);
