@@ -57,18 +57,16 @@ export default function Auth() {
     setError("");
 
     try {
-      // Generate their myfits.co email
-      const myFitsEmail = generateMyFitsEmail(gmailAddress);
-      
-      // Create user with their myfits.co email (no password needed)
+      // Use the actual Gmail address for authentication
+      // Create user with their Gmail address  
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: myFitsEmail,
+        email: gmailAddress,
         password: Math.random().toString(36), // Generate random password they'll never need
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             gmail_address: gmailAddress,
-            myfits_email: myFitsEmail,
+            myfits_email: generateMyFitsEmail(gmailAddress),
           }
         },
       });
@@ -77,7 +75,7 @@ export default function Auth() {
         // If user already exists, try to sign them in
         if (authError.message.includes('already registered')) {
           const { error: signInError } = await supabase.auth.signInWithOtp({
-            email: myFitsEmail,
+            email: gmailAddress,
             options: {
               emailRedirectTo: `${window.location.origin}/dashboard`,
             }
@@ -89,14 +87,14 @@ export default function Auth() {
           
           toast({
             title: "Login link sent!",
-            description: `Check your email at ${myFitsEmail} for the login link.`,
+            description: `Check your Gmail inbox for the login link.`,
           });
         } else {
           throw authError;
         }
       } else {
         // Start Gmail OAuth flow
-        await initiateGmailOAuth(authData.user?.id, gmailAddress, myFitsEmail);
+        await initiateGmailOAuth(authData.user?.id, gmailAddress, generateMyFitsEmail(gmailAddress));
       }
     } catch (error: any) {
       setError(error.message);
