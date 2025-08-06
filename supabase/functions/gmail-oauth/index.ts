@@ -25,6 +25,9 @@ const handler = async (req: Request): Promise<Response> => {
     const { code, userId }: OAuthRequest = await req.json();
     
     console.log('Processing Gmail OAuth for user:', userId);
+    console.log('Authorization code received:', code ? 'Yes' : 'No');
+    console.log('Google Client ID configured:', Deno.env.get('GOOGLE_CLIENT_ID') ? 'Yes' : 'No');
+    console.log('Google Client Secret configured:', Deno.env.get('GOOGLE_CLIENT_SECRET') ? 'Yes' : 'No');
 
     // Exchange authorization code for tokens
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
