@@ -244,17 +244,17 @@ function extractBrandName(senderEmail: string, senderName: string, subject: stri
   
   if (domain) {
     // Common brand patterns
-    const brandPatterns = [
-      'nike.com' => 'Nike',
-      'everlane.com' => 'Everlane',
-      'uniqlo.com' => 'Uniqlo',
-      'zara.com' => 'Zara',
-      'llbean.com' => 'LL Bean',
-      'patagonia.com' => 'Patagonia',
-      'amazon.com' => 'Amazon',
-      'target.com' => 'Target',
-      'walmart.com' => 'Walmart',
-    ];
+    const brandPatterns = {
+      'nike.com': 'Nike',
+      'everlane.com': 'Everlane',
+      'uniqlo.com': 'Uniqlo',
+      'zara.com': 'Zara',
+      'llbean.com': 'LL Bean',
+      'patagonia.com': 'Patagonia',
+      'amazon.com': 'Amazon',
+      'target.com': 'Target',
+      'walmart.com': 'Walmart',
+    };
     
     for (const [domainPattern, brand] of Object.entries(brandPatterns)) {
       if (domain.includes(domainPattern.replace('.com', ''))) {
