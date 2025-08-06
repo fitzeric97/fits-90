@@ -10,6 +10,7 @@ import { ExternalLink, Heart, Trash2, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { TestLikeButton } from "@/components/testing/TestLikeButton";
 
 interface Like {
   id: string;
@@ -60,29 +61,29 @@ export default function Likes() {
   };
 
   const addManualLike = async () => {
-    if (!newLike.url || !newLike.title) {
+    if (!newLike.url) {
       toast({
         title: "Missing Information",
-        description: "Please enter both URL and title",
+        description: "Please enter a URL",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      const { error } = await supabase
-        .from('user_likes')
-        .insert({
-          user_id: user?.id,
+      // Use the edge function to extract product data and add to likes
+      const { data, error } = await supabase.functions.invoke('add-url-to-likes', {
+        body: {
           url: newLike.url,
-          title: newLike.title,
-        });
+          title: newLike.title || undefined
+        }
+      });
 
       if (error) throw error;
 
       toast({
         title: "Like Added!",
-        description: "Item saved to your likes",
+        description: `${data.like.brand_name || 'Product'} saved to your likes`,
       });
 
       setNewLike({ url: '', title: '' });
@@ -141,6 +142,7 @@ export default function Likes() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        <TestLikeButton />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">My Likes</h1>

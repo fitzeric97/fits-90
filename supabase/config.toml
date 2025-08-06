@@ -51,3 +51,6 @@ verify_jwt = false
 
 [functions.receive-email]
 verify_jwt = false
+
+[functions.add-url-to-likes]
+verify_jwt = true
