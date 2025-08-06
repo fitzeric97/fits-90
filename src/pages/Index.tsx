@@ -72,6 +72,42 @@ const Index = () => {
         </div>
       </div>
 
+      {/* How It Works Section */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
+          <div className="grid gap-8 md:grid-cols-3 mb-16">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 text-primary-foreground font-bold text-2xl">
+                1
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Sign Up with Gmail</h3>
+              <p className="text-muted-foreground">
+                Connect your Gmail account to automatically import and organize all your existing promotional emails from your favorite brands.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 text-primary-foreground font-bold text-2xl">
+                2
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Get Your @myfits.co Email</h3>
+              <p className="text-muted-foreground">
+                Receive your personal @myfits.co email address. Use this for all new brand signups to keep promotions organized and your main inbox clean.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 text-primary-foreground font-bold text-2xl">
+                3
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Share Product Links</h3>
+              <p className="text-muted-foreground">
+                Found something you like? Email the product link to your @myfits.co address and we'll automatically save it to your likes collection.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Features Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="grid gap-8 md:grid-cols-3">
