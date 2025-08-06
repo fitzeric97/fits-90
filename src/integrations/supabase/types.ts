@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          gmail_address: string | null
+          id: string
+          myfits_email: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          gmail_address?: string | null
+          id: string
+          myfits_email?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          gmail_address?: string | null
+          id?: string
+          myfits_email?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       promotional_emails: {
         Row: {
           body_html: string | null

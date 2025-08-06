@@ -37,26 +37,6 @@ export default function Auth() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/dashboard");
-      }
-    };
-
-    checkUser();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/dashboard");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
 
   const generateMyFitsEmail = (gmailAddress: string): string => {
     // Extract username from Gmail address and create myfits.co email
@@ -161,15 +141,18 @@ export default function Auth() {
           </div>
           <h1 className="text-3xl font-bold">Welcome to Fits</h1>
           <p className="text-muted-foreground mt-2">
-            Sign in to access your promotional email dashboard
+            Enter your Gmail to get started and receive your @myfits.co email
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Authentication</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Connect Your Gmail
+            </CardTitle>
             <CardDescription>
-              Sign in to your account or create a new one
+              We'll scan your promotional emails and create your personal @myfits.co address
             </CardDescription>
           </CardHeader>
           <CardContent>
