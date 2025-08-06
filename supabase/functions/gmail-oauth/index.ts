@@ -26,10 +26,20 @@ const handler = async (req: Request): Promise<Response> => {
     
     console.log('Processing Gmail OAuth for user:', userId);
     console.log('Authorization code received:', code ? 'Yes' : 'No');
-    console.log('Google Client ID configured:', Deno.env.get('GOOGLE_CLIENT_ID') ? 'Yes' : 'No');
-    console.log('Google Client Secret configured:', Deno.env.get('GOOGLE_CLIENT_SECRET') ? 'Yes' : 'No');
-
-    // Exchange authorization code for tokens
+    
+    const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
+    const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
+    
+    console.log('Google Client ID configured:', clientId ? 'Yes (length: ' + clientId.length + ')' : 'No');
+    console.log('Google Client Secret configured:', clientSecret ? 'Yes (length: ' + clientSecret.length + ')' : 'No');
+    
+    if (!clientId || !clientSecret) {
+      throw new Error('Google OAuth credentials not configured');
+    }
+    
+    if (!code || !userId) {
+      throw new Error('Missing required parameters: code or userId');
+    }
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: {
