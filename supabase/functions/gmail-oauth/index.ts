@@ -98,14 +98,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Successfully stored tokens for user:', userId);
 
-    // Redirect the user back to the frontend with success
-    const frontendUrl = new URL('https://preview--fits-forward-hub.lovable.app/dashboard');
-    frontendUrl.searchParams.set('oauth_success', 'true');
-    
+    // Create a session for the user by generating a sign-in link
+    const { data: authData, error: authError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: stateData.gmailAddress,
+      options: {
+        redirectTo: 'https://preview--fits-forward-hub.lovable.app/dashboard?oauth_success=true'
+      }
+    });
+
+    if (authError) {
+      console.error('Auth error:', authError);
+      throw new Error('Failed to create auth session');
+    }
+
+    console.log('Generated auth link for user');
+
+    // Redirect the user to the auth link which will sign them in
     return new Response(null, {
       status: 302,
       headers: {
-        'Location': frontendUrl.toString(),
+        'Location': authData.properties?.action_link || 'https://preview--fits-forward-hub.lovable.app/dashboard?oauth_success=true',
         ...corsHeaders
       }
     });
