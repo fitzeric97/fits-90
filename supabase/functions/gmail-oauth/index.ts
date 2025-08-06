@@ -37,7 +37,7 @@ const handler = async (req: Request): Promise<Response> => {
         client_secret: Deno.env.get('GOOGLE_CLIENT_SECRET') ?? '',
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: `${Deno.env.get('SUPABASE_URL')}/functions/v1/gmail-oauth`,
+        redirect_uri: 'https://ijawvesjgyddyiymiahk.supabase.co/functions/v1/gmail-oauth',
       }),
     });
 
