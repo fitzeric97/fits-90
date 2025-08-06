@@ -42,3 +42,6 @@ verify_jwt = false
 
 [functions.scan-gmail]
 verify_jwt = false
+
+[functions.google-oauth-handler]
+verify_jwt = true

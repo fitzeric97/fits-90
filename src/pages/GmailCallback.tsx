@@ -2,10 +2,12 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export default function GmailCallback() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleGmailCallback = async () => {
@@ -15,6 +17,51 @@ export default function GmailCallback() {
         const state = urlParams.get('state');
         const error = urlParams.get('error');
 
+        // Check if this is a Google OAuth callback (user is already authenticated)
+        if (user && user.email) {
+          console.log('Google OAuth user detected:', user.email);
+          
+          // Generate @fits.co email from user's Google email
+          const fitsEmail = user.email.replace('@gmail.com', '@fits.co');
+          
+          // Update profile with Gmail address and generated @fits.co email
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: user.id,
+              gmail_address: user.email,
+              myfits_email: fitsEmail,
+            }, {
+              onConflict: 'id'
+            });
+
+          if (profileError) {
+            console.error('Profile update error:', profileError);
+          }
+
+          // Start email scanning with user's ID
+          const { data: scanData, error: scanError } = await supabase.functions.invoke('scan-gmail', {
+            body: {
+              userId: user.id,
+              maxResults: 100,
+            },
+          });
+
+          if (scanError) {
+            console.error('Scan error:', scanError);
+            // Don't throw here - let them access dashboard even if scan fails
+          }
+
+          toast({
+            title: "Welcome to Fits!",
+            description: `Your @fits.co email is ready! We've scanned ${scanData?.processed || 0} promotional emails.`,
+          });
+
+          navigate('/dashboard');
+          return;
+        }
+
+        // Handle direct Gmail OAuth flow (legacy)
         if (error) {
           throw new Error(`Gmail OAuth error: ${error}`);
         }
@@ -59,7 +106,7 @@ export default function GmailCallback() {
           description: `Your @fits.co email is ready! We've scanned ${scanData?.processed || 0} promotional emails.`,
         });
 
-        // Sign in the user
+        // Sign in the user with the @fits.co email
         const { error: signInError } = await supabase.auth.signInWithOtp({
           email: fitsEmail,
           options: {
@@ -85,7 +132,7 @@ export default function GmailCallback() {
     };
 
     handleGmailCallback();
-  }, [navigate, toast]);
+  }, [navigate, toast, user]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
