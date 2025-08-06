@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, MoreHorizontal, Eye, Trash2 } from "lucide-react";
+import { Search, Filter, MoreHorizontal, Eye, Trash2, CheckSquare, Square } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +10,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { GmailConnector } from "@/components/gmail/GmailConnector";
+import { useToast } from "@/components/ui/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Promotion {
   id: string;
@@ -28,7 +30,10 @@ export function PromotionsTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortOrder, setSortOrder] = useState("latest");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -56,6 +61,84 @@ export function PromotionsTable() {
       console.error('Error fetching promotions:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredPromotions.map(p => p.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedIds);
+    if (checked) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('promotional_emails')
+        .delete()
+        .in('id', Array.from(selectedIds));
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: `Deleted ${selectedIds.size} promotional email${selectedIds.size === 1 ? '' : 's'}`,
+      });
+
+      setSelectedIds(new Set());
+      await fetchPromotions();
+    } catch (error: any) {
+      console.error('Error deleting promotions:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete promotional emails",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteSingle = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('promotional_emails')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Promotional email deleted",
+      });
+
+      await fetchPromotions();
+    } catch (error: any) {
+      console.error('Error deleting promotion:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete promotional email",
+        variant: "destructive",
+      });
     }
   };
 
@@ -172,12 +255,36 @@ export function PromotionsTable() {
               </SelectContent>
             </Select>
           </div>
+          
+          {selectedIds.size > 0 && (
+            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+              <span className="text-sm text-muted-foreground">
+                {selectedIds.size} item{selectedIds.size === 1 ? '' : 's'} selected
+              </span>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={handleDeleteSelected}
+                disabled={isDeleting}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {isDeleting ? 'Deleting...' : 'Delete Selected'}
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={filteredPromotions.length > 0 && selectedIds.size === filteredPromotions.length}
+                    onCheckedChange={handleSelectAll}
+                    aria-label="Select all"
+                  />
+                </TableHead>
                 <TableHead className="w-16">Brand</TableHead>
                 <TableHead>Brand Name</TableHead>
                 <TableHead>Subject Line</TableHead>
@@ -188,6 +295,13 @@ export function PromotionsTable() {
             <TableBody>
                 {filteredPromotions.map((promotion) => (
                   <TableRow key={promotion.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(promotion.id)}
+                        onCheckedChange={(checked) => handleSelectOne(promotion.id, !!checked)}
+                        aria-label={`Select ${promotion.brand_name}`}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="w-8 h-8 bg-primary/10 rounded-md flex items-center justify-center">
                         <span className="text-xs font-semibold text-primary">
@@ -202,27 +316,30 @@ export function PromotionsTable() {
                         {formatExpiryTime(promotion.expires_at)}
                       </Badge>
                     </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Email
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Email
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={() => handleDeleteSingle(promotion.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </div>
