@@ -348,8 +348,80 @@ function extractBrandName(senderEmail: string, senderName: string, subject: stri
 function isFashionRelated(subject: string, snippet: string, senderEmail: string, brandName: string): boolean {
   const text = `${subject} ${snippet}`.toLowerCase();
   const domain = senderEmail.split('@')[1]?.toLowerCase();
+  const email = senderEmail.toLowerCase();
   
-  // Fashion-specific keywords
+  // EXCLUSION FILTERS - Immediately exclude these categories
+  const exclusionKeywords = [
+    // Healthcare & Medical
+    'patient', 'medical', 'health', 'doctor', 'appointment', 'prescription', 'pharmacy',
+    'hospital', 'clinic', 'dental', 'insurance', 'medicare', 'medicaid',
+    
+    // Entertainment & Streaming
+    'netflix', 'prime video', 'primevideo', 'hulu', 'disney+', 'spotify', 'youtube',
+    'streaming', 'movie', 'show', 'series', 'episode', 'season',
+    
+    // Government & Services
+    'toll', 'traffic', 'parking', 'citation', 'violation', 'court', 'jury',
+    'government', 'tax', 'irs', 'dmv', 'license', 'registration', 'permit',
+    'hctra', 'municipal', 'county', 'state', 'federal',
+    
+    // Sports & Recreation (non-apparel)
+    'hockey', 'football', 'baseball', 'basketball', 'soccer', 'game', 'season',
+    'ticket', 'schedule', 'score', 'league', 'team', 'match', 'tournament',
+    'fantasy', 'draft', 'playoff', 'championship',
+    
+    // Technology & Software
+    'software', 'app', 'download', 'update', 'security', 'password', 'login',
+    'account', 'verification', 'confirm', 'reset', 'backup',
+    
+    // Finance & Banking
+    'bank', 'credit', 'loan', 'mortgage', 'investment', 'portfolio', 'statement',
+    'payment', 'bill', 'invoice', 'receipt', 'transaction',
+    
+    // Travel & Transportation
+    'flight', 'airline', 'hotel', 'booking', 'reservation', 'itinerary',
+    'uber', 'lyft', 'taxi', 'car rental',
+    
+    // Food & Restaurants
+    'restaurant', 'delivery', 'doordash', 'grubhub', 'ubereats', 'menu',
+    'food', 'dining', 'takeout', 'pizza', 'coffee',
+    
+    // Education & Work
+    'course', 'training', 'webinar', 'conference', 'meeting', 'interview',
+    'job', 'career', 'resume', 'linkedin',
+    
+    // Utilities & Services
+    'electricity', 'gas', 'water', 'internet', 'cable', 'phone', 'utility',
+    'repair', 'maintenance', 'service call'
+  ];
+  
+  // Check for exclusion keywords
+  const hasExclusionKeywords = exclusionKeywords.some(keyword => 
+    text.includes(keyword) || email.includes(keyword) || brandName.toLowerCase().includes(keyword)
+  );
+  
+  if (hasExclusionKeywords) {
+    return false;
+  }
+  
+  // Exclude specific domains that are definitely not fashion
+  const excludedDomains = [
+    'primevideo', 'netflix', 'hulu', 'spotify', 'youtube',
+    'hctra', 'tolltag', 'ezpass', 'fastrak',
+    'usahockey', 'nhl', 'nfl', 'nba', 'mlb', 'espn',
+    'hospital', 'clinic', 'medical', 'health',
+    'bank', 'chase', 'wellsfargo', 'bofa', 'citi',
+    'amazon.aws', 'google.com', 'microsoft', 'apple.com',
+    'uber', 'lyft', 'doordash', 'grubhub'
+  ];
+  
+  const hasExcludedDomain = domain && excludedDomains.some(excluded => domain.includes(excluded));
+  
+  if (hasExcludedDomain) {
+    return false;
+  }
+  
+  // NOW check for fashion-specific keywords (must be present)
   const fashionKeywords = [
     // Clothing categories
     'clothing', 'apparel', 'fashion', 'style', 'outfit', 'wardrobe',
@@ -397,6 +469,7 @@ function isFashionRelated(subject: string, snippet: string, senderEmail: string,
   const fashionBrandKeywords = ['fashion', 'style', 'clothing', 'apparel', 'boutique'];
   const hasFashionBrand = fashionBrandKeywords.some(keyword => brandName.toLowerCase().includes(keyword));
   
+  // More restrictive: require either fashion keywords OR fashion domain/brand
   return hasFashionKeywords || hasFashionDomain || hasFashionBrand;
 }
 
