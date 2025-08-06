@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      closet_items: {
+        Row: {
+          brand_name: string
+          category: string | null
+          color: string | null
+          company_website_url: string | null
+          created_at: string
+          email_id: string | null
+          id: string
+          order_number: string | null
+          price: string | null
+          product_description: string | null
+          product_image_url: string | null
+          product_name: string | null
+          purchase_date: string | null
+          size: string | null
+          stored_image_path: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand_name: string
+          category?: string | null
+          color?: string | null
+          company_website_url?: string | null
+          created_at?: string
+          email_id?: string | null
+          id?: string
+          order_number?: string | null
+          price?: string | null
+          product_description?: string | null
+          product_image_url?: string | null
+          product_name?: string | null
+          purchase_date?: string | null
+          size?: string | null
+          stored_image_path?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand_name?: string
+          category?: string | null
+          color?: string | null
+          company_website_url?: string | null
+          created_at?: string
+          email_id?: string | null
+          id?: string
+          order_number?: string | null
+          price?: string | null
+          product_description?: string | null
+          product_image_url?: string | null
+          product_name?: string | null
+          purchase_date?: string | null
+          size?: string | null
+          stored_image_path?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "closet_items_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "promotional_emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null

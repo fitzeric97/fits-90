@@ -280,6 +280,16 @@ async function processEmail(messageId: string, accessToken: string, userId: stri
     return null;
   }
 
+  // Get full email body for order confirmations to extract product details
+  let bodyHtml = '';
+  let bodyText = '';
+  
+  if (email.payload) {
+    const { html, text } = extractEmailBody(email.payload);
+    bodyHtml = html;
+    bodyText = text;
+  }
+
   // Insert email into database
   const { data: insertedEmail, error: insertError } = await supabase
     .from('promotional_emails')
@@ -291,6 +301,8 @@ async function processEmail(messageId: string, accessToken: string, userId: stri
       brand_name: brandName,
       subject: subject,
       snippet: email.snippet || '',
+      body_html: bodyHtml,
+      body_text: bodyText,
       received_date: receivedDate,
       expires_at: expiresAt,
       is_expired: expiresAt ? new Date(expiresAt) < new Date() : false,
@@ -308,6 +320,16 @@ async function processEmail(messageId: string, accessToken: string, userId: stri
   if (insertError) {
     console.error(`Failed to insert email ${messageId}:`, insertError);
     return null;
+  }
+
+  // If this is an order confirmation, try to extract product information for closet
+  if (emailCategory === 'order_confirmation' && bodyHtml) {
+    try {
+      await extractProductsToCloset(userId, insertedEmail.id, brandName, bodyHtml, bodyText, orderNumber, receivedDate);
+    } catch (error) {
+      console.error('Error extracting products to closet:', error);
+      // Don't fail the entire email processing if closet extraction fails
+    }
   }
 
   return insertedEmail;
@@ -686,6 +708,206 @@ function extractOrderInfo(subject: string, snippet: string): { orderNumber: stri
   }
   
   return { orderNumber, orderTotal, orderItems };
+}
+
+// Function to extract email body content (HTML and text)
+function extractEmailBody(payload: any): { html: string, text: string } {
+  let html = '';
+  let text = '';
+  
+  function extractFromPayload(part: any) {
+    if (part.body && part.body.data) {
+      const data = part.body.data.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = atob(data);
+      
+      if (part.mimeType === 'text/html') {
+        html += decoded;
+      } else if (part.mimeType === 'text/plain') {
+        text += decoded;
+      }
+    }
+    
+    if (part.parts) {
+      part.parts.forEach((subPart: any) => extractFromPayload(subPart));
+    }
+  }
+  
+  extractFromPayload(payload);
+  return { html, text };
+}
+
+// Function to extract product information and add to closet
+async function extractProductsToCloset(
+  userId: string, 
+  emailId: string, 
+  brandName: string, 
+  bodyHtml: string, 
+  bodyText: string, 
+  orderNumber: string | null, 
+  purchaseDate: string
+) {
+  console.log(`Extracting products from order confirmation for ${brandName}`);
+  
+  // Extract product images from HTML
+  const imageRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+  const images: string[] = [];
+  let match;
+  
+  while ((match = imageRegex.exec(bodyHtml)) !== null) {
+    const imageUrl = match[1];
+    // Filter for product images (avoid logos, icons, tracking pixels)
+    if (imageUrl && 
+        !imageUrl.includes('logo') && 
+        !imageUrl.includes('icon') && 
+        !imageUrl.includes('pixel') &&
+        !imageUrl.includes('tracking') &&
+        !imageUrl.includes('1x1') &&
+        imageUrl.includes('http') &&
+        (imageUrl.includes('product') || imageUrl.includes('item') || imageUrl.width > 100)) {
+      images.push(imageUrl);
+    }
+  }
+  
+  // Extract product names and descriptions
+  const productInfo = extractProductDetails(bodyHtml, bodyText, brandName);
+  
+  // Extract company website URL
+  const websiteUrl = extractWebsiteUrl(bodyHtml, brandName);
+  
+  // For each product found, create a closet item
+  for (let i = 0; i < Math.max(1, images.length); i++) {
+    const productImage = images[i] || null;
+    const product = productInfo[i] || productInfo[0] || {};
+    
+    try {
+      const { error } = await supabase
+        .from('closet_items')
+        .insert({
+          user_id: userId,
+          email_id: emailId,
+          brand_name: brandName,
+          product_name: product.name || `${brandName} Item`,
+          product_description: product.description || 'Fashion item from order confirmation',
+          product_image_url: productImage,
+          company_website_url: websiteUrl,
+          purchase_date: purchaseDate,
+          order_number: orderNumber,
+          price: product.price || null,
+          size: product.size || null,
+          color: product.color || null,
+          category: categorizeProduct(product.name || '', product.description || ''),
+        });
+        
+      if (error) {
+        console.error('Error inserting closet item:', error);
+      } else {
+        console.log(`Added ${product.name || 'item'} to closet for ${brandName}`);
+      }
+    } catch (error) {
+      console.error('Error processing closet item:', error);
+    }
+  }
+}
+
+// Function to extract product details from email content
+function extractProductDetails(bodyHtml: string, bodyText: string, brandName: string): Array<{name?: string, description?: string, price?: string, size?: string, color?: string}> {
+  const products: Array<{name?: string, description?: string, price?: string, size?: string, color?: string}> = [];
+  
+  // Look for product tables or sections in HTML
+  const productSections = bodyHtml.split(/(?=<tr|<div[^>]*product|<div[^>]*item)/i);
+  
+  for (const section of productSections.slice(0, 5)) { // Limit to 5 products
+    const product: {name?: string, description?: string, price?: string, size?: string, color?: string} = {};
+    
+    // Extract product name
+    const nameMatch = section.match(/<(?:td|div|h[1-6])[^>]*>([^<]*(?:shirt|dress|pants|jeans|shoes|bag|jacket|coat|sweater|hoodie|top|skirt|shorts|boots|sneakers|sandals|belt|scarf|hat|watch|jewelry|necklace|bracelet|ring|earrings)[^<]*)<\/(?:td|div|h[1-6])>/i);
+    if (nameMatch) {
+      product.name = nameMatch[1].trim().replace(/\s+/g, ' ');
+    }
+    
+    // Extract price
+    const priceMatch = section.match(/\$\s*([\d,]+\.?\d*)/);
+    if (priceMatch) {
+      product.price = `$${priceMatch[1]}`;
+    }
+    
+    // Extract size
+    const sizeMatch = section.match(/size:\s*([XS|S|M|L|XL|XXL|\d+|[\d.]+)/i);
+    if (sizeMatch) {
+      product.size = sizeMatch[1];
+    }
+    
+    // Extract color
+    const colorMatch = section.match(/color:\s*([a-zA-Z\s]+)/i);
+    if (colorMatch) {
+      product.color = colorMatch[1].trim();
+    }
+    
+    if (product.name || product.price) {
+      products.push(product);
+    }
+  }
+  
+  // If no products found in HTML, try to extract from text
+  if (products.length === 0) {
+    const textLines = bodyText.split('\n');
+    for (const line of textLines) {
+      if (line.toLowerCase().includes('item') || line.toLowerCase().includes('product')) {
+        const product: {name?: string, description?: string, price?: string} = {};
+        product.name = line.trim();
+        const priceMatch = line.match(/\$\s*([\d,]+\.?\d*)/);
+        if (priceMatch) {
+          product.price = `$${priceMatch[1]}`;
+        }
+        products.push(product);
+        if (products.length >= 3) break; // Limit to 3 products from text
+      }
+    }
+  }
+  
+  return products.length > 0 ? products : [{ name: `${brandName} Item`, description: 'Fashion item from order confirmation' }];
+}
+
+// Function to extract company website URL
+function extractWebsiteUrl(bodyHtml: string, brandName: string): string | null {
+  // Look for links to the brand's website
+  const linkRegex = /<a[^>]+href=["']([^"']+)["'][^>]*>/gi;
+  let match;
+  
+  while ((match = linkRegex.exec(bodyHtml)) !== null) {
+    const url = match[1];
+    const domain = brandName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    if (url && url.includes('http') && 
+        (url.toLowerCase().includes(domain) || 
+         url.toLowerCase().includes(brandName.toLowerCase().replace(/\s+/g, '')))) {
+      return url;
+    }
+  }
+  
+  // Fallback: construct likely website URL
+  const domain = brandName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return `https://www.${domain}.com`;
+}
+
+// Function to categorize products
+function categorizeProduct(name: string, description: string): string {
+  const text = `${name} ${description}`.toLowerCase();
+  
+  if (text.match(/shoe|sneaker|boot|sandal|heel|flat|loafer/)) {
+    return 'shoes';
+  }
+  if (text.match(/bag|purse|handbag|backpack|clutch|wallet/)) {
+    return 'accessories';
+  }
+  if (text.match(/jewelry|necklace|bracelet|ring|earring|watch/)) {
+    return 'jewelry';
+  }
+  if (text.match(/dress|skirt|top|blouse|shirt|pants|jeans|shorts|jacket|coat|sweater|hoodie/)) {
+    return 'clothing';
+  }
+  
+  return 'other';
 }
 
 serve(handler);
