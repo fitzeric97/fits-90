@@ -45,3 +45,9 @@ verify_jwt = false
 
 [functions.google-oauth-handler]
 verify_jwt = true
+
+[functions.process-myfits-email]
+verify_jwt = false
+
+[functions.receive-email]
+verify_jwt = false
