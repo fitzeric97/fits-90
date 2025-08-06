@@ -1,0 +1,140 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/AuthProvider";
+
+export default function AuthCallback() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const handleAuthCallback = async () => {
+      try {
+        // Handle the OAuth callback
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Auth callback error:', error);
+          toast({
+            title: "Authentication Error",
+            description: error.message,
+            variant: "destructive",
+          });
+          navigate("/auth");
+          return;
+        }
+
+        if (data?.session?.user) {
+          console.log('User authenticated:', data.session.user.email);
+          
+          // Generate @myfits.co email from user's Google email
+          const userEmail = data.session.user.email || '';
+          const fitsEmail = userEmail.replace('@gmail.com', '@myfits.co');
+          
+          // Update or create profile with Gmail address and generated @myfits.co email
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: data.session.user.id,
+              gmail_address: userEmail,
+              myfits_email: fitsEmail,
+              display_name: data.session.user.user_metadata?.full_name || data.session.user.user_metadata?.name
+            }, {
+              onConflict: 'id'
+            });
+
+          if (profileError) {
+            console.error('Profile update error:', profileError);
+          }
+
+          // Add to connected accounts
+          const { error: accountError } = await supabase
+            .from('connected_gmail_accounts')
+            .upsert({
+              user_id: data.session.user.id,
+              gmail_address: userEmail,
+              display_name: data.session.user.user_metadata?.full_name || data.session.user.user_metadata?.name,
+              is_primary: true, // First account is primary
+            }, {
+              onConflict: 'user_id,gmail_address'
+            });
+
+          if (accountError) {
+            console.error('Connected account error:', accountError);
+          }
+
+          // Start Gmail OAuth flow to get API access
+          await initiateGmailOAuth(data.session.user.id, userEmail);
+          
+        } else {
+          // No session, redirect to auth
+          navigate("/auth");
+        }
+      } catch (error: any) {
+        console.error('Callback processing error:', error);
+        toast({
+          title: "Setup Error",
+          description: "Failed to complete setup. Please try again.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+      }
+    };
+
+    handleAuthCallback();
+  }, [navigate, toast]);
+
+  const initiateGmailOAuth = async (userId: string, gmailAddress: string) => {
+    try {
+      // Create Gmail OAuth URL for API access
+      const scopes = 'https://www.googleapis.com/auth/gmail.readonly';
+      const redirectUri = 'https://ijawvesjgyddyiymiahk.supabase.co/functions/v1/gmail-oauth';
+      
+      const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+      authUrl.searchParams.set('client_id', '285808769366-lqlshgojp9cjesg92dcd5a0ige10si7d.apps.googleusercontent.com');
+      authUrl.searchParams.set('redirect_uri', redirectUri);
+      authUrl.searchParams.set('response_type', 'code');
+      authUrl.searchParams.set('scope', scopes);
+      authUrl.searchParams.set('access_type', 'offline');
+      authUrl.searchParams.set('prompt', 'consent');
+      authUrl.searchParams.set('login_hint', gmailAddress);
+      authUrl.searchParams.set('state', JSON.stringify({ 
+        userId, 
+        gmailAddress,
+        isAdditionalAccount: false,
+        redirectTo: `${window.location.origin}/dashboard`
+      }));
+
+      // Redirect to Gmail OAuth
+      window.location.href = authUrl.toString();
+      
+    } catch (error: any) {
+      console.error('Gmail OAuth initiation error:', error);
+      toast({
+        title: "Gmail Connection Error",
+        description: "Failed to connect to Gmail. Please try from Settings.",
+        variant: "destructive",
+      });
+      navigate("/dashboard");
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-center">
+        <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+          <span className="text-primary-foreground font-bold text-2xl">F</span>
+        </div>
+        <h2 className="text-xl font-semibold mb-2">Setting up your account...</h2>
+        <p className="text-muted-foreground">Connecting to Gmail and setting up your dashboard</p>
+        <div className="mt-4 flex items-center justify-center space-x-2">
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+        </div>
+      </div>
+    </div>
+  );
+}
