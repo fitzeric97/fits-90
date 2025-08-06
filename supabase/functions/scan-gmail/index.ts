@@ -188,13 +188,23 @@ async function processEmail(messageId: string, accessToken: string, userId: stri
   const senderEmail = emailMatch ? emailMatch[1] : from;
   const senderName = emailMatch ? from.replace(emailMatch[0], '').trim().replace(/"/g, '') : senderEmail;
 
-  // Extract brand name (simplified)
+  // Extract brand name
   const brandName = extractBrandName(senderEmail, senderName, subject);
+  
+  // Check if this is a fashion/clothing related email
+  const isFashionEmail = isFashionRelated(subject, email.snippet || '', senderEmail, brandName);
+  
+  if (!isFashionEmail) {
+    console.log(`Skipping non-fashion email from ${brandName}: ${subject}`);
+    return null;
+  }
+  
+  console.log(`Processing fashion email from ${brandName}: ${subject}`);
   
   // Parse received date
   const receivedDate = new Date(parseInt(email.internalDate)).toISOString();
 
-  // Extract expiration date (simplified pattern matching)
+  // Extract expiration date
   const expiresAt = extractExpirationDate(subject, email.snippet || '');
 
   // Check if email already exists
@@ -243,20 +253,82 @@ function extractBrandName(senderEmail: string, senderName: string, subject: stri
   const domain = senderEmail.split('@')[1];
   
   if (domain) {
-    // Common brand patterns
-    const brandPatterns = {
+    // Fashion and clothing brands
+    const fashionBrands = {
       'nike.com': 'Nike',
-      'everlane.com': 'Everlane',
-      'uniqlo.com': 'Uniqlo',
+      'adidas.com': 'Adidas',
       'zara.com': 'Zara',
-      'llbean.com': 'LL Bean',
+      'hm.com': 'H&M',
+      'uniqlo.com': 'Uniqlo',
+      'gap.com': 'Gap',
+      'oldnavy.com': 'Old Navy',
+      'bananarepublic.com': 'Banana Republic',
+      'jcrew.com': 'J.Crew',
+      'everlane.com': 'Everlane',
       'patagonia.com': 'Patagonia',
-      'amazon.com': 'Amazon',
+      'llbean.com': 'LL Bean',
+      'northface.com': 'The North Face',
+      'levi.com': 'Levi\'s',
+      'calvinklein.com': 'Calvin Klein',
+      'tommyhilfiger.com': 'Tommy Hilfiger',
+      'ralphlauren.com': 'Ralph Lauren',
+      'gucci.com': 'Gucci',
+      'prada.com': 'Prada',
+      'versace.com': 'Versace',
+      'burberry.com': 'Burberry',
+      'coach.com': 'Coach',
+      'katespade.com': 'Kate Spade',
+      'michaelkors.com': 'Michael Kors',
+      'marcjacobs.com': 'Marc Jacobs',
+      'rayban.com': 'Ray-Ban',
+      'oakley.com': 'Oakley',
+      'warbyparker.com': 'Warby Parker',
+      'allbirds.com': 'Allbirds',
+      'vans.com': 'Vans',
+      'converse.com': 'Converse',
+      'newbalance.com': 'New Balance',
+      'reebok.com': 'Reebok',
+      'underarmour.com': 'Under Armour',
+      'lululemon.com': 'Lululemon',
+      'athleta.com': 'Athleta',
+      'fabletics.com': 'Fabletics',
+      'asos.com': 'ASOS',
+      'boohoo.com': 'Boohoo',
+      'prettylittlething.com': 'PrettyLittleThing',
+      'fashionnova.com': 'Fashion Nova',
+      'shein.com': 'SHEIN',
+      'urbanoutfitters.com': 'Urban Outfitters',
+      'freepeople.com': 'Free People',
+      'anthropologie.com': 'Anthropologie',
+      'nordstrom.com': 'Nordstrom',
+      'saksfifthavenue.com': 'Saks Fifth Avenue',
+      'neimanmarcus.com': 'Neiman Marcus',
+      'bergdorfgoodman.com': 'Bergdorf Goodman',
+      'ssense.com': 'SSENSE',
+      'farfetch.com': 'Farfetch',
+      'netaporter.com': 'Net-A-Porter',
+      'matchesfashion.com': 'Matches Fashion',
+      'revolve.com': 'Revolve',
+      'shopbop.com': 'Shopbop',
+      'theoutnet.com': 'The Outnet',
+      'gilt.com': 'Gilt',
+      'ruelala.com': 'Rue La La',
+      'hautelook.com': 'HauteLook',
       'target.com': 'Target',
       'walmart.com': 'Walmart',
+      'amazon.com': 'Amazon',
+      'costco.com': 'Costco',
+      'macys.com': 'Macy\'s',
+      'dillards.com': 'Dillard\'s',
+      'kohls.com': 'Kohl\'s',
+      'jcpenney.com': 'JCPenney',
+      'tjmaxx.com': 'TJ Maxx',
+      'marshalls.com': 'Marshalls',
+      'nordstromrack.com': 'Nordstrom Rack',
+      'saksfifthavenue.com': 'Saks OFF 5TH',
     };
     
-    for (const [domainPattern, brand] of Object.entries(brandPatterns)) {
+    for (const [domainPattern, brand] of Object.entries(fashionBrands)) {
       if (domain.includes(domainPattern.replace('.com', ''))) {
         return brand;
       }
@@ -270,6 +342,62 @@ function extractBrandName(senderEmail: string, senderName: string, subject: stri
   
   // Fallback to sender name
   return senderName || 'Unknown Brand';
+}
+
+// New function to check if email is fashion/clothing related
+function isFashionRelated(subject: string, snippet: string, senderEmail: string, brandName: string): boolean {
+  const text = `${subject} ${snippet}`.toLowerCase();
+  const domain = senderEmail.split('@')[1]?.toLowerCase();
+  
+  // Fashion-specific keywords
+  const fashionKeywords = [
+    // Clothing categories
+    'clothing', 'apparel', 'fashion', 'style', 'outfit', 'wardrobe',
+    'shirt', 'dress', 'pants', 'jeans', 'skirt', 'shorts', 'top', 'blouse',
+    'jacket', 'coat', 'sweater', 'hoodie', 'cardigan', 'blazer',
+    'lingerie', 'underwear', 'bra', 'panties', 'sleepwear', 'pajamas',
+    'swimwear', 'bikini', 'swimsuit', 'bathing suit',
+    
+    // Footwear
+    'shoes', 'sneakers', 'boots', 'sandals', 'heels', 'flats', 'loafers',
+    'athletic shoes', 'running shoes', 'dress shoes', 'casual shoes',
+    
+    // Accessories
+    'accessories', 'jewelry', 'necklace', 'bracelet', 'earrings', 'ring',
+    'watch', 'bag', 'purse', 'handbag', 'backpack', 'wallet', 'clutch',
+    'belt', 'scarf', 'hat', 'cap', 'sunglasses', 'glasses', 'tie',
+    'gloves', 'socks', 'stockings', 'tights',
+    
+    // Fashion terms
+    'collection', 'new arrivals', 'seasonal', 'trends', 'designer',
+    'couture', 'runway', 'lookbook', 'styling', 'fit', 'size',
+    
+    // Sales terms specific to fashion
+    'wardrobe refresh', 'closet cleanout', 'seasonal sale', 'end of season',
+    'new season', 'spring collection', 'summer styles', 'fall fashion',
+    'winter wear', 'holiday outfits', 'back to school',
+    
+    // Brand-specific terms
+    'activewear', 'athleisure', 'sportswear', 'formal wear', 'casual wear',
+    'business attire', 'evening wear', 'cocktail dress', 'little black dress'
+  ];
+  
+  // Check if any fashion keywords are present
+  const hasFashionKeywords = fashionKeywords.some(keyword => text.includes(keyword));
+  
+  // Check if it's from a known fashion domain
+  const fashionDomains = [
+    'fashion', 'style', 'clothing', 'apparel', 'shoes', 'accessories',
+    'jewelry', 'bags', 'sunglasses', 'watches', 'boutique', 'closet'
+  ];
+  
+  const hasFashionDomain = domain && fashionDomains.some(keyword => domain.includes(keyword));
+  
+  // Check if brand name suggests fashion
+  const fashionBrandKeywords = ['fashion', 'style', 'clothing', 'apparel', 'boutique'];
+  const hasFashionBrand = fashionBrandKeywords.some(keyword => brandName.toLowerCase().includes(keyword));
+  
+  return hasFashionKeywords || hasFashionDomain || hasFashionBrand;
 }
 
 function extractExpirationDate(subject: string, snippet: string): string | null {
