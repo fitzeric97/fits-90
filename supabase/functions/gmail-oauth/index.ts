@@ -42,10 +42,9 @@ const handler = async (req: Request): Promise<Response> => {
     
     // Parse state to get user info
     const stateData = JSON.parse(state);
-    const { userId, gmailAddress } = stateData;
+    const { userId, gmailAddress, isAdditionalAccount, redirectTo } = stateData;
     
-    // Generate @fits.co email from Gmail address
-    const fitsEmail = gmailAddress.replace('@gmail.com', '@fits.co');
+    console.log('Processing for user:', userId, 'Additional account:', isAdditionalAccount);
     
     console.log('Processing Gmail OAuth for user:', userId);
     
@@ -81,6 +80,22 @@ const handler = async (req: Request): Promise<Response> => {
     const tokens = await tokenResponse.json();
     console.log('Received tokens for user:', userId);
 
+    // Get Gmail address from Google API
+    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        'Authorization': `Bearer ${tokens.access_token}`
+      }
+    });
+    
+    if (!userInfoResponse.ok) {
+      throw new Error('Failed to get user info from Google');
+    }
+    
+    const userInfo = await userInfoResponse.json();
+    const actualGmailAddress = userInfo.email;
+    
+    console.log('Retrieved Gmail address:', actualGmailAddress);
+
     // Store tokens in database
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
     
@@ -88,12 +103,13 @@ const handler = async (req: Request): Promise<Response> => {
       .from('user_gmail_tokens')
       .upsert({
         user_id: userId,
+        gmail_address: actualGmailAddress,
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expires_at: expiresAt,
         scope: tokens.scope || 'https://www.googleapis.com/auth/gmail.readonly',
       }, {
-        onConflict: 'user_id'
+        onConflict: 'user_id,gmail_address'
       });
 
     if (dbError) {
@@ -103,48 +119,84 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Successfully stored tokens for user:', userId);
 
-    // Update user profile with Gmail address and generated @fits.co email
-    const { error: profileError } = await supabase
-      .from('profiles')
+    // Add to connected accounts table
+    const { error: accountError } = await supabase
+      .from('connected_gmail_accounts')
       .upsert({
-        id: userId,
-        gmail_address: gmailAddress,
-        myfits_email: fitsEmail,
+        user_id: userId,
+        gmail_address: actualGmailAddress,
+        display_name: userInfo.name,
+        is_primary: !isAdditionalAccount, // First account is primary, additional accounts are not
       }, {
-        onConflict: 'id'
+        onConflict: 'user_id,gmail_address'
       });
 
-    if (profileError) {
-      console.error('Profile update error:', profileError);
+    if (accountError) {
+      console.error('Connected account error:', accountError);
       // Don't fail the process, just log the error
     } else {
-      console.log('Updated profile with Gmail and @fits.co email');
+      console.log('Added connected account for:', actualGmailAddress);
     }
 
-    // Create a session for the user by generating a sign-in link
-    const { data: authData, error: authError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: fitsEmail, // Use the @fits.co email for auth
-      options: {
-        redirectTo: `${req.headers.get('origin') || 'https://preview--fits-forward-hub.lovable.app'}/dashboard?oauth_success=true`
-      }
-    });
+    // For new users (not additional accounts), update the profile
+    if (!isAdditionalAccount) {
+      const fitsEmail = actualGmailAddress.replace('@gmail.com', '@fits.co');
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: userId,
+          gmail_address: actualGmailAddress,
+          myfits_email: fitsEmail,
+        }, {
+          onConflict: 'id'
+        });
 
-    if (authError) {
-      console.error('Auth error:', authError);
-      throw new Error('Failed to create auth session');
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+      } else {
+        console.log('Updated profile with Gmail and @fits.co email');
+      }
     }
 
-    console.log('Generated auth link for user');
+    // Handle redirect based on account type
+    if (isAdditionalAccount) {
+      // For additional accounts, just redirect back to settings
+      const redirectUrl = redirectTo || `${req.headers.get('origin') || 'https://preview--fits-forward-hub.lovable.app'}/settings?gmail_connected=true`;
+      
+      return new Response(null, {
+        status: 302,
+        headers: {
+          'Location': redirectUrl,
+          ...corsHeaders
+        }
+      });
+    } else {
+      // For new users, create auth session
+      const fitsEmail = actualGmailAddress.replace('@gmail.com', '@fits.co');
+      const { data: authData, error: authError } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: fitsEmail, // Use the @fits.co email for auth
+        options: {
+          redirectTo: `${req.headers.get('origin') || 'https://preview--fits-forward-hub.lovable.app'}/dashboard?oauth_success=true`
+        }
+      });
 
-    // Redirect the user to the auth link which will sign them in
-    return new Response(null, {
-      status: 302,
-      headers: {
-        'Location': authData.properties?.action_link || `${req.headers.get('origin') || 'https://preview--fits-forward-hub.lovable.app'}/dashboard?oauth_success=true`,
-        ...corsHeaders
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw new Error('Failed to create auth session');
       }
-    });
+
+      console.log('Generated auth link for user');
+
+      // Redirect the user to the auth link which will sign them in
+      return new Response(null, {
+        status: 302,
+        headers: {
+          'Location': authData.properties?.action_link || `${req.headers.get('origin') || 'https://preview--fits-forward-hub.lovable.app'}/dashboard?oauth_success=true`,
+          ...corsHeaders
+        }
+      });
+    }
 
   } catch (error: any) {
     console.error('Gmail OAuth error:', error);

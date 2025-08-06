@@ -13,6 +13,7 @@ const supabase = createClient(
 
 interface ScanRequest {
   userId: string;
+  gmailAddress?: string; // Optional - scan specific account or all if not provided
   maxResults?: number;
 }
 
@@ -22,130 +23,44 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { userId, maxResults = 50 }: ScanRequest = await req.json();
+    const { userId, gmailAddress, maxResults = 50 }: ScanRequest = await req.json();
     
-    console.log('Starting Gmail scan for user:', userId);
+    console.log('Starting Gmail scan for user:', userId, 'Gmail address:', gmailAddress);
 
-    // Get user's Gmail tokens
-    const { data: tokenData, error: tokenError } = await supabase
+    // Get user's Gmail tokens - either specific account or all accounts
+    let query = supabase
       .from('user_gmail_tokens')
       .select('*')
-      .eq('user_id', userId)
-      .single();
+      .eq('user_id', userId);
+      
+    if (gmailAddress) {
+      query = query.eq('gmail_address', gmailAddress);
+    }
 
-    if (tokenError || !tokenData) {
+    const { data: tokenData, error: tokenError } = await query;
+
+    if (tokenError || !tokenData || tokenData.length === 0) {
       throw new Error('Gmail not connected. Please connect your Gmail account first.');
     }
 
-    // Check if token needs refresh
-    const now = new Date();
-    const expiresAt = new Date(tokenData.expires_at);
+    // Process each connected account
+    const allProcessedEmails = [];
     
-    let accessToken = tokenData.access_token;
-    
-    if (now >= expiresAt) {
-      console.log('Refreshing expired token for user:', userId);
-      accessToken = await refreshAccessToken(tokenData.refresh_token, userId);
+    for (const tokens of tokenData) {
+      console.log(`Scanning account: ${tokens.gmail_address}`);
+      const accountEmails = await scanGmailAccount(tokens, userId, maxResults);
+      allProcessedEmails.push(...accountEmails);
     }
 
-    // Search for promotional emails first
-    console.log('Scanning promotional emails...');
-    const promoQuery = 'category:promotions OR from:(noreply OR marketing OR deals OR offers OR newsletter)';
-    
-    const promoResponse = await fetch(
-      `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(promoQuery)}&maxResults=${Math.floor(maxResults / 2)}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      }
-    );
-
-    if (!promoResponse.ok) {
-      throw new Error(`Gmail API error: ${await promoResponse.text()}`);
-    }
-
-    const promoResults = await promoResponse.json();
-    console.log(`Found ${promoResults.messages?.length || 0} promotional emails`);
-
-    // Process promotional emails
-    const processedEmails = [];
-    
-    if (promoResults.messages) {
-      for (const message of promoResults.messages.slice(0, Math.floor(maxResults / 2))) {
-        try {
-          const emailData = await processEmail(message.id, accessToken, userId, 'promotional');
-          if (emailData) {
-            processedEmails.push(emailData);
-          }
-        } catch (error) {
-          console.error(`Error processing promotional email ${message.id}:`, error);
-        }
-      }
-    }
-
-    // Get list of known fashion brands to search inbox
-    console.log('Scanning main inbox for fashion brand emails...');
-    
-    const { data: existingBrands } = await supabase
-      .from('promotional_emails')
-      .select('brand_name')
-      .eq('user_id', userId);
-      
-    const uniqueBrands = [...new Set(existingBrands?.map(e => e.brand_name) || [])];
-    
-    // Include major fashion brands in case user doesn't have any promotions yet
-    const majorFashionBrands = [
-      'Nike', 'Adidas', 'Zara', 'H&M', 'Uniqlo', 'Gap', 'Everlane', 'Patagonia',
-      'North Face', 'Levi', 'Calvin Klein', 'Ralph Lauren'
-    ];
-    
-    const allBrands = [...new Set([...uniqueBrands, ...majorFashionBrands])];
-    
-    // Search inbox for emails from fashion brands (limit to avoid API quota)
-    for (const brand of allBrands.slice(0, 8)) {
-      try {
-        const brandQuery = `from:${brand.toLowerCase().replace(/[^a-z0-9]/g, '')} OR from:"${brand}"`;
-        
-        const inboxResponse = await fetch(
-          `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(brandQuery)}&maxResults=10`,
-          {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (inboxResponse.ok) {
-          const inboxData = await inboxResponse.json();
-          const inboxMessages = inboxData.messages || [];
-          
-          console.log(`Found ${inboxMessages.length} inbox emails from ${brand}`);
-          
-          for (const message of inboxMessages) {
-            try {
-              const emailData = await processEmail(message.id, accessToken, userId, 'inbox');
-              if (emailData) {
-                processedEmails.push(emailData);
-              }
-            } catch (error) {
-              console.error(`Error processing inbox email ${message.id}:`, error);
-            }
-          }
-        }
-      } catch (error) {
-        console.error(`Error searching for brand ${brand}:`, error);
-      }
-    }
-
-    console.log(`Successfully processed ${processedEmails.length} emails for user:`, userId);
+    console.log(`Successfully processed ${allProcessedEmails.length} emails total for user:`, userId);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Processed ${processedEmails.length} promotional emails`,
-        processed: processedEmails.length,
-        emails: processedEmails
+        message: `Processed ${allProcessedEmails.length} promotional emails across ${tokenData.length} accounts`,
+        processed: allProcessedEmails.length,
+        emails: allProcessedEmails,
+        accountsScanned: tokenData.length
       }),
       {
         status: 200,
@@ -168,7 +83,112 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-async function refreshAccessToken(refreshToken: string, userId: string): Promise<string> {
+async function scanGmailAccount(tokens: any, userId: string, maxResults: number): Promise<any[]> {
+  // Check if token needs refresh
+  const now = new Date();
+  const expiresAt = new Date(tokens.expires_at);
+  
+  let accessToken = tokens.access_token;
+  
+  if (now >= expiresAt) {
+    console.log('Refreshing expired token for account:', tokens.gmail_address);
+    accessToken = await refreshAccessToken(tokens.refresh_token, userId, tokens.gmail_address);
+  }
+
+  // Search for promotional emails first
+  console.log('Scanning promotional emails...');
+  const promoQuery = 'category:promotions OR from:(noreply OR marketing OR deals OR offers OR newsletter)';
+  
+  const promoResponse = await fetch(
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(promoQuery)}&maxResults=${Math.floor(maxResults / 2)}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (!promoResponse.ok) {
+    throw new Error(`Gmail API error: ${await promoResponse.text()}`);
+  }
+
+  const promoResults = await promoResponse.json();
+  console.log(`Found ${promoResults.messages?.length || 0} promotional emails`);
+
+  // Process promotional emails
+  const processedEmails = [];
+  
+  if (promoResults.messages) {
+    for (const message of promoResults.messages.slice(0, Math.floor(maxResults / 2))) {
+      try {
+        const emailData = await processEmail(message.id, accessToken, userId, 'promotional');
+        if (emailData) {
+          processedEmails.push(emailData);
+        }
+      } catch (error) {
+        console.error(`Error processing promotional email ${message.id}:`, error);
+      }
+    }
+  }
+
+  // Get list of known fashion brands to search inbox
+  console.log('Scanning main inbox for fashion brand emails...');
+  
+  const { data: existingBrands } = await supabase
+    .from('promotional_emails')
+    .select('brand_name')
+    .eq('user_id', userId);
+    
+  const uniqueBrands = [...new Set(existingBrands?.map(e => e.brand_name) || [])];
+  
+  // Include major fashion brands in case user doesn't have any promotions yet
+  const majorFashionBrands = [
+    'Nike', 'Adidas', 'Zara', 'H&M', 'Uniqlo', 'Gap', 'Everlane', 'Patagonia',
+    'North Face', 'Levi', 'Calvin Klein', 'Ralph Lauren'
+  ];
+  
+  const allBrands = [...new Set([...uniqueBrands, ...majorFashionBrands])];
+  
+  // Search inbox for emails from fashion brands (limit to avoid API quota)
+  for (const brand of allBrands.slice(0, 8)) {
+    try {
+      const brandQuery = `from:${brand.toLowerCase().replace(/[^a-z0-9]/g, '')} OR from:"${brand}"`;
+      
+      const inboxResponse = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(brandQuery)}&maxResults=10`,
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (inboxResponse.ok) {
+        const inboxData = await inboxResponse.json();
+        const inboxMessages = inboxData.messages || [];
+        
+        console.log(`Found ${inboxMessages.length} inbox emails from ${brand}`);
+        
+        for (const message of inboxMessages) {
+          try {
+            const emailData = await processEmail(message.id, accessToken, userId, 'inbox');
+            if (emailData) {
+              processedEmails.push(emailData);
+            }
+          } catch (error) {
+            console.error(`Error processing inbox email ${message.id}:`, error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`Error searching for brand ${brand}:`, error);
+    }
+  }
+
+  return processedEmails;
+}
+
+async function refreshAccessToken(refreshToken: string, userId: string, gmailAddress: string): Promise<string> {
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: {
@@ -197,7 +217,8 @@ async function refreshAccessToken(refreshToken: string, userId: string): Promise
       access_token: tokens.access_token,
       expires_at: expiresAt,
     })
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .eq('gmail_address', gmailAddress);
 
   return tokens.access_token;
 }

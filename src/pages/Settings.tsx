@@ -10,9 +10,11 @@ import { useState, useEffect } from "react";
 import { ConnectedMailboxes } from "@/components/settings/ConnectedMailboxes";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Settings() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [emailCopied, setEmailCopied] = useState(false);
   const [notifications, setNotifications] = useState({
     daily: true,
@@ -30,7 +32,18 @@ export default function Settings() {
     if (user) {
       fetchUserProfile();
     }
-  }, [user]);
+    
+    // Check for Gmail connection success
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('gmail_connected') === 'true') {
+      toast({
+        title: "Gmail Connected!",
+        description: "Your additional Gmail account has been connected successfully.",
+      });
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [user, toast]);
 
   const fetchUserProfile = async () => {
     try {

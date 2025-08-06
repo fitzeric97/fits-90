@@ -11,7 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 interface ConnectedMailbox {
   id: string;
   gmail_address: string;
-  myfits_email: string;
+  display_name: string | null;
+  is_primary: boolean;
   created_at: string;
 }
 
@@ -31,10 +32,11 @@ export function ConnectedMailboxes() {
   const fetchConnectedMailboxes = async () => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, gmail_address, myfits_email, created_at')
-        .eq('id', user?.id)
-        .not('gmail_address', 'is', null);
+        .from('connected_gmail_accounts')
+        .select('id, gmail_address, display_name, is_primary, created_at')
+        .eq('user_id', user?.id)
+        .order('is_primary', { ascending: false })
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
 
@@ -53,33 +55,43 @@ export function ConnectedMailboxes() {
 
   const handleDisconnect = async (mailboxId: string) => {
     try {
-      // Remove Gmail tokens
+      // Get the Gmail address for this connection
+      const { data: accountData, error: accountError } = await supabase
+        .from('connected_gmail_accounts')
+        .select('gmail_address')
+        .eq('id', mailboxId)
+        .single();
+
+      if (accountError) throw accountError;
+
+      // Remove Gmail tokens for this specific account
       const { error: tokenError } = await supabase
         .from('user_gmail_tokens')
         .delete()
-        .eq('user_id', mailboxId);
+        .eq('user_id', user?.id)
+        .eq('gmail_address', accountData.gmail_address);
 
       if (tokenError) throw tokenError;
 
-      // Clear Gmail address from profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ gmail_address: null })
+      // Remove the connected account
+      const { error: accountDeleteError } = await supabase
+        .from('connected_gmail_accounts')
+        .delete()
         .eq('id', mailboxId);
 
-      if (profileError) throw profileError;
+      if (accountDeleteError) throw accountDeleteError;
 
       toast({
-        title: "Mailbox Disconnected",
-        description: "Gmail account has been disconnected successfully",
+        title: "Account Disconnected",
+        description: `${accountData.gmail_address} has been disconnected successfully`,
       });
 
       fetchConnectedMailboxes();
     } catch (error) {
-      console.error('Error disconnecting mailbox:', error);
+      console.error('Error disconnecting account:', error);
       toast({
         title: "Error",
-        description: "Failed to disconnect mailbox",
+        description: "Failed to disconnect account",
         variant: "destructive",
       });
     }
@@ -92,18 +104,18 @@ export function ConnectedMailboxes() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Connected Mailboxes</CardTitle>
+        <CardTitle>Connected Gmail Accounts</CardTitle>
         <CardDescription>
-          Manage your connected Gmail accounts and @fits.co forwarding addresses
+          Manage multiple Gmail accounts to pull promotions from. All emails will be accessible in your single @myfits.co account.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {mailboxes.length === 0 ? (
           <div className="text-center py-6">
-            <p className="text-muted-foreground mb-4">No mailboxes connected</p>
+            <p className="text-muted-foreground mb-4">No Gmail accounts connected</p>
             <Button onClick={() => setShowConnector(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Connect Gmail Account
+              Connect Your First Gmail Account
             </Button>
           </div>
         ) : (
@@ -113,10 +125,10 @@ export function ConnectedMailboxes() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{mailbox.gmail_address}</span>
-                    <Badge variant="secondary">Primary</Badge>
+                    {mailbox.is_primary && <Badge variant="secondary">Primary</Badge>}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    Fits Email: {mailbox.myfits_email}
+                    {mailbox.display_name && `Display Name: ${mailbox.display_name}`}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Connected: {new Date(mailbox.created_at).toLocaleDateString()}
@@ -148,9 +160,9 @@ export function ConnectedMailboxes() {
 
         {showConnector && (
           <div className="mt-4 p-4 border rounded-lg bg-muted/50">
-            <h3 className="font-medium mb-2">Connect New Gmail Account</h3>
+            <h3 className="font-medium mb-2">Connect Additional Gmail Account</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              This will automatically create a @fits.co email for you to use with new brands (e.g., your-gmail@fits.co). Each Gmail account gets its own separate data.
+              Add another Gmail account to pull promotions from. All promotional emails will be accessible in your single dashboard under your @myfits.co account.
             </p>
             <GmailConnector />
             <Button 
@@ -164,15 +176,12 @@ export function ConnectedMailboxes() {
           </div>
         )}
 
-        {mailboxes.length > 0 && (
+        {mailboxes.length > 1 && (
           <div className="pt-4 border-t space-y-2">
-            <h3 className="font-medium">Combine Mailboxes</h3>
+            <h3 className="font-medium">Multi-Account Dashboard</h3>
             <p className="text-sm text-muted-foreground">
-              Want to see promotions from multiple Gmail accounts in one dashboard? This feature is coming soon.
+              All promotional emails from your connected Gmail accounts are automatically combined in your dashboard. No additional setup required!
             </p>
-            <Button variant="outline" disabled>
-              Combine Mailboxes (Coming Soon)
-            </Button>
           </div>
         )}
       </CardContent>
