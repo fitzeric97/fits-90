@@ -22,10 +22,29 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { code, userId }: OAuthRequest = await req.json();
+    // Get URL parameters from the request
+    const url = new URL(req.url);
+    const code = url.searchParams.get('code');
+    const state = url.searchParams.get('state');
+    const error = url.searchParams.get('error');
+    
+    console.log('OAuth callback received - code:', code ? 'Yes' : 'No');
+    console.log('OAuth callback received - state:', state ? 'Yes' : 'No');
+    console.log('OAuth callback received - error:', error || 'None');
+    
+    if (error) {
+      throw new Error(`OAuth error: ${error}`);
+    }
+    
+    if (!code || !state) {
+      throw new Error('Missing authorization code or state parameter');
+    }
+    
+    // Parse state to get user info
+    const stateData = JSON.parse(state);
+    const { userId } = stateData;
     
     console.log('Processing Gmail OAuth for user:', userId);
-    console.log('Authorization code received:', code ? 'Yes' : 'No');
     
     const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
     const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
@@ -36,10 +55,8 @@ const handler = async (req: Request): Promise<Response> => {
     if (!clientId || !clientSecret) {
       throw new Error('Google OAuth credentials not configured');
     }
-    
-    if (!code || !userId) {
-      throw new Error('Missing required parameters: code or userId');
-    }
+
+    // Exchange authorization code for tokens
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: {
@@ -81,16 +98,17 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Successfully stored tokens for user:', userId);
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Gmail connected successfully' 
-      }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    // Redirect the user back to the frontend with success
+    const frontendUrl = new URL('https://preview--fits-forward-hub.lovable.app/dashboard');
+    frontendUrl.searchParams.set('oauth_success', 'true');
+    
+    return new Response(null, {
+      status: 302,
+      headers: {
+        'Location': frontendUrl.toString(),
+        ...corsHeaders
       }
-    );
+    });
 
   } catch (error: any) {
     console.error('Gmail OAuth error:', error);

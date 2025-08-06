@@ -109,7 +109,7 @@ export default function Auth() {
     try {
       // Create Gmail OAuth URL
       const scopes = 'https://www.googleapis.com/auth/gmail.readonly';
-      const redirectUri = `${window.location.origin}/auth/gmail/callback`;
+      const redirectUri = 'https://ijawvesjgyddyiymiahk.supabase.co/functions/v1/gmail-oauth';
       
       const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       authUrl.searchParams.set('client_id', '285808769366-lqlshgojp9cjesg92dcd5a0ige10si7d.apps.googleusercontent.com');
