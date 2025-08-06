@@ -80,19 +80,20 @@ const handler = async (req: Request): Promise<Response> => {
     const tokens = await tokenResponse.json();
     console.log('Received tokens for user:', userId);
 
-    // Get Gmail address from Google API
-    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+    // Get Gmail address from Google API using Gmail API instead of userinfo
+    const userInfoResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
       headers: {
         'Authorization': `Bearer ${tokens.access_token}`
       }
     });
     
     if (!userInfoResponse.ok) {
+      console.error('Failed to get Gmail profile:', await userInfoResponse.text());
       throw new Error('Failed to get user info from Google');
     }
     
-    const userInfo = await userInfoResponse.json();
-    const actualGmailAddress = userInfo.email;
+    const userProfile = await userInfoResponse.json();
+    const actualGmailAddress = userProfile.emailAddress;
     
     console.log('Retrieved Gmail address:', actualGmailAddress);
 
@@ -125,7 +126,7 @@ const handler = async (req: Request): Promise<Response> => {
       .upsert({
         user_id: userId,
         gmail_address: actualGmailAddress,
-        display_name: userInfo.name,
+        display_name: userProfile.emailAddress, // Use email as display name since we don't have user info
         is_primary: !isAdditionalAccount, // First account is primary, additional accounts are not
       }, {
         onConflict: 'user_id,gmail_address'
