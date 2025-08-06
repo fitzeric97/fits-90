@@ -22,6 +22,11 @@ interface Promotion {
   received_date: string;
   sender_name: string;
   snippet: string;
+  email_category: 'promotion' | 'order_confirmation' | 'shipping' | 'other';
+  email_source: 'promotional' | 'inbox' | 'sent' | 'other';
+  order_number?: string | null;
+  order_total?: string | null;
+  order_items?: string | null;
 }
 
 export function PromotionsTable() {
@@ -56,7 +61,7 @@ export function PromotionsTable() {
         return;
       }
 
-      setPromotions(data || []);
+      setPromotions((data || []) as Promotion[]);
     } catch (error) {
       console.error('Error fetching promotions:', error);
     } finally {
@@ -154,6 +159,30 @@ export function PromotionsTable() {
     if (diffDays === 0) return "Today";
     if (diffDays === 1) return "1 day";
     return `${diffDays} days`;
+  };
+
+  const getCategoryBadge = (category: string) => {
+    switch (category) {
+      case 'order_confirmation':
+        return <Badge variant="secondary" className="bg-green-100 text-green-800">Order</Badge>;
+      case 'shipping':
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Shipping</Badge>;
+      case 'promotion':
+        return <Badge variant="default">Promotion</Badge>;
+      default:
+        return <Badge variant="outline">Other</Badge>;
+    }
+  };
+
+  const getSourceBadge = (source: string) => {
+    switch (source) {
+      case 'inbox':
+        return <Badge variant="outline" className="text-xs">Inbox</Badge>;
+      case 'promotional':
+        return <Badge variant="outline" className="text-xs">Promo</Badge>;
+      default:
+        return <Badge variant="outline" className="text-xs">{source}</Badge>;
+    }
   };
 
   const filteredPromotions = promotions
@@ -288,6 +317,8 @@ export function PromotionsTable() {
                 <TableHead className="w-16">Brand</TableHead>
                 <TableHead>Brand Name</TableHead>
                 <TableHead>Subject Line</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Order Info</TableHead>
                 <TableHead>Expires In</TableHead>
                 <TableHead className="w-20">Actions</TableHead>
               </TableRow>
@@ -312,9 +343,37 @@ export function PromotionsTable() {
                     <TableCell className="font-medium">{promotion.brand_name}</TableCell>
                     <TableCell className="max-w-xs truncate">{promotion.subject}</TableCell>
                     <TableCell>
-                      <Badge variant={promotion.is_expired ? "destructive" : "default"}>
-                        {formatExpiryTime(promotion.expires_at)}
-                      </Badge>
+                      <div className="flex flex-col gap-1">
+                        {getCategoryBadge(promotion.email_category)}
+                        {getSourceBadge(promotion.email_source)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {promotion.email_category === 'order_confirmation' && (
+                        <div className="text-sm space-y-1">
+                          {promotion.order_number && (
+                            <div className="font-mono text-xs">#{promotion.order_number}</div>
+                          )}
+                          {promotion.order_total && (
+                            <div className="font-semibold">{promotion.order_total}</div>
+                          )}
+                          {promotion.order_items && (
+                            <div className="text-muted-foreground text-xs">{promotion.order_items}</div>
+                          )}
+                        </div>
+                      )}
+                      {promotion.email_category !== 'order_confirmation' && (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {promotion.email_category === 'promotion' ? (
+                        <Badge variant={promotion.is_expired ? "destructive" : "default"}>
+                          {formatExpiryTime(promotion.expires_at)}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

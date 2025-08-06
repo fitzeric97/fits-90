@@ -48,11 +48,12 @@ const handler = async (req: Request): Promise<Response> => {
       accessToken = await refreshAccessToken(tokenData.refresh_token, userId);
     }
 
-    // Search for promotional emails
-    const query = 'category:promotions OR from:(noreply OR marketing OR deals OR offers OR newsletter)';
+    // Search for promotional emails first
+    console.log('Scanning promotional emails...');
+    const promoQuery = 'category:promotions OR from:(noreply OR marketing OR deals OR offers OR newsletter)';
     
-    const searchResponse = await fetch(
-      `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=${maxResults}`,
+    const promoResponse = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(promoQuery)}&maxResults=${Math.floor(maxResults / 2)}`,
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -60,38 +61,80 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
 
-    if (!searchResponse.ok) {
-      throw new Error(`Gmail API error: ${await searchResponse.text()}`);
+    if (!promoResponse.ok) {
+      throw new Error(`Gmail API error: ${await promoResponse.text()}`);
     }
 
-    const searchResults = await searchResponse.json();
-    console.log(`Found ${searchResults.messages?.length || 0} promotional emails`);
+    const promoResults = await promoResponse.json();
+    console.log(`Found ${promoResults.messages?.length || 0} promotional emails`);
 
-    if (!searchResults.messages) {
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: 'No promotional emails found',
-          processed: 0 
-        }),
-        {
-          status: 200,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        }
-      );
-    }
-
-    // Process each email
+    // Process promotional emails
     const processedEmails = [];
     
-    for (const message of searchResults.messages.slice(0, maxResults)) {
+    if (promoResults.messages) {
+      for (const message of promoResults.messages.slice(0, Math.floor(maxResults / 2))) {
+        try {
+          const emailData = await processEmail(message.id, accessToken, userId, 'promotional');
+          if (emailData) {
+            processedEmails.push(emailData);
+          }
+        } catch (error) {
+          console.error(`Error processing promotional email ${message.id}:`, error);
+        }
+      }
+    }
+
+    // Get list of known fashion brands to search inbox
+    console.log('Scanning main inbox for fashion brand emails...');
+    
+    const { data: existingBrands } = await supabase
+      .from('promotional_emails')
+      .select('brand_name')
+      .eq('user_id', userId);
+      
+    const uniqueBrands = [...new Set(existingBrands?.map(e => e.brand_name) || [])];
+    
+    // Include major fashion brands in case user doesn't have any promotions yet
+    const majorFashionBrands = [
+      'Nike', 'Adidas', 'Zara', 'H&M', 'Uniqlo', 'Gap', 'Everlane', 'Patagonia',
+      'North Face', 'Levi', 'Calvin Klein', 'Ralph Lauren'
+    ];
+    
+    const allBrands = [...new Set([...uniqueBrands, ...majorFashionBrands])];
+    
+    // Search inbox for emails from fashion brands (limit to avoid API quota)
+    for (const brand of allBrands.slice(0, 8)) {
       try {
-        const emailData = await processEmail(message.id, accessToken, userId);
-        if (emailData) {
-          processedEmails.push(emailData);
+        const brandQuery = `from:${brand.toLowerCase().replace(/[^a-z0-9]/g, '')} OR from:"${brand}"`;
+        
+        const inboxResponse = await fetch(
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(brandQuery)}&maxResults=10`,
+          {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        if (inboxResponse.ok) {
+          const inboxData = await inboxResponse.json();
+          const inboxMessages = inboxData.messages || [];
+          
+          console.log(`Found ${inboxMessages.length} inbox emails from ${brand}`);
+          
+          for (const message of inboxMessages) {
+            try {
+              const emailData = await processEmail(message.id, accessToken, userId, 'inbox');
+              if (emailData) {
+                processedEmails.push(emailData);
+              }
+            } catch (error) {
+              console.error(`Error processing inbox email ${message.id}:`, error);
+            }
+          }
         }
       } catch (error) {
-        console.error(`Error processing email ${message.id}:`, error);
+        console.error(`Error searching for brand ${brand}:`, error);
       }
     }
 
@@ -159,7 +202,7 @@ async function refreshAccessToken(refreshToken: string, userId: string): Promise
   return tokens.access_token;
 }
 
-async function processEmail(messageId: string, accessToken: string, userId: string) {
+async function processEmail(messageId: string, accessToken: string, userId: string, emailSource: string = 'promotional') {
   // Get email details
   const emailResponse = await fetch(
     `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}`,
@@ -212,13 +255,17 @@ async function processEmail(messageId: string, accessToken: string, userId: stri
     return null;
   }
   
-  console.log(`Processing fashion email from ${brandName}: ${subject}`);
+  // Categorize the email
+  const emailCategory = categorizeEmail(subject, email.snippet || '');
+  const { orderNumber, orderTotal, orderItems } = extractOrderInfo(subject, email.snippet || '');
+  
+  console.log(`Processing ${emailCategory} email from ${brandName}: ${subject}`);
   
   // Parse received date
   const receivedDate = new Date(parseInt(email.internalDate)).toISOString();
 
-  // Extract expiration date
-  const expiresAt = extractExpirationDate(subject, email.snippet || '');
+  // Extract expiration date (mainly for promotions)
+  const expiresAt = emailCategory === 'promotion' ? extractExpirationDate(subject, email.snippet || '') : null;
 
   // Check if email already exists
   const { data: existingEmail } = await supabase
@@ -249,6 +296,11 @@ async function processEmail(messageId: string, accessToken: string, userId: stri
       is_expired: expiresAt ? new Date(expiresAt) < new Date() : false,
       labels: email.labelIds || [],
       thread_id: email.threadId,
+      email_category: emailCategory,
+      email_source: emailSource,
+      order_number: orderNumber,
+      order_total: orderTotal,
+      order_items: orderItems,
     })
     .select()
     .single();
@@ -529,6 +581,111 @@ function extractExpirationDate(subject: string, snippet: string): string | null 
   }
   
   return null;
+}
+
+// Function to categorize emails as promotion, order confirmation, etc.
+function categorizeEmail(subject: string, snippet: string): string {
+  const text = `${subject} ${snippet}`.toLowerCase();
+  
+  // Order confirmation patterns
+  const orderPatterns = [
+    'order confirmation', 'order receipt', 'order confirmed', 'purchase confirmation',
+    'your order', 'order #', 'order number', 'order placed', 'order received',
+    'thank you for your order', 'order details', 'order summary',
+    'payment confirmation', 'purchase receipt', 'invoice',
+    'order complete', 'order status', 'order update'
+  ];
+  
+  // Shipping patterns
+  const shippingPatterns = [
+    'shipped', 'tracking', 'shipment', 'delivery', 'package',
+    'on its way', 'in transit', 'dispatched', 'sent',
+    'tracking number', 'tracking info', 'delivery update',
+    'package status', 'shipping confirmation'
+  ];
+  
+  // Promotion patterns (default)
+  const promotionPatterns = [
+    'sale', 'discount', 'off', 'deal', 'offer', 'promo', 'coupon',
+    'save', 'special', 'limited time', 'flash sale', 'clearance',
+    'percent off', '% off', 'free shipping', 'black friday',
+    'cyber monday', 'new arrivals', 'collection'
+  ];
+  
+  // Check for order confirmation
+  if (orderPatterns.some(pattern => text.includes(pattern))) {
+    return 'order_confirmation';
+  }
+  
+  // Check for shipping
+  if (shippingPatterns.some(pattern => text.includes(pattern))) {
+    return 'shipping';
+  }
+  
+  // Check for promotion
+  if (promotionPatterns.some(pattern => text.includes(pattern))) {
+    return 'promotion';
+  }
+  
+  // Default to other if no clear category
+  return 'other';
+}
+
+// Function to extract order information from order confirmation emails
+function extractOrderInfo(subject: string, snippet: string): { orderNumber: string | null, orderTotal: string | null, orderItems: string | null } {
+  const text = `${subject} ${snippet}`;
+  
+  let orderNumber = null;
+  let orderTotal = null;
+  let orderItems = null;
+  
+  // Extract order number
+  const orderNumberPatterns = [
+    /order\s*#\s*([A-Z0-9\-]+)/i,
+    /order\s+number\s*:?\s*([A-Z0-9\-]+)/i,
+    /confirmation\s+#\s*([A-Z0-9\-]+)/i,
+    /order\s+([A-Z0-9\-]{6,})/i
+  ];
+  
+  for (const pattern of orderNumberPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      orderNumber = match[1];
+      break;
+    }
+  }
+  
+  // Extract order total
+  const totalPatterns = [
+    /total\s*:?\s*\$?([\d,]+\.?\d*)/i,
+    /amount\s*:?\s*\$?([\d,]+\.?\d*)/i,
+    /\$\s*([\d,]+\.?\d*)\s*total/i,
+    /charged\s*\$?([\d,]+\.?\d*)/i
+  ];
+  
+  for (const pattern of totalPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      orderTotal = `$${match[1]}`;
+      break;
+    }
+  }
+  
+  // Extract basic item information (this is simplified)
+  const itemPatterns = [
+    /(\d+)\s+item/i,
+    /(\d+)\s+product/i
+  ];
+  
+  for (const pattern of itemPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      orderItems = `${match[1]} items`;
+      break;
+    }
+  }
+  
+  return { orderNumber, orderTotal, orderItems };
 }
 
 serve(handler);

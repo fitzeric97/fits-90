@@ -47,11 +47,16 @@ export type Database = {
           body_text: string | null
           brand_name: string
           created_at: string
+          email_category: string | null
+          email_source: string | null
           expires_at: string | null
           gmail_message_id: string
           id: string
           is_expired: boolean | null
           labels: string[] | null
+          order_items: string | null
+          order_number: string | null
+          order_total: string | null
           received_date: string
           sender_email: string
           sender_name: string | null
@@ -66,11 +71,16 @@ export type Database = {
           body_text?: string | null
           brand_name: string
           created_at?: string
+          email_category?: string | null
+          email_source?: string | null
           expires_at?: string | null
           gmail_message_id: string
           id?: string
           is_expired?: boolean | null
           labels?: string[] | null
+          order_items?: string | null
+          order_number?: string | null
+          order_total?: string | null
           received_date: string
           sender_email: string
           sender_name?: string | null
@@ -85,11 +95,16 @@ export type Database = {
           body_text?: string | null
           brand_name?: string
           created_at?: string
+          email_category?: string | null
+          email_source?: string | null
           expires_at?: string | null
           gmail_message_id?: string
           id?: string
           is_expired?: boolean | null
           labels?: string[] | null
+          order_items?: string | null
+          order_number?: string | null
+          order_total?: string | null
           received_date?: string
           sender_email?: string
           sender_name?: string | null
