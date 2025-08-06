@@ -28,6 +28,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/gmail/callback" element={<GmailCallback />} />
+            <Route path="/gmail-callback" element={<GmailCallback />} />
             <Route path="/onboarding" element={
               <ProtectedRoute>
                 <Onboarding />
