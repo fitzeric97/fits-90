@@ -126,7 +126,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: 'magiclink',
       email: fitsEmail, // Use the @fits.co email for auth
       options: {
-        redirectTo: 'https://preview--fits-forward-hub.lovable.app/dashboard?oauth_success=true'
+        redirectTo: `${req.headers.get('origin') || 'https://preview--fits-forward-hub.lovable.app'}/dashboard?oauth_success=true`
       }
     });
 
@@ -141,7 +141,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, {
       status: 302,
       headers: {
-        'Location': authData.properties?.action_link || 'https://preview--fits-forward-hub.lovable.app/dashboard?oauth_success=true',
+        'Location': authData.properties?.action_link || `${req.headers.get('origin') || 'https://preview--fits-forward-hub.lovable.app'}/dashboard?oauth_success=true`,
         ...corsHeaders
       }
     });
