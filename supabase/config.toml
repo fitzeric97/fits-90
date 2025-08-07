@@ -53,4 +53,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.add-url-to-likes]
-verify_jwt = true
+verify_jwt = false

@@ -22,6 +22,9 @@ serve(async (req: Request) => {
   }
 
   try {
+    const authHeader = req.headers.get('authorization');
+    console.log('Auth header present:', !!authHeader);
+    
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -31,10 +34,9 @@ serve(async (req: Request) => {
           persistSession: false
         },
         global: {
-          headers: {
-            authorization: req.headers.get('authorization') ?? '',
-            apikey: req.headers.get('apikey') ?? Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-          }
+          headers: authHeader ? {
+            authorization: authHeader
+          } : {}
         }
       }
     );
