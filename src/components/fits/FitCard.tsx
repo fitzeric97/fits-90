@@ -48,10 +48,12 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
 
   const fetchTaggedItems = async () => {
     try {
+      console.log('Fetching tagged items for fit:', fit.id);
+      
       const { data, error } = await supabase
         .from('fit_tags')
         .select(`
-          closet_items (
+          closet_items!inner (
             id,
             product_name,
             brand_name,
@@ -61,9 +63,12 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
         .eq('fit_id', fit.id)
         .limit(3);
 
+      console.log('Tagged items query result:', { data, error });
+
       if (error) throw error;
       
-      const items = data?.map(tag => tag.closet_items).filter(Boolean) || [];
+      const items = data?.map((tag: any) => tag.closet_items).filter(Boolean) || [];
+      console.log('Processed tagged items:', items);
       setTaggedItems(items as TaggedItem[]);
     } catch (error) {
       console.error('Error fetching tagged items:', error);
@@ -160,30 +165,39 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
           {taggedItems.length > 0 && (
             <div className="px-3 pb-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground font-medium">Tagged items:</span>
+                <span className="text-xs text-muted-foreground font-medium">
+                  Tagged items ({taggedItems.length}):
+                </span>
                 <div className="flex gap-1">
-                  {taggedItems.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleItemClick(item.id)}
-                      className="w-8 h-8 rounded border border-border bg-muted overflow-hidden hover:ring-2 hover:ring-primary/20 transition-all"
-                      title={`${item.product_name} - ${item.brand_name}`}
-                    >
-                      {item.product_image_url ? (
-                        <img
-                          src={item.product_image_url}
-                          alt={item.product_name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-muted-foreground/20 flex items-center justify-center">
-                          <span className="text-xs text-muted-foreground font-medium">
-                            {item.product_name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-                    </button>
-                  ))}
+                  {taggedItems.map((item) => {
+                    console.log('Rendering thumbnail for item:', item);
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => handleItemClick(item.id)}
+                        className="w-10 h-10 rounded border border-border bg-muted overflow-hidden hover:ring-2 hover:ring-primary/20 transition-all"
+                        title={`${item.product_name} - ${item.brand_name}`}
+                      >
+                        {item.product_image_url ? (
+                          <img
+                            src={item.product_image_url}
+                            alt={item.product_name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              console.log('Image failed to load:', item.product_image_url);
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-muted-foreground/20 flex items-center justify-center">
+                            <span className="text-xs text-muted-foreground font-medium">
+                              {item.product_name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
