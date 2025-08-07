@@ -40,13 +40,15 @@ export function TestLikeButton() {
           brand_name: 'Faherty Brand',
           price: '$118',
           image_url: 'https://fahertybrand.com/cdn/shop/files/SU25-FAHERTY-MENS-MSS2521-BLH-BiarritzBoardshort-BlueHorizonStripe_OM_FRONT_CROP_1.jpg?v=1752808398&width=3354',
-          description: 'Men\'s boardshort in Blue Horizon Stripe pattern'
+          description: "Men's boardshort in Blue Horizon Stripe pattern"
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
         }
       });
+
+      console.log('Function response:', { data, error });
 
       if (error) throw error;
 
