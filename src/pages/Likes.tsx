@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -6,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ExternalLink, Heart, Trash2, Plus } from "lucide-react";
+import { useBrandPromotions } from "@/hooks/useBrandPromotions";
+import { ExternalLink, Heart, Trash2, Plus, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -30,6 +32,8 @@ interface Like {
 export default function Likes() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { hasBrandPromotions, getBrandPromotionCount } = useBrandPromotions();
   const [likes, setLikes] = useState<Like[]>([]);
   const [loading, setLoading] = useState(true);
   const [newLike, setNewLike] = useState({ url: '', title: '' });
@@ -309,15 +313,29 @@ export default function Likes() {
                     <span className="text-xs text-muted-foreground">
                       {new Date(like.created_at).toLocaleDateString()}
                     </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(like.url, '_blank')}
-                      className="hover:bg-primary hover:text-primary-foreground"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
+                    <div className="flex gap-2">
+                      {/* Promotions Button - Show if brand has active promotions */}
+                      {like.brand_name && hasBrandPromotions(like.brand_name) && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => navigate(`/brand-promotions/${encodeURIComponent(like.brand_name)}`)}
+                          className="bg-green-500 hover:bg-green-600 text-white"
+                        >
+                          <Tag className="h-4 w-4 mr-1" />
+                          Promotions ({getBrandPromotionCount(like.brand_name)})
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(like.url, '_blank')}
+                        className="hover:bg-primary hover:text-primary-foreground"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                    </div>
                   </div>
                   
                   {like.source_email && (

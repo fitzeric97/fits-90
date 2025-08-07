@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive, Square, Footprints, Eye, Trash2 } from "lucide-react";
 import { AddClosetItemDialog } from "@/components/closet/AddClosetItemDialog";
 import { EditClosetItemDialog } from "@/components/closet/EditClosetItemDialog";
@@ -11,6 +12,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
+import { useBrandPromotions } from "@/hooks/useBrandPromotions";
 
 interface ClosetItem {
   id: string;
@@ -46,14 +48,16 @@ const categoryConfig = {
 };
 
 export default function Closet() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { hasBrandPromotions, getBrandPromotionCount } = useBrandPromotions();
   const [items, setItems] = useState<ClosetItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [brandFilter, setBrandFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"categories" | "grid" | "list">("categories");
-  const { user } = useAuth();
-  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -461,8 +465,36 @@ export default function Closet() {
                       {item.company_website_url && (
                         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <div className="bg-white/90 rounded-full p-1">
-                            <ExternalLink className="h-4 w-4" />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(item.company_website_url!, '_blank');
+                              }}
+                              className="h-8 w-8 rounded-full hover:bg-white"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </Button>
                           </div>
+                        </div>
+                      )}
+                      
+                      {/* Promotions Button - Show if brand has active promotions */}
+                      {item.brand_name && hasBrandPromotions(item.brand_name) && (
+                        <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/brand-promotions/${encodeURIComponent(item.brand_name)}`);
+                            }}
+                            className="bg-green-500 hover:bg-green-600 text-white text-xs"
+                          >
+                            <Tag className="h-3 w-3 mr-1" />
+                            Promotions ({getBrandPromotionCount(item.brand_name)})
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -555,6 +587,23 @@ export default function Closet() {
                       >
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
+                      
+                      {/* Promotions Button for List View */}
+                      {item.brand_name && hasBrandPromotions(item.brand_name) && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/brand-promotions/${encodeURIComponent(item.brand_name)}`);
+                          }}
+                          className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity bg-green-500 hover:bg-green-600 text-white z-10"
+                        >
+                          <Tag className="h-4 w-4 mr-1" />
+                          Promotions ({getBrandPromotionCount(item.brand_name)})
+                        </Button>
+                      )}
+                      
                       <div className="flex gap-4">
                         <div className="w-20 h-20 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
                           {(item.product_image_url || item.stored_image_path) ? (
