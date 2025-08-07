@@ -25,8 +25,13 @@ export function TestLikeButton() {
       console.log('Making request with user:', user?.id);
       
       // Get the current session to ensure we have a valid token
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('Session:', session?.access_token ? 'Has token' : 'No token');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('No valid session found. Please sign in again.');
+      }
+      
+      console.log('Session valid, making function call...');
       
       const { data, error } = await supabase.functions.invoke('add-url-to-likes', {
         body: {
@@ -36,6 +41,10 @@ export function TestLikeButton() {
           price: '$118',
           image_url: 'https://fahertybrand.com/cdn/shop/files/SU25-FAHERTY-MENS-MSS2521-BLH-BiarritzBoardshort-BlueHorizonStripe_OM_FRONT_CROP_1.jpg?v=1752808398&width=3354',
           description: 'Men\'s boardshort in Blue Horizon Stripe pattern'
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
         }
       });
 
