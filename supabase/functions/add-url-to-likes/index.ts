@@ -56,7 +56,14 @@ serve(async (req: Request) => {
     const authHeader = req.headers.get('authorization');
     console.log('Auth header received:', !!authHeader);
     
-    // Create Supabase client with proper auth handling
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization header missing' }),
+        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+    
+    // Create Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -64,16 +71,18 @@ serve(async (req: Request) => {
         auth: {
           autoRefreshToken: false,
           persistSession: false
-        },
-        global: {
-          headers: authHeader ? {
-            authorization: authHeader
-          } : {}
         }
       }
     );
 
-    // Get the current user - improved error handling
+    // Set the auth token manually
+    const token = authHeader.replace('Bearer ', '');
+    await supabase.auth.setSession({
+      access_token: token,
+      refresh_token: '' // Not needed for this operation
+    });
+
+    // Get the current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     console.log('User auth result:', { user: !!user, error: userError?.message });
     
@@ -81,7 +90,7 @@ serve(async (req: Request) => {
       console.error('Authentication failed:', userError);
       return new Response(
         JSON.stringify({ 
-          error: 'Authentication required',
+          error: 'Authentication failed',
           details: userError?.message 
         }),
         { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
