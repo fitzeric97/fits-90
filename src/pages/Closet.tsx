@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package } from "lucide-react";
 import { AddClosetItemDialog } from "@/components/closet/AddClosetItemDialog";
+import { EditClosetItemDialog } from "@/components/closet/EditClosetItemDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface ClosetItem {
   id: string;
@@ -240,6 +241,22 @@ export default function Closet() {
                       <Package className="h-12 w-12 text-muted-foreground" />
                     </div>
                   )}
+                   
+                  {/* Action Buttons */}
+                  <EditClosetItemDialog 
+                    item={{
+                      id: item.id,
+                      product_name: item.product_name,
+                      brand_name: item.brand_name,
+                      product_description: item.product_description,
+                      price: item.price,
+                      size: item.size,
+                      color: item.color,
+                      category: item.category,
+                      purchase_date: item.purchase_date
+                    }}
+                    onItemUpdated={fetchClosetItems}
+                  />
                   
                   {item.company_website_url && (
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -302,7 +319,22 @@ export default function Closet() {
                 className="cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => handleItemClick(item)}
               >
-                <CardContent className="p-4">
+                <CardContent className="p-4 relative">
+                  {/* Edit Button for List View */}
+                  <EditClosetItemDialog 
+                    item={{
+                      id: item.id,
+                      product_name: item.product_name,
+                      brand_name: item.brand_name,
+                      product_description: item.product_description,
+                      price: item.price,
+                      size: item.size,
+                      color: item.color,
+                      category: item.category,
+                      purchase_date: item.purchase_date
+                    }}
+                    onItemUpdated={fetchClosetItems}
+                  />
                   <div className="flex gap-4">
                     <div className="w-20 h-20 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
                       {(item.product_image_url || item.stored_image_path) ? (

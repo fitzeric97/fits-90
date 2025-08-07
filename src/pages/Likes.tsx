@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { TestLikeButton } from "@/components/testing/TestLikeButton";
+import { EditLikeDialog } from "@/components/likes/EditLikeDialog";
 
 interface Like {
   id: string;
@@ -251,6 +252,19 @@ export default function Likes() {
                       </Badge>
                     </div>
                   )}
+                  
+                  {/* Action Buttons */}
+                  <EditLikeDialog 
+                    like={{
+                      id: like.id,
+                      title: like.title,
+                      brand_name: like.brand_name,
+                      price: like.price,
+                      category: like.category,
+                      description: like.description
+                    }}
+                    onItemUpdated={fetchLikes}
+                  />
                   
                   {/* Delete Button */}
                   <Button
