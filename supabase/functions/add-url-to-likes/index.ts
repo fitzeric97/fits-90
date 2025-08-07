@@ -98,8 +98,13 @@ serve(async (req: Request) => {
       try {
         const response = await fetch(requestData.url, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; ProductParser/1.0)',
-            'Accept': 'text/html,application/xhtml+xml',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
           }
         });
         
@@ -107,20 +112,28 @@ serve(async (req: Request) => {
           const html = await response.text();
           console.log('Successfully fetched webpage content');
           
-          // Enhanced extraction patterns
+          // Enhanced extraction patterns for various e-commerce sites
           const titleMatch = html.match(/<title[^>]*>([^<]+)</i) || 
                            html.match(/<h1[^>]*class="[^"]*product[^"]*"[^>]*>([^<]+)</i) ||
-                           html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i);
+                           html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i) ||
+                           html.match(/<h1[^>]*>([^<]+)</i) ||
+                           html.match(/data-product-title="([^"]+)"/i) ||
+                           html.match(/productTitle[^>]*>([^<]+)</i);
           
-          const priceMatch = html.match(/["\s](\$\d+(?:\.\d{2})?)["\s]/) ||
-                           html.match(/price[^>]*>.*?(\$\d+(?:\.\d{2})?)/i);
+          const priceMatch = html.match(/["\s](\$\d+(?:,\d{3})*(?:\.\d{2})?)["\s]/) ||
+                           html.match(/price[^>]*>.*?(\$\d+(?:,\d{3})*(?:\.\d{2})?)/i) ||
+                           html.match(/data-price="([^"]+)"/i) ||
+                           html.match(/price[^>]*:.*?(\$[\d,]+(?:\.\d{2})?)/i);
           
           const imageMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i) ||
                            html.match(/<img[^>]*class="[^"]*product[^"]*"[^>]*src="([^"]+)"/i) ||
-                           html.match(/<img[^>]*src="([^"]+)"[^>]*class="[^"]*product[^"]*"/i);
+                           html.match(/<img[^>]*src="([^"]+)"[^>]*class="[^"]*product[^"]*"/i) ||
+                           html.match(/data-src="([^"]*\.(?:jpg|jpeg|png|webp)[^"]*)"/i) ||
+                           html.match(/<img[^>]*src="([^"]*\.(?:jpg|jpeg|png|webp)[^"]*)"/i);
           
           const descriptionMatch = html.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i) ||
-                                 html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
+                                 html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i) ||
+                                 html.match(/product-description[^>]*>([^<]+)</i);
 
           // Enhanced brand extraction
           const domain = new URL(requestData.url).hostname;
@@ -128,6 +141,7 @@ serve(async (req: Request) => {
           
           // Brand name cleanup
           const brandCleanup: { [key: string]: string } = {
+            'tecovas': 'Tecovas',
             'fahertybrand': 'Faherty Brand',
             'patagonia': 'Patagonia',
             'outerknown': 'Outerknown',
@@ -174,7 +188,17 @@ serve(async (req: Request) => {
             brand: !!productData.brand_name
           });
         } else {
-          console.warn('Failed to fetch webpage:', response.status);
+          console.warn('Failed to fetch webpage:', response.status, response.statusText);
+          // For failed fetches, try to extract basic info from URL structure
+          const urlParts = requestData.url.split('/');
+          const potentialProductName = urlParts[urlParts.length - 1]
+            ?.replace(/-/g, ' ')
+            ?.replace(/\b\w/g, l => l.toUpperCase());
+          
+          if (potentialProductName && !productData.title) {
+            productData.title = potentialProductName;
+            console.log('Extracted title from URL structure:', potentialProductName);
+          }
         }
       } catch (error) {
         console.error('Error extracting product data:', error);
