@@ -37,7 +37,7 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
   const uploadFitImage = async (file: File) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `fits/${fileName}`;
+    const filePath = fileName; // Simple filename without nested folders
 
     const { error: uploadError } = await supabase.storage
       .from('fits')
