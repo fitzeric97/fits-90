@@ -59,6 +59,7 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setLoading(true);
 
     try {
@@ -129,7 +130,7 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
           {/* Common fields matching AddClosetItemDialog structure */}
           <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="space-y-2">
@@ -229,11 +230,18 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(false);
+              }}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button 
+              type="submit" 
+              disabled={loading}
+              onClick={(e) => e.stopPropagation()}
+            >
               {loading ? "Updating..." : "Update Item"}
             </Button>
           </DialogFooter>
