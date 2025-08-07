@@ -31,7 +31,7 @@ export function AppSidebar() {
 
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50";
+    isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "text-sidebar-foreground hover:bg-sidebar-accent/50";
 
   const handleLogout = async () => {
     await signOut();
@@ -45,7 +45,7 @@ export function AppSidebar() {
             <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">F</span>
             </div>
-            {!collapsed && <span className="font-bold text-lg">Fits</span>}
+            {!collapsed && <span className="font-bold text-lg text-sidebar-foreground">Fits</span>}
           </div>
         </div>
 
@@ -69,7 +69,7 @@ export function AppSidebar() {
         <div className="mt-auto p-4">
           <Button
             variant="ghost"
-            className="w-full justify-start"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4" />
