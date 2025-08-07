@@ -167,7 +167,7 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No category</SelectItem>
+                  <SelectItem value="none">No category</SelectItem>
                   <SelectItem value="shirts">Shirts</SelectItem>
                   <SelectItem value="t-shirts">T-Shirts</SelectItem>
                   <SelectItem value="polo-shirts">Polo Shirts</SelectItem>
