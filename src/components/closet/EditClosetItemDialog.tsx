@@ -184,6 +184,7 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
                   <SelectItem value="hoodies">Hoodies</SelectItem>
                   <SelectItem value="activewear">Activewear</SelectItem>
                   <SelectItem value="shoes">Shoes</SelectItem>
+                  <SelectItem value="accessories">Accessories</SelectItem>
                 </SelectContent>
               </Select>
             </div>
