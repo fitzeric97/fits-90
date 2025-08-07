@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { TagIcon, MoreHorizontal } from "lucide-react";
 import { TagClosetDialog } from "./TagClosetDialog";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +24,13 @@ interface Fit {
   created_at: string;
 }
 
+interface TaggedItem {
+  id: string;
+  product_name: string;
+  brand_name: string;
+  product_image_url?: string;
+}
+
 interface FitCardProps {
   fit: Fit;
   onUpdate: () => void;
@@ -30,7 +38,37 @@ interface FitCardProps {
 
 export function FitCard({ fit, onUpdate }: FitCardProps) {
   const [showTagDialog, setShowTagDialog] = useState(false);
+  const [taggedItems, setTaggedItems] = useState<TaggedItem[]>([]);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchTaggedItems();
+  }, [fit.id]);
+
+  const fetchTaggedItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('fit_tags')
+        .select(`
+          closet_items (
+            id,
+            product_name,
+            brand_name,
+            product_image_url
+          )
+        `)
+        .eq('fit_id', fit.id)
+        .limit(3);
+
+      if (error) throw error;
+      
+      const items = data?.map(tag => tag.closet_items).filter(Boolean) || [];
+      setTaggedItems(items as TaggedItem[]);
+    } catch (error) {
+      console.error('Error fetching tagged items:', error);
+    }
+  };
 
   const handleDelete = async () => {
     try {
@@ -46,6 +84,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
         description: "Your fit has been removed.",
       });
       onUpdate();
+      fetchTaggedItems(); // Refresh tagged items after deletion
     } catch (error) {
       console.error('Error deleting fit:', error);
       toast({
@@ -56,11 +95,22 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
     }
   };
 
+  const handleItemClick = (itemId: string) => {
+    navigate(`/closet?item=${itemId}`);
+  };
+
+  const handleTagDialogClose = (open: boolean) => {
+    setShowTagDialog(open);
+    if (!open) {
+      fetchTaggedItems(); // Refresh tagged items when dialog closes
+    }
+  };
+
   return (
     <>
       <Card className="group overflow-hidden">
         <CardContent className="p-0">
-          <div className="relative">
+          <div className="relative">{/* fit image container */}
             <AspectRatio ratio={1}>
               <img
                 src={fit.image_url}
@@ -101,8 +151,41 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
           </div>
           
           {fit.caption && (
-            <div className="p-3">
+            <div className="p-3 pb-2">
               <p className="text-sm text-muted-foreground">{fit.caption}</p>
+            </div>
+          )}
+
+          {/* Tagged Items Thumbnails */}
+          {taggedItems.length > 0 && (
+            <div className="px-3 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground font-medium">Tagged items:</span>
+                <div className="flex gap-1">
+                  {taggedItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleItemClick(item.id)}
+                      className="w-8 h-8 rounded border border-border bg-muted overflow-hidden hover:ring-2 hover:ring-primary/20 transition-all"
+                      title={`${item.product_name} - ${item.brand_name}`}
+                    >
+                      {item.product_image_url ? (
+                        <img
+                          src={item.product_image_url}
+                          alt={item.product_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-muted-foreground/20 flex items-center justify-center">
+                          <span className="text-xs text-muted-foreground font-medium">
+                            {item.product_name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
@@ -110,7 +193,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
 
       <TagClosetDialog
         open={showTagDialog}
-        onOpenChange={setShowTagDialog}
+        onOpenChange={handleTagDialogClose}
         fitId={fit.id}
       />
     </>
