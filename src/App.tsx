@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Onboarding from "./pages/Onboarding";
 import Closet from "./pages/Closet";
+import Fits from "./pages/Fits";
 import Likes from "./pages/Likes";
 import BrandPromotions from "./pages/BrandPromotions";
 import Notifications from "./pages/Notifications";
@@ -45,6 +46,11 @@ const App = () => (
             <Route path="/closet" element={
               <ProtectedRoute>
                 <Closet />
+              </ProtectedRoute>
+            } />
+            <Route path="/fits" element={
+              <ProtectedRoute>
+                <Fits />
               </ProtectedRoute>
             } />
             <Route path="/likes" element={

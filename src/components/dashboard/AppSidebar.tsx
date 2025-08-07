@@ -1,4 +1,4 @@
-import { Home, ShirtIcon, Bell, Settings, LogOut, Heart } from "lucide-react";
+import { Home, ShirtIcon, Bell, Settings, LogOut, Heart, Camera } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -16,6 +16,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 const navigationItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "My Closet", url: "/closet", icon: ShirtIcon },
+  { title: "Fits", url: "/fits", icon: Camera },
   { title: "Likes", url: "/likes", icon: Heart },
   { title: "Notifications", url: "/notifications", icon: Bell },
   { title: "Settings", url: "/settings", icon: Settings },
