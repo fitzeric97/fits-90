@@ -21,6 +21,8 @@ interface Like {
   price: string | null;
   brand_name: string | null;
   source_email: string | null;
+  category: string | null;
+  item_type: string | null;
   created_at: string;
 }
 
@@ -222,57 +224,93 @@ export default function Likes() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {likes.map((like) => (
-              <Card key={like.id} className="group hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <h3 className="font-medium line-clamp-2">{like.title}</h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeLike(like.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    {like.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {like.description}
-                      </p>
-                    )}
-                    
-                    {like.brand_name && (
-                      <Badge variant="secondary">{like.brand_name}</Badge>
-                    )}
-                    
-                    {like.price && (
-                      <p className="font-semibold text-primary">{like.price}</p>
-                    )}
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(like.created_at).toLocaleDateString()}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(like.url, '_blank')}
-                      >
-                        <ExternalLink className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                    </div>
-                    
-                    {like.source_email && (
-                      <p className="text-xs text-muted-foreground">
-                        From: {like.source_email}
-                      </p>
+              <Card key={like.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300">
+                <div className="relative">
+                  {/* Product Image with Price Overlay */}
+                  <div className="aspect-[4/3] bg-muted overflow-hidden">
+                    {like.image_url ? (
+                      <img 
+                        src={like.image_url} 
+                        alt={like.title}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-muted">
+                        <Heart className="h-12 w-12 text-muted-foreground" />
+                      </div>
                     )}
                   </div>
+                  
+                  {/* Price Badge in Upper Right */}
+                  {like.price && (
+                    <div className="absolute top-3 right-3">
+                      <Badge variant="default" className="bg-background/90 text-foreground font-semibold shadow-md">
+                        {like.price}
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  {/* Delete Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeLike(like.id)}
+                    className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity bg-background/90 hover:bg-background"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <CardContent className="p-4 space-y-3">
+                  {/* Brand and Product Name */}
+                  <div className="space-y-1">
+                    {like.brand_name && (
+                      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                        {like.brand_name}
+                      </p>
+                    )}
+                    <h3 className="font-semibold text-lg leading-tight line-clamp-2">
+                      {like.title}
+                    </h3>
+                  </div>
+                  
+                  {/* Category */}
+                  {like.category && (
+                    <Badge variant="secondary" className="capitalize">
+                      {like.category}
+                    </Badge>
+                  )}
+                  
+                  {/* Description */}
+                  {like.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {like.description}
+                    </p>
+                  )}
+                  
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(like.created_at).toLocaleDateString()}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(like.url, '_blank')}
+                      className="hover:bg-primary hover:text-primary-foreground"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                  </div>
+                  
+                  {like.source_email && (
+                    <p className="text-xs text-muted-foreground">
+                      From: {like.source_email}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             ))}
