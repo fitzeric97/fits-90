@@ -11,9 +11,9 @@ const Index = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    // Redirect authenticated users to dashboard
+    // Redirect authenticated users to closet
     if (user) {
-      navigate("/dashboard");
+      navigate("/closet");
     }
   }, [user, navigate]);
 
