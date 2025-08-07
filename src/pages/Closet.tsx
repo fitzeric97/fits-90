@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive } from "lucide-react";
+import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive, Square, Footprints, Eye } from "lucide-react";
 import { AddClosetItemDialog } from "@/components/closet/AddClosetItemDialog";
 import { EditClosetItemDialog } from "@/components/closet/EditClosetItemDialog";
 import { Input } from "@/components/ui/input";
@@ -37,12 +37,12 @@ const categoryConfig = {
   'button-shirts': { icon: Shirt, label: 'Button Shirts', color: 'text-indigo-600' },
   'jeans': { icon: Scissors, label: 'Jeans', color: 'text-blue-800' },
   'pants': { icon: Scissors, label: 'Pants', color: 'text-gray-600' },
-  'shorts': { icon: Scissors, label: 'Shorts', color: 'text-yellow-600' },
+  'shorts': { icon: Square, label: 'Shorts', color: 'text-yellow-600' },
   'jackets': { icon: Archive, label: 'Jackets', color: 'text-gray-800' },
   'sweaters': { icon: Package, label: 'Sweaters', color: 'text-red-600' },
   'hoodies': { icon: ShirtIcon, label: 'Hoodies', color: 'text-orange-600' },
   'activewear': { icon: Dumbbell, label: 'Activewear', color: 'text-green-700' },
-  'shoes': { icon: ShoppingBag, label: 'Shoes', color: 'text-brown-600' }
+  'shoes': { icon: Footprints, label: 'Shoes', color: 'text-brown-600' }
 };
 
 export default function Closet() {
@@ -119,6 +119,11 @@ export default function Closet() {
     if (item.company_website_url) {
       window.open(item.company_website_url, '_blank');
     }
+  };
+
+  const handleViewAllClick = () => {
+    setCategoryFilter("all");
+    setViewMode("grid");
   };
 
   const handleCategoryClick = (category: string) => {
@@ -206,6 +211,32 @@ export default function Closet() {
         {/* Categories View - Default */}
         {viewMode === "categories" && (
           <div className="space-y-8">
+            {/* View All Items */}
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Quick Access</h2>
+              <Card 
+                className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02] bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200"
+                onClick={handleViewAllClick}
+              >
+                <CardContent className="p-6 flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 rounded-full bg-blue-500 text-white">
+                      <Eye className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">View All Items</h3>
+                      <p className="text-muted-foreground">Browse your entire wardrobe</p>
+                    </div>
+                  </div>
+                  <Badge 
+                    variant="secondary" 
+                    className="bg-blue-100 text-blue-700 hover:bg-blue-200 font-medium text-lg px-3 py-1"
+                  >
+                    {items.length} items
+                  </Badge>
+                </CardContent>
+              </Card>
+            </div>
             {/* Recent Purchases */}
             {recentPurchases.length > 0 && (
               <div className="space-y-4">
