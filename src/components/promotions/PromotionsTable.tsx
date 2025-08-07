@@ -208,14 +208,14 @@ export function PromotionsTable() {
 
   // Pagination logic
   const totalItems = filteredPromotions.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const currentItemsPerPage = showExpanded ? 25 : 10;
+  const totalPages = Math.ceil(totalItems / currentItemsPerPage);
+  const startIndex = (currentPage - 1) * currentItemsPerPage;
+  const endIndex = startIndex + currentItemsPerPage;
   const currentPromotions = filteredPromotions.slice(startIndex, endIndex);
   
   const handleShowMore = () => {
     setShowExpanded(true);
-    setItemsPerPage(25);
     setCurrentPage(1); // Reset to first page when expanding
   };
   
@@ -283,7 +283,10 @@ export function PromotionsTable() {
         <CardHeader>
           <CardTitle>All Promotions</CardTitle>
           <CardDescription>
-            Your promotional emails from Gmail ({promotions.length} total)
+            {showExpanded 
+              ? `Showing ${startIndex + 1}-${Math.min(endIndex, totalItems)} of ${totalItems} promotional emails`
+              : `Showing ${Math.min(10, totalItems)} of ${totalItems} promotional emails from Gmail`
+            }
           </CardDescription>
         </CardHeader>
       <CardContent>
