@@ -6,44 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Upload, Link } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-async function uploadToStorage(file: File) {
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}.${fileExt}`;
-  
-  const formData = new FormData();
-  formData.append('file', file);
-  
-  const response = await fetch(`https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/fits/fits/${fileName}`, {
-    method: 'POST',
-    headers: {
-      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqYXd2ZXNqZ3lkZHlpeW1pYWhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MzQ2MzgsImV4cCI6MjA3MDAxMDYzOH0.ZFG9EoTGU_gar6cGnu4LYAcsfRXtQQ0yLeq7E3g0CE4',
-      'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-    },
-    body: formData
-  });
-  
-  if (response.ok) {
-    return `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/fits/fits/${fileName}`;
-  }
-  throw new Error('Upload failed');
+interface AddFitDialogProps {
+  onFitAdded?: () => void;
 }
 
-async function createFit(data: any) {
-  const response = await fetch(`https://ijawvesjgyddyiymiahk.supabase.co/rest/v1/fits`, {
-    method: 'POST',
-    headers: {
-      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqYXd2ZXNqZ3lkZHlpeW1pYWhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MzQ2MzgsImV4cCI6MjA3MDAxMDYzOH0.ZFG9EoTGU_gar6cGnu4LYAcsfRXtQQ0yLeq7E3g0CE4',
-      'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  });
-  return response.ok;
-}
-
-export function AddFitDialog() {
+export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [caption, setCaption] = useState("");
@@ -62,6 +32,24 @@ export function AddFitDialog() {
     if (file) {
       setSelectedFile(file);
     }
+  };
+
+  const uploadFitImage = async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `fits/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('fits')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('fits')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
   };
 
   const handleSubmit = async (isInstagram: boolean) => {
@@ -89,16 +77,32 @@ export function AddFitDialog() {
       let imageUrl = instagramUrl;
       
       if (!isInstagram && selectedFile) {
-        imageUrl = await uploadToStorage(selectedFile);
+        imageUrl = await uploadFitImage(selectedFile);
       }
 
-      const success = await createFit({
-        image_url: imageUrl,
-        caption: caption || null,
-        is_instagram_url: isInstagram,
-      });
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to add fits.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      if (!success) throw new Error('Failed to create fit');
+      const { error } = await supabase
+        .from('fits')
+        .insert([
+          {
+            user_id: user.id,
+            image_url: imageUrl,
+            caption: caption || null,
+            is_instagram_url: isInstagram,
+          }
+        ]);
+
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -107,8 +111,7 @@ export function AddFitDialog() {
 
       resetForm();
       setOpen(false);
-      // Refresh the page to show new fit
-      window.location.reload();
+      onFitAdded?.();
     } catch (error) {
       console.error('Error adding fit:', error);
       toast({
