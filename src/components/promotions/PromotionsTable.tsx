@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Filter, MoreHorizontal, Eye, Trash2, CheckSquare, Square } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ interface Promotion {
 }
 
 export function PromotionsTable() {
+  const navigate = useNavigate();
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -340,7 +342,12 @@ export function PromotionsTable() {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{promotion.brand_name}</TableCell>
+                    <TableCell 
+                      className="font-medium cursor-pointer hover:text-primary hover:underline"
+                      onClick={() => navigate(`/brand-promotions/${encodeURIComponent(promotion.brand_name)}`)}
+                    >
+                      {promotion.brand_name}
+                    </TableCell>
                     <TableCell className="max-w-xs truncate">{promotion.subject}</TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">

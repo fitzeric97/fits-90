@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronRight, Unlink, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ interface Brand {
 }
 
 export function BrandFilterSidebar() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -238,7 +240,7 @@ export function BrandFilterSidebar() {
                   variant={selectedBrand === brand.name ? "secondary" : "ghost"}
                   size="sm"
                   className={`flex-1 justify-start ${brand.isUnsubscribed ? 'opacity-60' : ''}`}
-                  onClick={() => setSelectedBrand(brand.name)}
+                  onClick={() => navigate(`/brand-promotions/${encodeURIComponent(brand.name)}`)}
                 >
                   <div className={`w-5 h-5 rounded text-xs flex items-center justify-center mr-2 ${
                     brand.isUnsubscribed ? 'bg-muted' : 'bg-primary/10'
