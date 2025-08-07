@@ -22,6 +22,12 @@ export function TestLikeButton() {
     setLoading(true);
     
     try {
+      console.log('Making request with user:', user?.id);
+      
+      // Get the current session to ensure we have a valid token
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Session:', session?.access_token ? 'Has token' : 'No token');
+      
       const { data, error } = await supabase.functions.invoke('add-url-to-likes', {
         body: {
           url: 'https://fahertybrand.com/products/biarritz-boardshort-blue-horizon-stripe',
