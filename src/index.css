@@ -39,14 +39,14 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
-    --sidebar-background: 45 18% 93%;  /* Light cream sidebar */
-    --sidebar-foreground: 25 15% 25%;  /* Coffee brown sidebar text */
-    --sidebar-primary: 25 25% 25%;  /* Coffee brown active items */
-    --sidebar-primary-foreground: 45 30% 95%;
-    --sidebar-accent: 40 20% 88%;  /* Warm beige accent */
-    --sidebar-accent-foreground: 25 20% 20%;
-    --sidebar-border: 40 15% 82%;
-    --sidebar-ring: 25 25% 25%;
+    --sidebar-background: 25 25% 30%;  /* Rich brown sidebar */
+    --sidebar-foreground: 45 30% 95%;  /* Cream sidebar text */
+    --sidebar-primary: 45 30% 95%;  /* Cream active items */
+    --sidebar-primary-foreground: 25 25% 25%;
+    --sidebar-accent: 25 20% 35%;  /* Slightly lighter brown accent */
+    --sidebar-accent-foreground: 45 30% 95%;  /* Cream accent text */
+    --sidebar-border: 25 20% 25%;
+    --sidebar-ring: 45 30% 95%;
   }
 
   .dark {
