@@ -11,7 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface Fit {
@@ -28,18 +27,26 @@ interface FitCardProps {
   onUpdate: () => void;
 }
 
+async function deleteFit(fitId: string) {
+  const response = await fetch(`https://ijawvesjgyddyiymiahk.supabase.co/rest/v1/fits?id=eq.${fitId}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqYXd2ZXNqZ3lkZHlpeW1pYWhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MzQ2MzgsImV4cCI6MjA3MDAxMDYzOH0.ZFG9EoTGU_gar6cGnu4LYAcsfRXtQQ0yLeq7E3g0CE4',
+      'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.ok;
+}
+
 export function FitCard({ fit, onUpdate }: FitCardProps) {
   const [showTagDialog, setShowTagDialog] = useState(false);
   const { toast } = useToast();
 
   const handleDelete = async () => {
     try {
-      const { error } = await supabase
-        .from('fits')
-        .delete()
-        .eq('id', fit.id);
-
-      if (error) throw error;
+      const success = await deleteFit(fit.id);
+      if (!success) throw new Error('Failed to delete');
 
       toast({
         title: "Fit deleted",

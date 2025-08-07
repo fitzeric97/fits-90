@@ -112,6 +112,72 @@ export type Database = {
         }
         Relationships: []
       }
+      fit_tags: {
+        Row: {
+          closet_item_id: string
+          created_at: string
+          fit_id: string
+          id: string
+        }
+        Insert: {
+          closet_item_id: string
+          created_at?: string
+          fit_id: string
+          id?: string
+        }
+        Update: {
+          closet_item_id?: string
+          created_at?: string
+          fit_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fit_tags_closet_item_id_fkey"
+            columns: ["closet_item_id"]
+            isOneToOne: false
+            referencedRelation: "closet_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fit_tags_fit_id_fkey"
+            columns: ["fit_id"]
+            isOneToOne: false
+            referencedRelation: "fits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fits: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          image_url: string
+          is_instagram_url: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          is_instagram_url?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_instagram_url?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null

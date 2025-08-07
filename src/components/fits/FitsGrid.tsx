@@ -1,7 +1,18 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { FitCard } from "./FitCard";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// Simple fetch since types are regenerating
+async function fetchFits() {
+  const response = await fetch(`https://ijawvesjgyddyiymiahk.supabase.co/rest/v1/fits?select=*&order=created_at.desc`, {
+    headers: {
+      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqYXd2ZXNqZ3lkZHlpeW1pYWhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MzQ2MzgsImV4cCI6MjA3MDAxMDYzOH0.ZFG9EoTGU_gar6cGnu4LYAcsfRXtQQ0yLeq7E3g0CE4',
+      'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.json();
+}
 
 interface Fit {
   id: string;
@@ -17,17 +28,12 @@ export function FitsGrid() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchFits();
+    loadFits();
   }, []);
 
-  const fetchFits = async () => {
+  const loadFits = async () => {
     try {
-      const { data, error } = await supabase
-        .from('fits')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchFits();
       setFits(data || []);
     } catch (error) {
       console.error('Error fetching fits:', error);
@@ -57,7 +63,7 @@ export function FitsGrid() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {fits.map((fit) => (
-        <FitCard key={fit.id} fit={fit} onUpdate={fetchFits} />
+        <FitCard key={fit.id} fit={fit} onUpdate={loadFits} />
       ))}
     </div>
   );

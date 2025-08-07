@@ -21,6 +21,62 @@ interface TagClosetDialogProps {
   fitId: string;
 }
 
+async function fetchClosetItems(searchTerm: string = '') {
+  const { data, error } = await supabase
+    .from('closet_items')
+    .select('id, product_name, brand_name, category, product_image_url')
+    .ilike('product_name', `%${searchTerm}%`)
+    .limit(20);
+
+  if (error) throw error;
+  return data || [];
+}
+
+async function fetchTaggedItems(fitId: string) {
+  // Simple fetch since types are regenerating
+  const response = await fetch(`https://ijawvesjgyddyiymiahk.supabase.co/rest/v1/fit_tags?fit_id=eq.${fitId}&select=closet_item_id,closet_items(id,product_name,brand_name,category,product_image_url)`, {
+    headers: {
+      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqYXd2ZXNqZ3lkZHlpeW1pYWhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MzQ2MzgsImV4cCI6MjA3MDAxMDYzOH0.ZFG9EoTGU_gar6cGnu4LYAcsfRXtQQ0yLeq7E3g0CE4',
+      'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (response.ok) {
+    const data = await response.json();
+    return data?.map((tag: any) => tag.closet_items).filter(Boolean) || [];
+  }
+  return [];
+}
+
+async function tagItem(fitId: string, closetItemId: string) {
+  const response = await fetch(`https://ijawvesjgyddyiymiahk.supabase.co/rest/v1/fit_tags`, {
+    method: 'POST',
+    headers: {
+      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqYXd2ZXNqZ3lkZHlpeW1pYWhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MzQ2MzgsImV4cCI6MjA3MDAxMDYzOH0.ZFG9EoTGU_gar6cGnu4LYAcsfRXtQQ0yLeq7E3g0CE4',
+      'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      fit_id: fitId,
+      closet_item_id: closetItemId
+    })
+  });
+  return response.ok;
+}
+
+async function untagItem(fitId: string, closetItemId: string) {
+  const response = await fetch(`https://ijawvesjgyddyiymiahk.supabase.co/rest/v1/fit_tags?fit_id=eq.${fitId}&closet_item_id=eq.${closetItemId}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqYXd2ZXNqZ3lkZHlpeW1pYWhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MzQ2MzgsImV4cCI6MjA3MDAxMDYzOH0.ZFG9EoTGU_gar6cGnu4LYAcsfRXtQQ0yLeq7E3g0CE4',
+      'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.ok;
+}
+
 export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [closetItems, setClosetItems] = useState<ClosetItem[]>([]);
@@ -30,72 +86,42 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
 
   useEffect(() => {
     if (open) {
-      fetchClosetItems();
-      fetchTaggedItems();
+      loadClosetItems();
+      loadTaggedItems();
     }
   }, [open, fitId]);
 
-  const fetchClosetItems = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('closet_items')
-        .select('id, product_name, brand_name, category, product_image_url')
-        .ilike('product_name', `%${searchTerm}%`)
-        .limit(20);
-
-      if (error) throw error;
-      setClosetItems(data || []);
-    } catch (error) {
-      console.error('Error fetching closet items:', error);
-    }
-  };
-
-  const fetchTaggedItems = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('fit_tags')
-        .select(`
-          closet_item_id,
-          closet_items (
-            id,
-            product_name,
-            brand_name,
-            category,
-            product_image_url
-          )
-        `)
-        .eq('fit_id', fitId);
-
-      if (error) throw error;
-      
-      const tagged = data?.map(tag => tag.closet_items).filter(Boolean) || [];
-      setTaggedItems(tagged as ClosetItem[]);
-    } catch (error) {
-      console.error('Error fetching tagged items:', error);
-    }
-  };
-
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      fetchClosetItems();
+      loadClosetItems();
     }, 300);
 
     return () => clearTimeout(debounceTimer);
   }, [searchTerm]);
 
+  const loadClosetItems = async () => {
+    try {
+      const items = await fetchClosetItems(searchTerm);
+      setClosetItems(items);
+    } catch (error) {
+      console.error('Error fetching closet items:', error);
+    }
+  };
+
+  const loadTaggedItems = async () => {
+    try {
+      const tagged = await fetchTaggedItems(fitId);
+      setTaggedItems(tagged);
+    } catch (error) {
+      console.error('Error fetching tagged items:', error);
+    }
+  };
+
   const handleTagItem = async (item: ClosetItem) => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('fit_tags')
-        .insert([
-          {
-            fit_id: fitId,
-            closet_item_id: item.id,
-          }
-        ]);
-
-      if (error) throw error;
+      const success = await tagItem(fitId, item.id);
+      if (!success) throw new Error('Failed to tag item');
 
       setTaggedItems([...taggedItems, item]);
       toast({
@@ -117,13 +143,8 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
   const handleUntagItem = async (item: ClosetItem) => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('fit_tags')
-        .delete()
-        .eq('fit_id', fitId)
-        .eq('closet_item_id', item.id);
-
-      if (error) throw error;
+      const success = await untagItem(fitId, item.id);
+      if (!success) throw new Error('Failed to untag item');
 
       setTaggedItems(taggedItems.filter(tagged => tagged.id !== item.id));
       toast({
