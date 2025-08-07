@@ -56,14 +56,14 @@ serve(async (req: Request) => {
     const authHeader = req.headers.get('authorization');
     console.log('Auth header received:', !!authHeader);
     
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return new Response(
-        JSON.stringify({ error: 'Authorization header missing' }),
+        JSON.stringify({ error: 'Authorization header missing or invalid format' }),
         { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
     
-    // Create Supabase client
+    // Create Supabase client with the Authorization header
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -71,27 +71,25 @@ serve(async (req: Request) => {
         auth: {
           autoRefreshToken: false,
           persistSession: false
+        },
+        global: {
+          headers: {
+            Authorization: authHeader
+          }
         }
       }
     );
 
-    // Set the auth token manually
-    const token = authHeader.replace('Bearer ', '');
-    await supabase.auth.setSession({
-      access_token: token,
-      refresh_token: '' // Not needed for this operation
-    });
-
-    // Get the current user
+    // Get the current user using the passed JWT token
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    console.log('User auth result:', { user: !!user, error: userError?.message });
+    console.log('User auth result:', { user: !!user, userId: user?.id, error: userError?.message });
     
     if (userError || !user) {
       console.error('Authentication failed:', userError);
       return new Response(
         JSON.stringify({ 
           error: 'Authentication failed',
-          details: userError?.message 
+          details: userError?.message || 'Invalid or expired token'
         }),
         { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
