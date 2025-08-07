@@ -277,10 +277,12 @@ export type Database = {
       user_likes: {
         Row: {
           brand_name: string | null
+          category: string | null
           created_at: string
           description: string | null
           id: string
           image_url: string | null
+          item_type: string | null
           price: string | null
           source_email: string | null
           title: string
@@ -290,10 +292,12 @@ export type Database = {
         }
         Insert: {
           brand_name?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
+          item_type?: string | null
           price?: string | null
           source_email?: string | null
           title: string
@@ -303,10 +307,12 @@ export type Database = {
         }
         Update: {
           brand_name?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
+          item_type?: string | null
           price?: string | null
           source_email?: string | null
           title?: string

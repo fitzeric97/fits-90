@@ -15,6 +15,35 @@ interface AddLikeRequest {
   brand_name?: string;
 }
 
+// Enhanced product categorization
+function categorizeProduct(title: string, description: string, url: string): { category: string; item_type: string } {
+  const text = `${title} ${description} ${url}`.toLowerCase();
+  
+  // Categories
+  let category = 'other';
+  if (text.match(/swim|bathing|bikini|boardshort|beach|pool/)) category = 'swimwear';
+  else if (text.match(/shirt|blouse|top|tee|tank|hoodie|sweater|jacket|coat/)) category = 'tops';
+  else if (text.match(/jean|pant|trouser|short|skirt|dress/)) category = 'bottoms';
+  else if (text.match(/shoe|sneaker|boot|sandal|heel|flat/)) category = 'footwear';
+  else if (text.match(/accessory|bag|belt|hat|jewelry|watch|necklace|bracelet/)) category = 'accessories';
+  else if (text.match(/underwear|bra|lingerie|sock/)) category = 'undergarments';
+  
+  // Item types
+  let item_type = 'unknown';
+  if (text.match(/boardshort|swim short/)) item_type = 'boardshorts';
+  else if (text.match(/bikini/)) item_type = 'bikini';
+  else if (text.match(/one.piece|onepiece/)) item_type = 'one-piece';
+  else if (text.match(/rashguard|rash guard/)) item_type = 'rashguard';
+  else if (text.match(/t.shirt|tee/)) item_type = 't-shirt';
+  else if (text.match(/dress/)) item_type = 'dress';
+  else if (text.match(/jean/)) item_type = 'jeans';
+  else if (text.match(/sneaker/)) item_type = 'sneakers';
+  else if (text.match(/jacket/)) item_type = 'jacket';
+  else if (text.match(/hat|cap/)) item_type = 'hat';
+  
+  return { category, item_type };
+}
+
 serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -22,9 +51,12 @@ serve(async (req: Request) => {
   }
 
   try {
-    const authHeader = req.headers.get('authorization');
-    console.log('Auth header present:', !!authHeader);
+    console.log('=== Starting add-url-to-likes function ===');
     
+    const authHeader = req.headers.get('authorization');
+    console.log('Auth header received:', !!authHeader);
+    
+    // Create Supabase client with proper auth handling
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -41,70 +73,110 @@ serve(async (req: Request) => {
       }
     );
 
-    // Get the current user
+    // Get the current user - improved error handling
     const { data: { user }, error: userError } = await supabase.auth.getUser();
+    console.log('User auth result:', { user: !!user, error: userError?.message });
+    
     if (userError || !user) {
-      console.error('Authentication error:', userError);
+      console.error('Authentication failed:', userError);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ 
+          error: 'Authentication required',
+          details: userError?.message 
+        }),
         { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
 
     const requestData: AddLikeRequest = await req.json();
-    console.log('Adding like for URL:', requestData.url);
+    console.log('Processing URL:', requestData.url);
 
-    // If product details aren't provided, try to extract them from the URL
+    // Enhanced product data extraction
     let productData = { ...requestData };
     
-    if (!productData.title || !productData.brand_name) {
-      console.log('Extracting product data from URL...');
+    if (!productData.title || !productData.brand_name || !productData.image_url) {
+      console.log('Extracting missing product data from URL...');
       
       try {
-        // Fetch the webpage content
         const response = await fetch(requestData.url, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (compatible; ProductParser/1.0)',
+            'Accept': 'text/html,application/xhtml+xml',
           }
         });
         
         if (response.ok) {
           const html = await response.text();
+          console.log('Successfully fetched webpage content');
           
-          // Extract product information using basic HTML parsing
+          // Enhanced extraction patterns
           const titleMatch = html.match(/<title[^>]*>([^<]+)</i) || 
-                           html.match(/<h1[^>]*>([^<]+)</i) ||
+                           html.match(/<h1[^>]*class="[^"]*product[^"]*"[^>]*>([^<]+)</i) ||
                            html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i);
           
-          const priceMatch = html.match(/\$(\d+(?:\.\d{2})?)/);
+          const priceMatch = html.match(/["\s](\$\d+(?:\.\d{2})?)["\s]/) ||
+                           html.match(/price[^>]*>.*?(\$\d+(?:\.\d{2})?)/i);
           
           const imageMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i) ||
-                           html.match(/<img[^>]*src="([^"]+)"[^>]*>/i);
+                           html.match(/<img[^>]*class="[^"]*product[^"]*"[^>]*src="([^"]+)"/i) ||
+                           html.match(/<img[^>]*src="([^"]+)"[^>]*class="[^"]*product[^"]*"/i);
           
           const descriptionMatch = html.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i) ||
                                  html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
 
-          // Extract brand from domain or page content
+          // Enhanced brand extraction
           const domain = new URL(requestData.url).hostname;
-          const brandFromDomain = domain.replace(/^www\./, '').split('.')[0];
+          let brandFromDomain = domain.replace(/^www\./, '').split('.')[0];
           
+          // Brand name cleanup
+          const brandCleanup: { [key: string]: string } = {
+            'fahertybrand': 'Faherty Brand',
+            'patagonia': 'Patagonia',
+            'outerknown': 'Outerknown',
+            'rip-curl': 'Rip Curl',
+            'ripcurl': 'Rip Curl',
+            'billabong': 'Billabong',
+            'volcom': 'Volcom',
+            'quicksilver': 'Quicksilver',
+            'vans': 'Vans',
+            'nike': 'Nike',
+            'adidas': 'Adidas'
+          };
+          
+          if (brandCleanup[brandFromDomain.toLowerCase()]) {
+            brandFromDomain = brandCleanup[brandFromDomain.toLowerCase()];
+          } else {
+            brandFromDomain = brandFromDomain.charAt(0).toUpperCase() + brandFromDomain.slice(1);
+          }
+          
+          // Apply extracted data
           if (titleMatch && !productData.title) {
-            productData.title = titleMatch[1].trim();
+            productData.title = titleMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim();
           }
           if (priceMatch && !productData.price) {
-            productData.price = `$${priceMatch[1]}`;
+            productData.price = priceMatch[1];
           }
           if (imageMatch && !productData.image_url) {
-            productData.image_url = imageMatch[1];
+            let imgUrl = imageMatch[1];
+            if (imgUrl.startsWith('//')) imgUrl = 'https:' + imgUrl;
+            if (imgUrl.startsWith('/')) imgUrl = new URL(requestData.url).origin + imgUrl;
+            productData.image_url = imgUrl;
           }
           if (descriptionMatch && !productData.description) {
-            productData.description = descriptionMatch[1].trim();
+            productData.description = descriptionMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim();
           }
           if (!productData.brand_name) {
-            productData.brand_name = brandFromDomain.charAt(0).toUpperCase() + brandFromDomain.slice(1);
+            productData.brand_name = brandFromDomain;
           }
           
-          console.log('Extracted product data:', productData);
+          console.log('Enhanced product data extracted:', {
+            title: !!productData.title,
+            price: !!productData.price,
+            image: !!productData.image_url,
+            brand: !!productData.brand_name
+          });
+        } else {
+          console.warn('Failed to fetch webpage:', response.status);
         }
       } catch (error) {
         console.error('Error extracting product data:', error);
@@ -112,7 +184,16 @@ serve(async (req: Request) => {
       }
     }
 
-    // Insert the like into the database
+    // Automatic categorization
+    const { category, item_type } = categorizeProduct(
+      productData.title || '',
+      productData.description || '',
+      productData.url
+    );
+    
+    console.log('Auto-categorized as:', { category, item_type });
+
+    // Insert the like into the database with enhanced data
     const { data: like, error: insertError } = await supabase
       .from('user_likes')
       .insert({
@@ -122,26 +203,31 @@ serve(async (req: Request) => {
         description: productData.description,
         image_url: productData.image_url,
         price: productData.price,
-        brand_name: productData.brand_name,
+        brand_name: productData.brand_name || 'Unknown Brand',
+        category: category,
+        item_type: item_type,
         source_email: 'manual_add'
       })
       .select()
       .single();
 
     if (insertError) {
-      console.error('Error inserting like:', insertError);
+      console.error('Database insert error:', insertError);
       return new Response(
-        JSON.stringify({ error: 'Failed to add like', details: insertError }),
+        JSON.stringify({ 
+          error: 'Failed to save product',
+          details: insertError.message 
+        }),
         { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
 
-    console.log('Like added successfully:', like);
+    console.log('Successfully added like with auto-categorization:', like.id);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Like added successfully',
+        message: 'Product added to likes successfully',
         like: like
       }),
       { 
@@ -151,7 +237,7 @@ serve(async (req: Request) => {
     );
 
   } catch (error: any) {
-    console.error('Error in add-url-to-likes function:', error);
+    console.error('=== Function error ===:', error);
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error', 
