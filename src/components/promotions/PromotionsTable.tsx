@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, MoreHorizontal, Eye, Trash2, CheckSquare, Square } from "lucide-react";
+import { Search, Filter, MoreHorizontal, Eye, Trash2, CheckSquare, Square, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -39,6 +39,9 @@ export function PromotionsTable() {
   const [sortOrder, setSortOrder] = useState("latest");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showExpanded, setShowExpanded] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -73,7 +76,7 @@ export function PromotionsTable() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(new Set(filteredPromotions.map(p => p.id)));
+      setSelectedIds(new Set(currentPromotions.map(p => p.id)));
     } else {
       setSelectedIds(new Set());
     }
@@ -203,6 +206,35 @@ export function PromotionsTable() {
       return a.brand_name.localeCompare(b.brand_name);
     });
 
+  // Pagination logic
+  const totalItems = filteredPromotions.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPromotions = filteredPromotions.slice(startIndex, endIndex);
+  
+  const handleShowMore = () => {
+    setShowExpanded(true);
+    setItemsPerPage(25);
+    setCurrentPage(1); // Reset to first page when expanding
+  };
+  
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   const getBrandInitial = (brand: string) => brand.charAt(0).toUpperCase();
 
   if (loading) {
@@ -311,7 +343,7 @@ export function PromotionsTable() {
               <TableRow>
                 <TableHead className="w-12">
                   <Checkbox
-                    checked={filteredPromotions.length > 0 && selectedIds.size === filteredPromotions.length}
+                    checked={currentPromotions.length > 0 && selectedIds.size === currentPromotions.length}
                     onCheckedChange={handleSelectAll}
                     aria-label="Select all"
                   />
@@ -326,7 +358,7 @@ export function PromotionsTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-                {filteredPromotions.map((promotion) => (
+                {currentPromotions.map((promotion) => (
                   <TableRow key={promotion.id}>
                     <TableCell>
                       <Checkbox
@@ -410,7 +442,82 @@ export function PromotionsTable() {
           </Table>
         </div>
 
-          {filteredPromotions.length === 0 && (
+        {/* Pagination Controls */}
+        <div className="flex flex-col gap-4 mt-6">
+          {/* Show More Button (only when showing 10 items and there are more than 10) */}
+          {!showExpanded && totalItems > 10 && (
+            <div className="text-center">
+              <Button 
+                variant="outline" 
+                onClick={handleShowMore}
+                className="min-w-32"
+              >
+                Show More ({Math.min(25, totalItems)} of {totalItems})
+              </Button>
+            </div>
+          )}
+          
+          {/* Pagination (when showing 25 per page and there are more than 25) */}
+          {(showExpanded && totalPages > 1) && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} promotions
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                
+                {/* Page Numbers */}
+                <div className="flex gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(pageNum)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+          {currentPromotions.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               No promotions found matching your criteria.
             </div>
