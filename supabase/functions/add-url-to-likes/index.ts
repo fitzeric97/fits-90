@@ -32,7 +32,8 @@ serve(async (req: Request) => {
         },
         global: {
           headers: {
-            authorization: req.headers.get('authorization') || ''
+            authorization: req.headers.get('authorization') ?? '',
+            apikey: req.headers.get('apikey') ?? Deno.env.get('SUPABASE_ANON_KEY') ?? ''
           }
         }
       }
