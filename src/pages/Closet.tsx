@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package } from "lucide-react";
+import { AddClosetItemDialog } from "@/components/closet/AddClosetItemDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -131,11 +132,9 @@ export default function Closet() {
             <div>
               <h3 className="text-lg font-semibold">Your closet is empty</h3>
               <p className="text-muted-foreground mb-4">
-                Items from your order confirmation emails will appear here automatically.
+                Add items to your closet by URL or upload photos of items you own
               </p>
-              <p className="text-sm text-muted-foreground">
-                Scan your Gmail to start building your digital wardrobe!
-              </p>
+              <AddClosetItemDialog onItemAdded={fetchClosetItems} />
             </div>
           </div>
         </div>
@@ -150,11 +149,12 @@ export default function Closet() {
           <div>
             <h1 className="text-3xl font-bold">My Closet</h1>
             <p className="text-muted-foreground">
-              Your digital wardrobe from order confirmations ({items.length} items)
+              Your digital wardrobe ({items.length} items)
             </p>
           </div>
           
           <div className="flex gap-2">
+            <AddClosetItemDialog onItemAdded={fetchClosetItems} />
             <Button
               variant={viewMode === "grid" ? "default" : "outline"}
               size="sm"
@@ -223,9 +223,12 @@ export default function Closet() {
                 onClick={() => handleItemClick(item)}
               >
                 <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted">
-                  {item.product_image_url ? (
+                  {(item.product_image_url || item.stored_image_path) ? (
                     <img
-                      src={item.product_image_url}
+                      src={item.stored_image_path 
+                        ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
+                        : item.product_image_url!
+                      }
                       alt={item.product_name || 'Product'}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       onError={(e) => {
@@ -302,9 +305,12 @@ export default function Closet() {
                 <CardContent className="p-4">
                   <div className="flex gap-4">
                     <div className="w-20 h-20 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
-                      {item.product_image_url ? (
+                      {(item.product_image_url || item.stored_image_path) ? (
                         <img
-                          src={item.product_image_url}
+                          src={item.stored_image_path 
+                            ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
+                            : item.product_image_url!
+                          }
                           alt={item.product_name || 'Product'}
                           className="w-full h-full object-cover"
                           onError={(e) => {
