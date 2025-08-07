@@ -49,14 +49,23 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
     setLoading(true);
 
     try {
+      if (!title.trim()) {
+        toast({
+          title: "Error",
+          description: "Product name is required",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('user_likes')
         .update({
-          title: title || 'Product',
-          brand_name: brandName || null,
-          price: price || null,
+          title: title.trim(),
+          brand_name: brandName.trim() || null,
+          price: price.trim() || null,
           category: category || null,
-          description: description || null,
+          description: description.trim() || null,
         })
         .eq('id', like.id);
 
@@ -67,6 +76,7 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
         description: "Like updated successfully!",
       });
 
+      resetForm();
       setOpen(false);
       onItemUpdated();
     } catch (error) {
@@ -105,7 +115,8 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4">
+          {/* Common fields matching AddClosetItemDialog structure */}
+          <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="space-y-2">
               <Label htmlFor="title">Product Name</Label>
               <Input

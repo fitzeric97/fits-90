@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Edit } from "lucide-react";
+import { Edit, Calendar, Package, Palette, Ruler } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,7 +66,7 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
         .from('closet_items')
         .update({
           product_name: productName || null,
-          brand_name: brandName,
+          brand_name: brandName || 'Unknown Brand',
           product_description: description || null,
           price: price || null,
           size: size || null,
@@ -83,6 +83,7 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
         description: "Closet item updated successfully!",
       });
 
+      resetForm();
       setOpen(false);
       onItemUpdated();
     } catch (error) {
@@ -121,7 +122,8 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4">
+          {/* Common fields matching AddClosetItemDialog structure */}
+          <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="space-y-2">
               <Label htmlFor="productName">Product Name</Label>
               <Input
