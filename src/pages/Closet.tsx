@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive, Square, Footprints, Eye } from "lucide-react";
+import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive, Square, Footprints, Eye, Trash2 } from "lucide-react";
 import { AddClosetItemDialog } from "@/components/closet/AddClosetItemDialog";
 import { EditClosetItemDialog } from "@/components/closet/EditClosetItemDialog";
 import { Input } from "@/components/ui/input";
@@ -129,6 +129,31 @@ export default function Closet() {
   const handleCategoryClick = (category: string) => {
     setCategoryFilter(category);
     setViewMode("grid");
+  };
+
+  const removeClosetItem = async (itemId: string) => {
+    try {
+      const { error } = await supabase
+        .from('closet_items')
+        .delete()
+        .eq('id', itemId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Item Removed",
+        description: "Item removed from your closet",
+      });
+
+      fetchClosetItems();
+    } catch (error) {
+      console.error('Error removing closet item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove item",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatDate = (dateString: string | null) => {
@@ -420,6 +445,19 @@ export default function Closet() {
                         onItemUpdated={fetchClosetItems}
                       />
                       
+                      {/* Delete Button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeClosetItem(item.id);
+                        }}
+                        className="absolute top-2 left-12 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white z-10"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                      
                       {item.company_website_url && (
                         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <div className="bg-white/90 rounded-full p-1">
@@ -504,6 +542,19 @@ export default function Closet() {
                         }}
                         onItemUpdated={fetchClosetItems}
                       />
+                      
+                      {/* Delete Button for List View */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeClosetItem(item.id);
+                        }}
+                        className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white z-10"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
                       <div className="flex gap-4">
                         <div className="w-20 h-20 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
                           {(item.product_image_url || item.stored_image_path) ? (
