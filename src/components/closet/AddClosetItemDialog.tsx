@@ -289,6 +289,7 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
                   <SelectItem value="bottoms">Bottoms</SelectItem>
                   <SelectItem value="footwear">Footwear</SelectItem>
                   <SelectItem value="accessories">Accessories</SelectItem>
+                  <SelectItem value="sunglasses">Sunglasses</SelectItem>
                   <SelectItem value="swimwear">Swimwear</SelectItem>
                   <SelectItem value="undergarments">Undergarments</SelectItem>
                 </SelectContent>

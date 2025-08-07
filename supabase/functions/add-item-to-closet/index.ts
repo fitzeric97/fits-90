@@ -28,6 +28,7 @@ function categorizeProduct(title: string, description: string, url: string): { c
   if (text.match(/shirt|blouse|top|tee|tank|hoodie|sweater|jacket|coat/)) return { category: 'tops' };
   if (text.match(/jean|pant|trouser|short|skirt|dress/)) return { category: 'bottoms' };
   if (text.match(/shoe|sneaker|boot|sandal|heel|flat/)) return { category: 'footwear' };
+  if (text.match(/sunglass|glasses|sunglasses|eyewear/)) return { category: 'sunglasses' };
   if (text.match(/accessory|bag|belt|hat|jewelry|watch|necklace|bracelet/)) return { category: 'accessories' };
   if (text.match(/underwear|bra|lingerie|sock/)) return { category: 'undergarments' };
   
