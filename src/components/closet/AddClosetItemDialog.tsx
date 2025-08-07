@@ -284,14 +284,18 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="clothing">Clothing</SelectItem>
-                  <SelectItem value="tops">Tops</SelectItem>
-                  <SelectItem value="bottoms">Bottoms</SelectItem>
-                  <SelectItem value="footwear">Footwear</SelectItem>
-                  <SelectItem value="accessories">Accessories</SelectItem>
-                  <SelectItem value="sunglasses">Sunglasses</SelectItem>
-                  <SelectItem value="swimwear">Swimwear</SelectItem>
-                  <SelectItem value="undergarments">Undergarments</SelectItem>
+                  <SelectItem value="shirts">Shirts</SelectItem>
+                  <SelectItem value="t-shirts">T-Shirts</SelectItem>
+                  <SelectItem value="polo-shirts">Polo Shirts</SelectItem>
+                  <SelectItem value="button-shirts">Button Shirts</SelectItem>
+                  <SelectItem value="jeans">Jeans</SelectItem>
+                  <SelectItem value="pants">Pants</SelectItem>
+                  <SelectItem value="shorts">Shorts</SelectItem>
+                  <SelectItem value="jackets">Jackets</SelectItem>
+                  <SelectItem value="sweaters">Sweaters</SelectItem>
+                  <SelectItem value="hoodies">Hoodies</SelectItem>
+                  <SelectItem value="activewear">Activewear</SelectItem>
+                  <SelectItem value="shoes">Shoes</SelectItem>
                 </SelectContent>
               </Select>
             </div>

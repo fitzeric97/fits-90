@@ -19,29 +19,20 @@ interface AddLikeRequest {
 function categorizeProduct(title: string, description: string, url: string): { category: string; item_type: string } {
   const text = `${title} ${description} ${url}`.toLowerCase();
   
-  // Categories
-  let category = 'other';
-  if (text.match(/swim|bathing|bikini|boardshort|beach|pool/)) category = 'swimwear';
-  else if (text.match(/shirt|blouse|top|tee|tank|hoodie|sweater|jacket|coat/)) category = 'tops';
-  else if (text.match(/jean|pant|trouser|short|skirt|dress/)) category = 'bottoms';
-  else if (text.match(/shoe|sneaker|boot|sandal|heel|flat/)) category = 'footwear';
-  else if (text.match(/accessory|bag|belt|hat|jewelry|watch|necklace|bracelet/)) category = 'accessories';
-  else if (text.match(/underwear|bra|lingerie|sock/)) category = 'undergarments';
+  if (text.match(/polo|polo shirt/)) return { category: 'polo-shirts', item_type: 'polo-shirt' };
+  if (text.match(/button|button-up|button down|dress shirt|formal shirt/)) return { category: 'button-shirts', item_type: 'button-shirt' };
+  if (text.match(/t-shirt|tee|graphic tee|basic tee/)) return { category: 't-shirts', item_type: 't-shirt' };
+  if (text.match(/shirt|blouse|top/)) return { category: 'shirts', item_type: 'shirt' };
+  if (text.match(/jean|denim/)) return { category: 'jeans', item_type: 'jeans' };
+  if (text.match(/short(?!s)|board short|swim short/)) return { category: 'shorts', item_type: 'shorts' };
+  if (text.match(/pant|trouser|chino/)) return { category: 'pants', item_type: 'pants' };
+  if (text.match(/jacket|blazer|coat/)) return { category: 'jackets', item_type: 'jacket' };
+  if (text.match(/sweater|pullover|cardigan/)) return { category: 'sweaters', item_type: 'sweater' };
+  if (text.match(/hoodie|hooded|sweatshirt/)) return { category: 'hoodies', item_type: 'hoodie' };
+  if (text.match(/active|athletic|workout|gym|sport|running|yoga|fitness/)) return { category: 'activewear', item_type: 'activewear' };
+  if (text.match(/shoe|sneaker|boot|sandal|heel|flat|footwear/)) return { category: 'shoes', item_type: 'shoe' };
   
-  // Item types
-  let item_type = 'unknown';
-  if (text.match(/boardshort|swim short/)) item_type = 'boardshorts';
-  else if (text.match(/bikini/)) item_type = 'bikini';
-  else if (text.match(/one.piece|onepiece/)) item_type = 'one-piece';
-  else if (text.match(/rashguard|rash guard/)) item_type = 'rashguard';
-  else if (text.match(/t.shirt|tee/)) item_type = 't-shirt';
-  else if (text.match(/dress/)) item_type = 'dress';
-  else if (text.match(/jean/)) item_type = 'jeans';
-  else if (text.match(/sneaker/)) item_type = 'sneakers';
-  else if (text.match(/jacket/)) item_type = 'jacket';
-  else if (text.match(/hat|cap/)) item_type = 'hat';
-  
-  return { category, item_type };
+  return { category: 'shirts', item_type: 'shirt' };
 }
 
 serve(async (req: Request) => {
