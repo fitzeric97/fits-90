@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, Tag, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, Tag, ExternalLink, Trash2, CheckSquare, Square } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,6 +27,8 @@ export default function BrandPromotions() {
   const { toast } = useToast();
   const [promotions, setPromotions] = useState<PromotionalEmail[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (brandName) {
@@ -53,6 +56,80 @@ export default function BrandPromotions() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(promotions.map(p => p.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedIds);
+    if (checked) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('promotional_emails')
+        .delete()
+        .in('id', Array.from(selectedIds));
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Deleted ${selectedIds.size} promotion${selectedIds.size === 1 ? '' : 's'}`,
+      });
+
+      setSelectedIds(new Set());
+      fetchBrandPromotions();
+    } catch (error) {
+      console.error('Error deleting promotions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete promotions",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteSingle = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('promotional_emails')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Promotion deleted",
+      });
+
+      fetchBrandPromotions();
+    } catch (error) {
+      console.error('Error deleting promotion:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete promotion",
+        variant: "destructive",
+      });
     }
   };
 
@@ -100,7 +177,44 @@ export default function BrandPromotions() {
               {promotions.length} promotion{promotions.length !== 1 ? 's' : ''} found
             </p>
           </div>
+          
+          {/* Bulk Actions */}
+          {promotions.length > 0 && (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={promotions.length > 0 && selectedIds.size === promotions.length}
+                  onCheckedChange={handleSelectAll}
+                  aria-label="Select all promotions"
+                />
+                <span className="text-sm text-muted-foreground">
+                  Select all
+                </span>
+              </div>
+              
+              {selectedIds.size > 0 && (
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={handleDeleteSelected}
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {isDeleting ? 'Deleting...' : `Delete ${selectedIds.size} Selected`}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* Selection Summary */}
+        {selectedIds.size > 0 && (
+          <div className="bg-muted/50 rounded-lg p-3">
+            <p className="text-sm text-muted-foreground">
+              {selectedIds.size} promotion{selectedIds.size === 1 ? '' : 's'} selected
+            </p>
+          </div>
+        )}
 
         {/* Promotions Grid */}
         {promotions.length === 0 ? (
@@ -119,10 +233,32 @@ export default function BrandPromotions() {
               const expired = isExpired(promotion.expires_at, promotion.is_expired);
               
               return (
-                <Card key={promotion.id} className={expired ? "opacity-60" : ""}>
-                  <CardHeader>
+                <Card key={promotion.id} className={`relative ${expired ? "opacity-60" : ""}`}>
+                  {/* Selection Checkbox */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <Checkbox
+                      checked={selectedIds.has(promotion.id)}
+                      onCheckedChange={(checked) => handleSelectOne(promotion.id, !!checked)}
+                      aria-label={`Select promotion: ${promotion.subject}`}
+                      className="bg-white shadow-sm"
+                    />
+                  </div>
+                  
+                  {/* Delete Button */}
+                  <div className="absolute top-4 right-4 z-10">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteSingle(promotion.id)}
+                      className="bg-white/90 hover:bg-white hover:text-red-500"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <CardHeader className="pt-12">
                     <div className="flex items-start justify-between">
-                      <div className="space-y-2 flex-1">
+                      <div className="space-y-2 flex-1 pr-16">
                         <CardTitle className="text-lg line-clamp-2">
                           {promotion.subject}
                         </CardTitle>
