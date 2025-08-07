@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Edit, Calendar, Package, Palette, Ruler } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ interface EditClosetItemDialogProps {
 export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   
   // Form data
   const [productName, setProductName] = useState(item.product_name || "");
@@ -95,6 +97,7 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
 
       setOpen(false);
       onItemUpdated();
+      navigate('/closet');
     } catch (error) {
       console.error('Error updating closet item:', error);
       toast({
