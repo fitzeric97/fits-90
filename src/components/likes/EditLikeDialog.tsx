@@ -76,14 +76,13 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
         description: "Like updated successfully!",
       });
 
-      resetForm();
       setOpen(false);
       onItemUpdated();
     } catch (error) {
       console.error('Error updating like:', error);
       toast({
         title: "Error",
-        description: "Failed to update like",
+        description: "Failed to update like. Please try again.",
         variant: "destructive",
       });
     } finally {

@@ -62,15 +62,24 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
     setLoading(true);
 
     try {
+      if (!brandName.trim()) {
+        toast({
+          title: "Error",
+          description: "Brand name is required",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('closet_items')
         .update({
-          product_name: productName || null,
-          brand_name: brandName || 'Unknown Brand',
-          product_description: description || null,
-          price: price || null,
-          size: size || null,
-          color: color || null,
+          product_name: productName.trim() || null,
+          brand_name: brandName.trim(),
+          product_description: description.trim() || null,
+          price: price.trim() || null,
+          size: size.trim() || null,
+          color: color.trim() || null,
           category: category || null,
           purchase_date: purchaseDate ? new Date(purchaseDate).toISOString() : null,
         })
@@ -80,17 +89,16 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
 
       toast({
         title: "Success",
-        description: "Closet item updated successfully!",
+        description: "Item updated successfully!",
       });
 
-      resetForm();
       setOpen(false);
       onItemUpdated();
     } catch (error) {
       console.error('Error updating closet item:', error);
       toast({
         title: "Error",
-        description: "Failed to update closet item",
+        description: "Failed to update item. Please try again.",
         variant: "destructive",
       });
     } finally {
