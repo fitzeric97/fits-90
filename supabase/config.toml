@@ -54,3 +54,6 @@ verify_jwt = false
 
 [functions.add-url-to-likes]
 verify_jwt = false
+
+[functions.scrape-brand-promotions]
+verify_jwt = false

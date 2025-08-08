@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, MoreHorizontal, Eye, Trash2, CheckSquare, Square, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Filter, MoreHorizontal, Eye, Trash2, CheckSquare, Square, ChevronLeft, ChevronRight, Globe, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { GmailConnector } from "@/components/gmail/GmailConnector";
 import { useToast } from "@/components/ui/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useScrapedPromotions } from "@/hooks/useScrapedPromotions";
+import { toast } from "sonner";
 
 interface Promotion {
   id: string;
@@ -43,7 +45,8 @@ export function PromotionsTable() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showExpanded, setShowExpanded] = useState(false);
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { toast: toastUi } = useToast();
+  const { scrapedPromotions, loading: scrapedLoading, triggerManualScrape } = useScrapedPromotions();
 
   useEffect(() => {
     if (user) {
@@ -71,6 +74,16 @@ export function PromotionsTable() {
       console.error('Error fetching promotions:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleManualScrape = async () => {
+    try {
+      toast.info("Starting manual scrape...");
+      const result = await triggerManualScrape();
+      toast.success(`Scraping completed! Found ${result.promotionsFound} promotions from ${result.brandsScraped} brands.`);
+    } catch (error) {
+      toast.error("Failed to trigger manual scrape");
     }
   };
 
@@ -106,7 +119,7 @@ export function PromotionsTable() {
         throw error;
       }
 
-      toast({
+      toastUi({
         title: "Success",
         description: `Deleted ${selectedIds.size} promotional email${selectedIds.size === 1 ? '' : 's'}`,
       });
@@ -115,7 +128,7 @@ export function PromotionsTable() {
       await fetchPromotions();
     } catch (error: any) {
       console.error('Error deleting promotions:', error);
-      toast({
+      toastUi({
         title: "Error",
         description: error.message || "Failed to delete promotional emails",
         variant: "destructive",
@@ -136,7 +149,7 @@ export function PromotionsTable() {
         throw error;
       }
 
-      toast({
+      toastUi({
         title: "Success",
         description: "Promotional email deleted",
       });
@@ -144,7 +157,7 @@ export function PromotionsTable() {
       await fetchPromotions();
     } catch (error: any) {
       console.error('Error deleting promotion:', error);
-      toast({
+      toastUi({
         title: "Error",
         description: error.message || "Failed to delete promotional email",
         variant: "destructive",
@@ -237,7 +250,7 @@ export function PromotionsTable() {
 
   const getBrandInitial = (brand: string) => brand.charAt(0).toUpperCase();
 
-  if (loading) {
+  if (loading || scrapedLoading) {
     return (
       <div className="space-y-6">
         <GmailConnector />
@@ -253,7 +266,7 @@ export function PromotionsTable() {
     );
   }
 
-  if (promotions.length === 0) {
+  if (promotions.length === 0 && scrapedPromotions.length === 0) {
     return (
       <div className="space-y-6">
         <GmailConnector />
@@ -279,9 +292,102 @@ export function PromotionsTable() {
   return (
     <div className="space-y-6">
       <GmailConnector />
+      
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Promotions</h1>
+          <p className="text-muted-foreground mt-2">
+            Manage your promotional emails and brand communications
+          </p>
+        </div>
+        <Button onClick={handleManualScrape} disabled={scrapedLoading}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Scrape Websites
+        </Button>
+      </div>
+
+      {/* Direct Site Promotions Section */}
+      {scrapedPromotions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5" />
+              <CardTitle>Direct Site Promotions</CardTitle>
+              <Badge variant="secondary">{scrapedPromotions.length}</Badge>
+            </div>
+            <CardDescription>
+              Latest promotions found on brand websites
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {scrapedPromotions.map((promotion) => (
+                <Card key={promotion.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {promotion.brand_name}
+                      </CardTitle>
+                      <Badge variant="outline" className="text-xs">
+                        <Globe className="w-3 h-3 mr-1" />
+                        Live
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <h3 className="font-semibold text-lg leading-tight">
+                        {promotion.promotion_title}
+                      </h3>
+                      {promotion.promotion_description && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {promotion.promotion_description}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {promotion.discount_percentage && (
+                        <Badge variant="default">
+                          {promotion.discount_percentage} Off
+                        </Badge>
+                      )}
+                      {promotion.discount_code && (
+                        <Badge variant="secondary">
+                          Code: {promotion.discount_code}
+                        </Badge>
+                      )}
+                      {promotion.expires_at && (
+                        <Badge variant="outline" className="text-xs">
+                          Expires: {new Date(promotion.expires_at).toLocaleDateString()}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="text-xs text-muted-foreground">
+                        Found: {new Date(promotion.scraped_at).toLocaleDateString()}
+                      </div>
+                      {promotion.promotion_url && (
+                        <Button size="sm" variant="outline" asChild>
+                          <a href={promotion.promotion_url} target="_blank" rel="noopener noreferrer">
+                            <Eye className="w-3 h-3 mr-1" />
+                            Visit
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
-          <CardTitle>All Promotions</CardTitle>
+          <CardTitle>Gmail Promotions</CardTitle>
           <CardDescription>
             {showExpanded 
               ? `Showing ${startIndex + 1}-${Math.min(endIndex, totalItems)} of ${totalItems} promotional emails`
@@ -475,32 +581,30 @@ export function PromotionsTable() {
                   disabled={currentPage === 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Previous
                 </Button>
                 
-                {/* Page Numbers */}
-                <div className="flex gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let pageNumber;
                     if (totalPages <= 5) {
-                      pageNum = i + 1;
+                      pageNumber = i + 1;
                     } else if (currentPage <= 3) {
-                      pageNum = i + 1;
+                      pageNumber = i + 1;
                     } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
+                      pageNumber = totalPages - 4 + i;
                     } else {
-                      pageNum = currentPage - 2 + i;
+                      pageNumber = currentPage - 2 + i;
                     }
                     
                     return (
                       <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
+                        key={pageNumber}
+                        variant={currentPage === pageNumber ? "default" : "outline"}
                         size="sm"
-                        onClick={() => handlePageChange(pageNum)}
                         className="w-8 h-8 p-0"
+                        onClick={() => handlePageChange(pageNumber)}
                       >
-                        {pageNum}
+                        {pageNumber}
                       </Button>
                     );
                   })}
@@ -512,20 +616,13 @@ export function PromotionsTable() {
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
                 >
-                  Next
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           )}
         </div>
-
-          {currentPromotions.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No promotions found matching your criteria.
-            </div>
-          )}
-        </CardContent>
+      </CardContent>
       </Card>
     </div>
   );

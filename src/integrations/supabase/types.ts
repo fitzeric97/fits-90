@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      brand_websites: {
+        Row: {
+          brand_name: string
+          created_at: string
+          id: string
+          is_active: boolean
+          last_scraped_at: string | null
+          scraping_enabled: boolean
+          updated_at: string
+          website_url: string
+        }
+        Insert: {
+          brand_name: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_scraped_at?: string | null
+          scraping_enabled?: boolean
+          updated_at?: string
+          website_url: string
+        }
+        Update: {
+          brand_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_scraped_at?: string | null
+          scraping_enabled?: boolean
+          updated_at?: string
+          website_url?: string
+        }
+        Relationships: []
+      }
       closet_items: {
         Row: {
           brand_name: string
@@ -275,6 +308,57 @@ export type Database = {
           snippet?: string | null
           subject?: string
           thread_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scraped_promotions: {
+        Row: {
+          brand_name: string
+          brand_website_url: string
+          created_at: string
+          discount_code: string | null
+          discount_percentage: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          promotion_description: string | null
+          promotion_title: string
+          promotion_url: string | null
+          scraped_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand_name: string
+          brand_website_url: string
+          created_at?: string
+          discount_code?: string | null
+          discount_percentage?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          promotion_description?: string | null
+          promotion_title: string
+          promotion_url?: string | null
+          scraped_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand_name?: string
+          brand_website_url?: string
+          created_at?: string
+          discount_code?: string | null
+          discount_percentage?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          promotion_description?: string | null
+          promotion_title?: string
+          promotion_url?: string | null
+          scraped_at?: string
           updated_at?: string
           user_id?: string
         }
