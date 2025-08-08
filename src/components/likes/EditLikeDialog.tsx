@@ -218,6 +218,7 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
                   <SelectItem value="hoodies">Hoodies</SelectItem>
                   <SelectItem value="activewear">Activewear</SelectItem>
                   <SelectItem value="shoes">Shoes</SelectItem>
+                  <SelectItem value="hats">Hats</SelectItem>
                 </SelectContent>
               </Select>
             </div>

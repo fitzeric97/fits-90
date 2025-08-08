@@ -48,6 +48,7 @@ const categoryConfig = {
   'activewear': { icon: Dumbbell, label: 'Activewear', color: 'text-green-700' },
   'shoes': { icon: Footprints, label: 'Shoes', color: 'text-brown-600' },
   'boots': { icon: Footprints, label: 'Boots', color: 'text-amber-700' },
+  'hats': { icon: Archive, label: 'Hats', color: 'text-blue-600' },
   'fragrances': { icon: Sparkles, label: 'Fragrances', color: 'text-purple-600' }
 };
 
