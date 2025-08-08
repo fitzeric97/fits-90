@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive, Square, Footprints, Eye, Trash2 } from "lucide-react";
+import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive, Square, Footprints, Eye, Trash2, Sparkles } from "lucide-react";
 import { AddClosetItemDialog } from "@/components/closet/AddClosetItemDialog";
 import { EditClosetItemDialog } from "@/components/closet/EditClosetItemDialog";
 import { Input } from "@/components/ui/input";
@@ -45,7 +45,8 @@ const categoryConfig = {
   'hoodies': { icon: ShirtIcon, label: 'Hoodies', color: 'text-orange-600' },
   'activewear': { icon: Dumbbell, label: 'Activewear', color: 'text-green-700' },
   'shoes': { icon: Footprints, label: 'Shoes', color: 'text-brown-600' },
-  'boots': { icon: Footprints, label: 'Boots', color: 'text-amber-700' }
+  'boots': { icon: Footprints, label: 'Boots', color: 'text-amber-700' },
+  'fragrances': { icon: Sparkles, label: 'Fragrances', color: 'text-purple-600' }
 };
 
 export default function Closet() {
