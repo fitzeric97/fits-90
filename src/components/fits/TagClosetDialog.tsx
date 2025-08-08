@@ -50,7 +50,7 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
       const { data, error } = await supabase
         .from('closet_items')
         .select('id, product_name, brand_name, category, product_image_url')
-        .ilike('product_name', `%${searchTerm}%`)
+        .or(`product_name.ilike.%${searchTerm}%,brand_name.ilike.%${searchTerm}%`)
         .limit(20);
 
       if (error) throw error;
