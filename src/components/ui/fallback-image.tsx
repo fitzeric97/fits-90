@@ -27,8 +27,12 @@ export function FallbackImage({
     setFallbackFailed(true);
   };
 
+  // Prioritize uploaded image if available
+  const primaryImage = fallbackSrc || src;
+  const secondaryImage = fallbackSrc ? src : null;
+
   // Show fallback icon if no images or both failed
-  if ((!src && !fallbackSrc) || (primaryFailed && (fallbackFailed || !fallbackSrc))) {
+  if (!primaryImage || (primaryFailed && (fallbackFailed || !secondaryImage))) {
     return (
       <div className={`flex items-center justify-center bg-muted ${className}`}>
         {fallbackIcon || <Package className="h-12 w-12 text-muted-foreground" />}
@@ -36,24 +40,24 @@ export function FallbackImage({
     );
   }
 
-  // Show primary image if available and not failed
-  if (src && !primaryFailed) {
+  // Show primary image (uploaded takes priority)
+  if (!primaryFailed) {
     return (
       <img
-        src={src}
-        alt={alt}
+        src={primaryImage}
+        alt={fallbackSrc ? `${alt} (uploaded)` : alt}
         className={className}
         onError={handlePrimaryError}
       />
     );
   }
 
-  // Show fallback image if primary failed and fallback available
-  if (fallbackSrc && primaryFailed && !fallbackFailed) {
+  // Show secondary image if primary failed and available
+  if (secondaryImage && !fallbackFailed) {
     return (
       <img
-        src={fallbackSrc}
-        alt={`${alt} (uploaded)`}
+        src={secondaryImage}
+        alt={alt}
         className={className}
         onError={handleFallbackError}
       />
