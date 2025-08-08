@@ -136,7 +136,9 @@ serve(async (req: Request) => {
 
     // If URL is provided, extract product data
     if (requestData.url && (!productData.title || !productData.brand_name || !productData.image_url)) {
-      console.log('Extracting product data from URL...');
+      console.log('Extracting product data from URL:', requestData.url);
+      const urlDomain = new URL(requestData.url).hostname;
+      console.log('Domain being scraped:', urlDomain);
       
       try {
         const response = await fetch(requestData.url, {
@@ -148,7 +150,18 @@ serve(async (req: Request) => {
             'DNT': '1',
             'Connection': 'keep-alive',
             'Upgrade-Insecure-Requests': '1',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate', 
+            'Sec-Fetch-Site': 'none',
           }
+        });
+        
+        console.log('Fetch response:', { 
+          status: response.status, 
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries())
         });
         
         if (response.ok) {
