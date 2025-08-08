@@ -3,8 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { TagIcon, MoreHorizontal } from "lucide-react";
+import { TagIcon, MoreHorizontal, Edit } from "lucide-react";
 import { TagClosetDialog } from "./TagClosetDialog";
+import { ImageEditor } from "./ImageEditor";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -38,6 +40,7 @@ interface FitCardProps {
 
 export function FitCard({ fit, onUpdate }: FitCardProps) {
   const [showTagDialog, setShowTagDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [taggedItems, setTaggedItems] = useState<TaggedItem[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -111,6 +114,49 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
     }
   };
 
+  const handleEditImage = async (editedImageBlob: Blob) => {
+    try {
+      // Upload the edited image
+      const fileName = `fit_${fit.id}_${Date.now()}.jpg`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('fit-images')
+        .upload(fileName, editedImageBlob, {
+          contentType: 'image/jpeg',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('fit-images')
+        .getPublicUrl(uploadData.path);
+
+      // Update the fit with the new image URL
+      const { error: updateError } = await supabase
+        .from('fits')
+        .update({ image_url: urlData.publicUrl })
+        .eq('id', fit.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Image updated",
+        description: "Your fit image has been successfully edited.",
+      });
+
+      setShowEditDialog(false);
+      onUpdate(); // Refresh the fits grid
+    } catch (error) {
+      console.error('Error updating fit image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update image. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <>
       <Card className="group overflow-hidden">
@@ -141,6 +187,10 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Image
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                     Delete Fit
                   </DropdownMenuItem>
@@ -210,6 +260,16 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
         onOpenChange={handleTagDialogClose}
         fitId={fit.id}
       />
+
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <ImageEditor
+            imageUrl={fit.image_url}
+            onSave={handleEditImage}
+            onCancel={() => setShowEditDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
