@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Upload, Link as LinkIcon, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Upload, Link } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ImageEditor } from "./ImageEditor";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddFitDialogProps {
   onFitAdded?: () => void;
@@ -16,76 +17,117 @@ interface AddFitDialogProps {
 export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("upload");
+  const [showImageEditor, setShowImageEditor] = useState(false);
+  
+  // Form data
+  const [imageUrl, setImageUrl] = useState("");
   const [caption, setCaption] = useState("");
-  const [instagramUrl, setInstagramUrl] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [editedImageBlob, setEditedImageBlob] = useState<Blob | null>(null);
+  
   const { toast } = useToast();
 
   const resetForm = () => {
+    setImageUrl("");
     setCaption("");
-    setInstagramUrl("");
-    setSelectedFile(null);
+    setSelectedImage(null);
+    setImagePreview(null);
+    setEditedImageBlob(null);
+    setShowImageEditor(false);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setImagePreview(result);
+        setShowImageEditor(true);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const uploadFitImage = async (file: File) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = fileName; // Simple filename without nested folders
-
-    const { error: uploadError } = await supabase.storage
-      .from('fits')
-      .upload(filePath, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('fits')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
+  const handleImageEditSave = (blob: Blob) => {
+    setEditedImageBlob(blob);
+    setShowImageEditor(false);
+    toast({
+      title: "Image edited",
+      description: "Your image has been cropped and positioned. Ready to post!",
+    });
   };
 
-  const handleSubmit = async (isInstagram: boolean) => {
-    if (!isInstagram && !selectedFile) {
-      toast({
-        title: "Error",
-        description: "Please select an image to upload.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleImageEditCancel = () => {
+    setShowImageEditor(false);
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
 
-    if (isInstagram && !instagramUrl) {
-      toast({
-        title: "Error", 
-        description: "Please enter an Instagram URL.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const uploadImageToStorage = async (file: Blob): Promise<string | null> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return null;
 
+      const fileName = `fit-${Date.now()}.jpg`;
+      const filePath = `${session.user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('fits')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('fits')
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      return null;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
 
     try {
-      let imageUrl = instagramUrl;
-      
-      if (!isInstagram && selectedFile) {
-        imageUrl = await uploadFitImage(selectedFile);
+      let finalImageUrl = imageUrl;
+
+      // If we have an edited image, upload it
+      if (editedImageBlob) {
+        const uploadedUrl = await uploadImageToStorage(editedImageBlob);
+        if (!uploadedUrl) {
+          toast({
+            title: "Upload failed",
+            description: "Failed to upload your edited image. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+        finalImageUrl = uploadedUrl;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
+      // Validate we have an image
+      if (!finalImageUrl) {
         toast({
           title: "Error",
-          description: "You must be logged in to add fits.",
+          description: "Please provide an image URL or upload an image",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to add fits",
           variant: "destructive",
         });
         return;
@@ -93,20 +135,18 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
 
       const { error } = await supabase
         .from('fits')
-        .insert([
-          {
-            user_id: user.id,
-            image_url: imageUrl,
-            caption: caption || null,
-            is_instagram_url: isInstagram,
-          }
-        ]);
+        .insert({
+          user_id: session.user.id,
+          image_url: finalImageUrl,
+          caption: caption.trim() || null,
+          is_instagram_url: finalImageUrl.includes('instagram.com'),
+        });
 
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Your fit has been added!",
+        title: "Fit added!",
+        description: "Your fit has been shared successfully",
       });
 
       resetForm();
@@ -125,95 +165,168 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Fit
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add New Fit</DialogTitle>
-        </DialogHeader>
-        
-        <Tabs defaultValue="upload" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="upload">
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Photo
-            </TabsTrigger>
-            <TabsTrigger value="instagram">
-              <Link className="h-4 w-4 mr-2" />
-              Instagram URL
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="upload" className="space-y-4">
-            <div>
-              <Label htmlFor="file">Select Image</Label>
-              <Input
-                id="file"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="mt-1"
-              />
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Fit
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share Your Fit</DialogTitle>
+            <DialogDescription>
+              Upload a photo or share an Instagram post of your outfit
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit}>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="upload" className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Upload Photo
+                </TabsTrigger>
+                <TabsTrigger value="url" className="flex items-center gap-2">
+                  <LinkIcon className="h-4 w-4" />
+                  Instagram URL
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="upload" className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="image-upload">Upload Image</Label>
+                  <div className="border-2 border-dashed rounded-lg p-6">
+                    {editedImageBlob ? (
+                      <div className="space-y-4">
+                        <img
+                          src={URL.createObjectURL(editedImageBlob)}
+                          alt="Edited preview"
+                          className="max-h-48 mx-auto rounded-lg object-cover"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowImageEditor(true)}
+                            className="flex items-center gap-1"
+                          >
+                            <Edit className="w-4 h-4" />
+                            Edit Again
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditedImageBlob(null);
+                              setSelectedImage(null);
+                              setImagePreview(null);
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ) : imagePreview && !showImageEditor ? (
+                      <div className="space-y-4">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="max-h-48 mx-auto rounded-lg object-cover"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowImageEditor(true)}
+                          className="flex items-center gap-1 mx-auto"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit & Crop
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Upload your fit photo to edit and crop it perfectly
+                        </p>
+                        <Input
+                          id="image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                          className="max-w-xs mx-auto"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="url" className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="image-url">Instagram Post URL</Label>
+                  <Input
+                    id="image-url"
+                    type="url"
+                    placeholder="https://instagram.com/p/..."
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <div className="space-y-4 mt-6">
+              <div className="space-y-2">
+                <Label htmlFor="caption">Caption (optional)</Label>
+                <Textarea
+                  id="caption"
+                  placeholder="Describe your fit..."
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={loading || (!imageUrl && !editedImageBlob)}
+                  className="flex-1"
+                >
+                  {loading ? "Sharing..." : "Share Fit"}
+                </Button>
+              </div>
             </div>
-            
-            <div>
-              <Label htmlFor="caption">Caption (optional)</Label>
-              <Textarea
-                id="caption"
-                placeholder="Describe your outfit..."
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            
-            <Button 
-              onClick={() => handleSubmit(false)} 
-              disabled={loading || !selectedFile}
-              className="w-full"
-            >
-              {loading ? "Uploading..." : "Add Fit"}
-            </Button>
-          </TabsContent>
-          
-          <TabsContent value="instagram" className="space-y-4">
-            <div>
-              <Label htmlFor="instagram-url">Instagram URL</Label>
-              <Input
-                id="instagram-url"
-                placeholder="https://instagram.com/p/..."
-                value={instagramUrl}
-                onChange={(e) => setInstagramUrl(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="caption-ig">Caption (optional)</Label>
-              <Textarea
-                id="caption-ig"
-                placeholder="Describe your outfit..."
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            
-            <Button 
-              onClick={() => handleSubmit(true)} 
-              disabled={loading || !instagramUrl}
-              className="w-full"
-            >
-              {loading ? "Adding..." : "Add Fit"}
-            </Button>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Editor Dialog */}
+      {showImageEditor && imagePreview && (
+        <Dialog open={showImageEditor} onOpenChange={setShowImageEditor}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <ImageEditor
+              imageUrl={imagePreview}
+              onSave={handleImageEditSave}
+              onCancel={handleImageEditCancel}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 }
