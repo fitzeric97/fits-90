@@ -16,6 +16,7 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [zoom, setZoom] = useState([100]);
   const [originalImage, setOriginalImage] = useState<FabricImage | null>(null);
+  const [initialScale, setInitialScale] = useState(1);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -38,6 +39,10 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
 
       const scale = Math.min(canvasWidth / imgWidth, canvasHeight / imgHeight);
       
+      // Store the initial scale and set zoom to match it
+      setInitialScale(scale);
+      setZoom([Math.round(scale * 100)]);
+      
       img.set({
         scaleX: scale,
         scaleY: scale,
@@ -59,15 +64,16 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
   }, [imageUrl]);
 
   useEffect(() => {
-    if (fabricCanvas && originalImage) {
+    if (fabricCanvas && originalImage && initialScale) {
       const zoomValue = zoom[0] / 100;
+      const finalScale = initialScale * zoomValue;
       originalImage.set({
-        scaleX: zoomValue,
-        scaleY: zoomValue,
+        scaleX: finalScale,
+        scaleY: finalScale,
       });
       fabricCanvas.renderAll();
     }
-  }, [zoom, fabricCanvas, originalImage]);
+  }, [zoom, fabricCanvas, originalImage, initialScale]);
 
   const handleReset = () => {
     if (fabricCanvas && originalImage) {
@@ -77,12 +83,12 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
       originalImage.set({
         left: canvasWidth / 2,
         top: canvasHeight / 2,
-        scaleX: 1,
-        scaleY: 1,
+        scaleX: initialScale,
+        scaleY: initialScale,
         angle: 0,
       });
       
-      setZoom([100]);
+      setZoom([Math.round(initialScale * 100)]);
       fabricCanvas.renderAll();
     }
   };
