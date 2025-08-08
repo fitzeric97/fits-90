@@ -164,7 +164,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
           <div className="flex">
             {/* Image Section */}
             <div className="relative flex-1">
-              <AspectRatio ratio={3/2}>
+              <AspectRatio ratio={2/3}>
                 <img
                   src={fit.image_url}
                   alt={fit.caption || "Fit"}
