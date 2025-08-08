@@ -44,7 +44,8 @@ const categoryConfig = {
   'sweaters': { icon: Package, label: 'Sweaters', color: 'text-red-600' },
   'hoodies': { icon: ShirtIcon, label: 'Hoodies', color: 'text-orange-600' },
   'activewear': { icon: Dumbbell, label: 'Activewear', color: 'text-green-700' },
-  'shoes': { icon: Footprints, label: 'Shoes', color: 'text-brown-600' }
+  'shoes': { icon: Footprints, label: 'Shoes', color: 'text-brown-600' },
+  'boots': { icon: Footprints, label: 'Boots', color: 'text-amber-700' }
 };
 
 export default function Closet() {
