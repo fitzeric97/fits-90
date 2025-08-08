@@ -3,9 +3,28 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, X } from "lucide-react";
+import { Search, X, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface ClosetItem {
   id: string;
@@ -13,6 +32,11 @@ interface ClosetItem {
   brand_name: string;
   category?: string;
   product_image_url?: string;
+}
+
+interface TaggedItem extends ClosetItem {
+  tagId: string;
+  item_order: number;
 }
 
 interface TagClosetDialogProps {
@@ -24,7 +48,7 @@ interface TagClosetDialogProps {
 export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [closetItems, setClosetItems] = useState<ClosetItem[]>([]);
-  const [taggedItems, setTaggedItems] = useState<ClosetItem[]>([]);
+  const [taggedItems, setTaggedItems] = useState<TaggedItem[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -66,7 +90,9 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
       const { data, error } = await supabase
         .from('fit_tags')
         .select(`
+          id,
           closet_item_id,
+          item_order,
           closet_items (
             id,
             product_name,
@@ -75,33 +101,60 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
             product_image_url
           )
         `)
-        .eq('fit_id', fitId);
+        .eq('fit_id', fitId)
+        .order('item_order', { ascending: true })
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
       
-      const tagged = data?.map(tag => tag.closet_items).filter(Boolean) || [];
-      setTaggedItems(tagged as ClosetItem[]);
+      const tagged: TaggedItem[] = data?.map(tag => ({
+        ...tag.closet_items,
+        tagId: tag.id,
+        item_order: tag.item_order || 0
+      })).filter(Boolean) || [];
+      
+      setTaggedItems(tagged);
     } catch (error) {
       console.error('Error fetching tagged items:', error);
       setTaggedItems([]);
     }
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   const handleTagItem = async (item: ClosetItem) => {
     setLoading(true);
     try {
-      const { error } = await supabase
+      // Get the highest order number and add 1
+      const maxOrder = taggedItems.length > 0 ? Math.max(...taggedItems.map(t => t.item_order)) : -1;
+      const newOrder = maxOrder + 1;
+
+      const { data, error } = await supabase
         .from('fit_tags')
         .insert([
           {
             fit_id: fitId,
             closet_item_id: item.id,
+            item_order: newOrder,
           }
-        ]);
+        ])
+        .select('id')
+        .single();
 
       if (error) throw error;
 
-      setTaggedItems([...taggedItems, item]);
+      const newTaggedItem: TaggedItem = {
+        ...item,
+        tagId: data.id,
+        item_order: newOrder
+      };
+
+      setTaggedItems([...taggedItems, newTaggedItem]);
       toast({
         title: "Item tagged",
         description: `${item.product_name} has been tagged to this fit.`,
@@ -118,14 +171,13 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
     }
   };
 
-  const handleUntagItem = async (item: ClosetItem) => {
+  const handleUntagItem = async (item: TaggedItem) => {
     setLoading(true);
     try {
       const { error } = await supabase
         .from('fit_tags')
         .delete()
-        .eq('fit_id', fitId)
-        .eq('closet_item_id', item.id);
+        .eq('id', item.tagId);
 
       if (error) throw error;
 
@@ -144,6 +196,86 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = taggedItems.findIndex(item => item.tagId === active.id);
+      const newIndex = taggedItems.findIndex(item => item.tagId === over?.id);
+
+      const newTaggedItems = arrayMove(taggedItems, oldIndex, newIndex);
+      
+      // Update the item_order for all items
+      const updatedItems = newTaggedItems.map((item, index) => ({
+        ...item,
+        item_order: index
+      }));
+
+      setTaggedItems(updatedItems);
+
+      // Update the database
+      try {
+        const updates = updatedItems.map(item => ({
+          id: item.tagId,
+          item_order: item.item_order
+        }));
+
+        for (const update of updates) {
+          await supabase
+            .from('fit_tags')
+            .update({ item_order: update.item_order })
+            .eq('id', update.id);
+        }
+      } catch (error) {
+        console.error('Error updating item order:', error);
+        // Revert on error
+        loadTaggedItems();
+      }
+    }
+  };
+
+  // Sortable item component
+  const SortableTaggedItem = ({ item }: { item: TaggedItem }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+    } = useSortable({ id: item.tagId });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+    };
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="flex items-center gap-2 p-2 bg-secondary rounded-lg"
+        {...attributes}
+      >
+        <div {...listeners} className="cursor-grab hover:cursor-grabbing">
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{item.product_name}</p>
+          <p className="text-xs text-muted-foreground truncate">{item.brand_name}</p>
+        </div>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-6 w-6 p-0 shrink-0"
+          onClick={() => handleUntagItem(item)}
+          disabled={loading}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      </div>
+    );
   };
 
   const filteredItems = closetItems.filter(
@@ -172,23 +304,23 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
           {/* Tagged Items */}
           {taggedItems.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium">Tagged Items</h4>
-              <div className="flex flex-wrap gap-2">
-                {taggedItems.map((item) => (
-                  <Badge key={item.id} variant="secondary" className="pr-1">
-                    {item.product_name}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-4 w-4 p-0 ml-1"
-                      onClick={() => handleUntagItem(item)}
-                      disabled={loading}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </Badge>
-                ))}
-              </div>
+              <h4 className="text-sm font-medium">Tagged Items (Drag to reorder)</h4>
+              <DndContext 
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext 
+                  items={taggedItems.map(item => item.tagId)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {taggedItems.map((item) => (
+                      <SortableTaggedItem key={item.tagId} item={item} />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
             </div>
           )}
 

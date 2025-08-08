@@ -66,6 +66,8 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
           )
         `)
         .eq('fit_id', fit.id)
+        .order('item_order', { ascending: true })
+        .order('created_at', { ascending: true })
         .limit(3);
 
       console.log('Tagged items query result:', { data, error });
