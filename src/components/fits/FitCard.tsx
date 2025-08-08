@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { TagIcon, MoreHorizontal, Edit } from "lucide-react";
+import { TagIcon, MoreHorizontal, Edit, GripVertical } from "lucide-react";
 import { TagClosetDialog } from "./TagClosetDialog";
 import { ImageEditor } from "./ImageEditor";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -16,6 +16,25 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface Fit {
   id: string;
@@ -32,6 +51,8 @@ interface TaggedItem {
   brand_name: string;
   product_image_url?: string;
   uploaded_image_url?: string;
+  tagId: string;
+  item_order: number;
 }
 
 interface FitCardProps {
@@ -46,6 +67,18 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   useEffect(() => {
     fetchTaggedItems();
   }, [fit.id]);
@@ -57,6 +90,9 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
       const { data, error } = await supabase
         .from('fit_tags')
         .select(`
+          id,
+          closet_item_id,
+          item_order,
           closet_items!inner (
             id,
             product_name,
@@ -74,9 +110,14 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
 
       if (error) throw error;
       
-      const items = data?.map((tag: any) => tag.closet_items).filter(Boolean) || [];
-      console.log('Processed tagged items:', items);
-      setTaggedItems(items as TaggedItem[]);
+      const items: TaggedItem[] = data?.map((tag: any) => ({
+        ...tag.closet_items,
+        tagId: tag.id,
+        item_order: tag.item_order || 0
+      })).filter(Boolean) || [];
+      
+      console.log('Processed tagged items with order:', items);
+      setTaggedItems(items);
     } catch (error) {
       console.error('Error fetching tagged items:', error);
     }
@@ -161,6 +202,103 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
     }
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = taggedItems.findIndex(item => item.tagId === active.id);
+      const newIndex = taggedItems.findIndex(item => item.tagId === over?.id);
+
+      const newTaggedItems = arrayMove(taggedItems, oldIndex, newIndex);
+      
+      // Update the item_order for all items
+      const updatedItems = newTaggedItems.map((item, index) => ({
+        ...item,
+        item_order: index
+      }));
+
+      setTaggedItems(updatedItems);
+
+      // Update the database
+      try {
+        const updates = updatedItems.map(item => ({
+          id: item.tagId,
+          item_order: item.item_order
+        }));
+
+        for (const update of updates) {
+          await supabase
+            .from('fit_tags')
+            .update({ item_order: update.item_order })
+            .eq('id', update.id);
+        }
+      } catch (error) {
+        console.error('Error updating item order:', error);
+        // Revert on error
+        fetchTaggedItems();
+      }
+    }
+  };
+
+  // Sortable thumbnail component
+  const SortableThumbnail = ({ item }: { item: TaggedItem }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+    } = useSortable({ id: item.tagId });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+    };
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="relative group"
+        {...attributes}
+      >
+        <button
+          onClick={() => handleItemClick(item.id)}
+          className="w-16 h-16 rounded-lg border-2 border-border bg-background overflow-hidden hover:ring-2 hover:ring-primary hover:border-primary transition-all transform hover:scale-105"
+          title={`${item.product_name} - ${item.brand_name}`}
+        >
+          {/* Use uploaded image first, then fallback to product image */}
+          {(item.uploaded_image_url || item.product_image_url) ? (
+            <img
+              src={item.uploaded_image_url || item.product_image_url}
+              alt={item.product_name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                console.log('Image failed to load:', item.uploaded_image_url || item.product_image_url);
+                console.log('Trying to fallback for item:', item.product_name);
+                // Hide the broken image and show fallback
+                e.currentTarget.style.display = 'none';
+                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div className="w-full h-full bg-muted-foreground/20 flex items-center justify-center" style={{ display: (item.uploaded_image_url || item.product_image_url) ? 'none' : 'flex' }}>
+            <span className="text-sm text-muted-foreground font-medium">
+              {item.product_name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        </button>
+        <div
+          {...listeners}
+          className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center cursor-grab hover:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <GripVertical className="w-2 h-2 text-primary-foreground" />
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <Card className="group overflow-hidden">
@@ -220,44 +358,24 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
               <div className="w-32 p-3 border-l border-border bg-muted/20">
                 <div className="space-y-2">
                   <span className="text-xs text-muted-foreground font-medium block">
-                    Tagged ({taggedItems.length})
+                    Tagged ({taggedItems.length}) - Drag to reorder
                   </span>
-                   <div className="space-y-2">
-                     {taggedItems.map((item) => {
-                       console.log('Rendering thumbnail for item:', item);
-                       console.log('Image URL for item:', item.product_image_url);
-                        return (
-                         <button
-                           key={item.id}
-                           onClick={() => handleItemClick(item.id)}
-                           className="w-16 h-16 rounded-lg border-2 border-border bg-background overflow-hidden hover:ring-2 hover:ring-primary hover:border-primary transition-all transform hover:scale-105"
-                           title={`${item.product_name} - ${item.brand_name}`}
-                         >
-                           {/* Use uploaded image first, then fallback to product image */}
-                           {(item.uploaded_image_url || item.product_image_url) ? (
-                             <img
-                               src={item.uploaded_image_url || item.product_image_url}
-                               alt={item.product_name}
-                               className="w-full h-full object-cover"
-                               onError={(e) => {
-                                 console.log('Image failed to load:', item.uploaded_image_url || item.product_image_url);
-                                 console.log('Trying to fallback for item:', item.product_name);
-                                 // Hide the broken image and show fallback
-                                 e.currentTarget.style.display = 'none';
-                                 const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                                 if (fallback) fallback.style.display = 'flex';
-                               }}
-                             />
-                           ) : null}
-                           <div className="w-full h-full bg-muted-foreground/20 flex items-center justify-center" style={{ display: (item.uploaded_image_url || item.product_image_url) ? 'none' : 'flex' }}>
-                             <span className="text-sm text-muted-foreground font-medium">
-                               {item.product_name.charAt(0).toUpperCase()}
-                             </span>
-                           </div>
-                         </button>
-                       );
-                    })}
-                  </div>
+                  <DndContext 
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext 
+                      items={taggedItems.map(item => item.tagId)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-2">
+                        {taggedItems.map((item) => (
+                          <SortableThumbnail key={item.tagId} item={item} />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
                 </div>
               </div>
             )}
