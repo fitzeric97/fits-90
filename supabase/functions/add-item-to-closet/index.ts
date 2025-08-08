@@ -49,9 +49,12 @@ serve(async (req: Request) => {
 
   try {
     console.log('=== Starting add-item-to-closet function ===');
+    console.log('Request method:', req.method);
+    console.log('Request URL:', req.url);
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()));
     
     const authHeader = req.headers.get('authorization');
-    console.log('Auth header received:', !!authHeader);
+    console.log('Auth header received:', !!authHeader, authHeader ? 'Bearer token present' : 'No bearer token');
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return new Response(
