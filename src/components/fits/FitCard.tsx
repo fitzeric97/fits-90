@@ -211,7 +211,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
 
             {/* Tagged Items Section */}
             {taggedItems.length > 0 && (
-              <div className="w-24 p-2 border-l border-border bg-muted/20">
+              <div className="w-32 p-3 border-l border-border bg-muted/20">
                 <div className="space-y-2">
                   <span className="text-xs text-muted-foreground font-medium block">
                     Tagged ({taggedItems.length})
