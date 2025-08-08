@@ -72,23 +72,25 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
       return;
     }
 
-    if (activeTab === "upload" && !selectedImage) {
-      toast({
-        title: "Error",
-        description: "Please upload an image",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Require brand name
-    if (!brandName.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter the brand name",
-        variant: "destructive",
-      });
-      return;
+    if (activeTab === "upload") {
+      if (!selectedImage) {
+        toast({
+          title: "Error",
+          description: "Please upload an image",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // For upload tab, require brand name since we can't extract it
+      if (!brandName.trim()) {
+        toast({
+          title: "Error",
+          description: "Please enter the brand name",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     // All validation passed, now set loading state
@@ -273,13 +275,15 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="brandName">Brand *</Label>
+              <Label htmlFor="brandName">
+                Brand {activeTab === "upload" ? "*" : "(auto-extracted from URL)"}
+              </Label>
               <Input
                 id="brandName"
-                placeholder="Brand name"
+                placeholder={activeTab === "upload" ? "Brand name" : "Brand name (optional - will be extracted)"}
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
-                required
+                required={activeTab === "upload"}
               />
             </div>
             <div className="space-y-2">
