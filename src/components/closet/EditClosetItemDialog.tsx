@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Edit, Calendar, Package, Palette, Ruler } from "lucide-react";
+import { Edit, Calendar, Package, Palette, Ruler, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,8 @@ interface ClosetItem {
   color: string | null;
   category: string | null;
   purchase_date: string | null;
+  product_image_url: string | null;
+  uploaded_image_url: string | null;
 }
 
 interface EditClosetItemDialogProps {
@@ -43,6 +45,8 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
   const [purchaseDate, setPurchaseDate] = useState(
     item.purchase_date ? new Date(item.purchase_date).toISOString().split('T')[0] : ""
   );
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   
   const { toast } = useToast();
 
@@ -57,6 +61,45 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
     setPurchaseDate(
       item.purchase_date ? new Date(item.purchase_date).toISOString().split('T')[0] : ""
     );
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file: File, userId: string): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('item-images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('item-images')
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive",
+      });
+      return null;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,6 +117,16 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
         return;
       }
 
+      let uploadedImageUrl = item.uploaded_image_url;
+
+      // Upload new image if selected
+      if (selectedImage) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          uploadedImageUrl = await uploadImage(selectedImage, session.user.id);
+        }
+      }
+
       const { error } = await supabase
         .from('closet_items')
         .update({
@@ -85,6 +138,7 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
           color: color.trim() || null,
           category: category || null,
           purchase_date: purchaseDate ? new Date(purchaseDate).toISOString() : null,
+          uploaded_image_url: uploadedImageUrl,
         })
         .eq('id', item.id);
 
@@ -227,6 +281,64 @@ export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDial
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
               />
+            </div>
+
+            {/* Image Upload Section */}
+            <div className="space-y-2">
+              <Label>Upload Photo (fallback when web image doesn't load)</Label>
+              <div className="border-2 border-dashed rounded-lg p-4">
+                {imagePreview ? (
+                  <div className="space-y-4">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="max-h-32 mx-auto rounded-lg object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedImage(null);
+                        setImagePreview(null);
+                      }}
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                ) : item.uploaded_image_url ? (
+                  <div className="space-y-4">
+                    <img
+                      src={item.uploaded_image_url}
+                      alt="Current uploaded"
+                      className="max-h-32 mx-auto rounded-lg object-cover"
+                    />
+                    <div className="text-center space-y-2">
+                      <p className="text-sm text-muted-foreground">Current uploaded image</p>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="max-w-xs mx-auto"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Upload a photo as backup
+                    </p>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="max-w-xs mx-auto"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

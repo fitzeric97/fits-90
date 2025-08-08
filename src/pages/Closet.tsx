@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -20,6 +21,7 @@ interface ClosetItem {
   product_name: string | null;
   product_description: string | null;
   product_image_url: string | null;
+  uploaded_image_url: string | null;
   stored_image_path: string | null;
   company_website_url: string | null;
   purchase_date: string | null;
@@ -280,23 +282,21 @@ export default function Closet() {
                       onClick={() => handleItemClick(item)}
                     >
                       <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted">
-                        {(item.product_image_url || item.stored_image_path) ? (
-                          <img
-                            src={item.stored_image_path 
-                              ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
-                              : item.product_image_url!
-                            }
-                            alt={item.product_name || 'Product'}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="h-12 w-12 text-muted-foreground" />
-                          </div>
-                        )}
+                      {(item.product_image_url || item.stored_image_path || item.uploaded_image_url) ? (
+                        <FallbackImage
+                          src={item.stored_image_path 
+                            ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
+                            : item.product_image_url
+                          }
+                          fallbackSrc={item.uploaded_image_url}
+                          alt={item.product_name || 'Product'}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="h-12 w-12 text-muted-foreground" />
+                        </div>
+                      )}
                       </div>
                       <CardContent className="p-3">
                         <h3 className="font-semibold text-sm line-clamp-1">
@@ -417,17 +417,15 @@ export default function Closet() {
                     onClick={() => handleItemClick(item)}
                   >
                     <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted">
-                      {(item.product_image_url || item.stored_image_path) ? (
-                        <img
+                      {(item.product_image_url || item.stored_image_path || item.uploaded_image_url) ? (
+                        <FallbackImage
                           src={item.stored_image_path 
                             ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
-                            : item.product_image_url!
+                            : item.product_image_url
                           }
+                          fallbackSrc={item.uploaded_image_url}
                           alt={item.product_name || 'Product'}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
@@ -446,7 +444,9 @@ export default function Closet() {
                           size: item.size,
                           color: item.color,
                           category: item.category,
-                          purchase_date: item.purchase_date
+                          purchase_date: item.purchase_date,
+                          product_image_url: item.product_image_url,
+                          uploaded_image_url: item.uploaded_image_url
                         }}
                         onItemUpdated={fetchClosetItems}
                       />
@@ -572,7 +572,9 @@ export default function Closet() {
                           size: item.size,
                           color: item.color,
                           category: item.category,
-                          purchase_date: item.purchase_date
+                          purchase_date: item.purchase_date,
+                          product_image_url: item.product_image_url,
+                          uploaded_image_url: item.uploaded_image_url
                         }}
                         onItemUpdated={fetchClosetItems}
                       />
@@ -608,23 +610,16 @@ export default function Closet() {
                       
                       <div className="flex gap-4">
                         <div className="w-20 h-20 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
-                          {(item.product_image_url || item.stored_image_path) ? (
-                            <img
-                              src={item.stored_image_path 
-                                ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
-                                : item.product_image_url!
-                              }
-                              alt={item.product_name || 'Product'}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Package className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                          )}
+                          <FallbackImage
+                            src={item.stored_image_path 
+                              ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
+                              : item.product_image_url
+                            }
+                            fallbackSrc={item.uploaded_image_url}
+                            alt={item.product_name || 'Product'}
+                            className="w-full h-full object-cover"
+                            fallbackIcon={<Package className="h-8 w-8 text-muted-foreground" />}
+                          />
                         </div>
                         
                         <div className="flex-1 space-y-2">

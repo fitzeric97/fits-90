@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { useToast } from "@/hooks/use-toast";
 import { useBrandPromotions } from "@/hooks/useBrandPromotions";
 import { ExternalLink, Heart, Trash2, Plus, Tag } from "lucide-react";
@@ -21,6 +22,7 @@ interface Like {
   title: string;
   description: string | null;
   image_url: string | null;
+  uploaded_image_url: string | null;
   price: string | null;
   brand_name: string | null;
   source_email: string | null;
@@ -235,17 +237,13 @@ export default function Likes() {
                 <div className="relative">
                   {/* Product Image with Price Overlay */}
                   <div className="aspect-[4/3] bg-muted overflow-hidden">
-                    {like.image_url ? (
-                      <img 
-                        src={like.image_url} 
-                        alt={like.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-muted">
-                        <Heart className="h-12 w-12 text-muted-foreground" />
-                      </div>
-                    )}
+                    <FallbackImage
+                      src={like.image_url}
+                      fallbackSrc={like.uploaded_image_url}
+                      alt={like.title}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      fallbackIcon={<Heart className="h-12 w-12 text-muted-foreground" />}
+                    />
                   </div>
                   
                   {/* Price Badge in Upper Right */}
@@ -265,7 +263,9 @@ export default function Likes() {
                       brand_name: like.brand_name,
                       price: like.price,
                       category: like.category,
-                      description: like.description
+                      description: like.description,
+                      image_url: like.image_url,
+                      uploaded_image_url: like.uploaded_image_url
                     }}
                     onItemUpdated={fetchLikes}
                   />

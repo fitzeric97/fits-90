@@ -65,6 +65,7 @@ export type Database = {
           size: string | null
           stored_image_path: string | null
           updated_at: string
+          uploaded_image_url: string | null
           user_id: string
         }
         Insert: {
@@ -84,6 +85,7 @@ export type Database = {
           size?: string | null
           stored_image_path?: string | null
           updated_at?: string
+          uploaded_image_url?: string | null
           user_id: string
         }
         Update: {
@@ -103,6 +105,7 @@ export type Database = {
           size?: string | null
           stored_image_path?: string | null
           updated_at?: string
+          uploaded_image_url?: string | null
           user_id?: string
         }
         Relationships: [
@@ -437,6 +440,7 @@ export type Database = {
           source_email: string | null
           title: string
           updated_at: string
+          uploaded_image_url: string | null
           url: string
           user_id: string
         }
@@ -452,6 +456,7 @@ export type Database = {
           source_email?: string | null
           title: string
           updated_at?: string
+          uploaded_image_url?: string | null
           url: string
           user_id: string
         }
@@ -467,6 +472,7 @@ export type Database = {
           source_email?: string | null
           title?: string
           updated_at?: string
+          uploaded_image_url?: string | null
           url?: string
           user_id?: string
         }
