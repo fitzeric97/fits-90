@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive, Square, Footprints, Eye, Trash2, Sparkles } from "lucide-react";
 import { AddClosetItemDialog } from "@/components/closet/AddClosetItemDialog";
 import { EditClosetItemDialog } from "@/components/closet/EditClosetItemDialog";
@@ -53,22 +53,35 @@ const categoryConfig = {
 };
 
 export default function Closet() {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const { hasBrandPromotions, getBrandPromotionCount } = useBrandPromotions();
-  const [items, setItems] = useState<ClosetItem[]>([]);
+  const [closetItems, setClosetItems] = useState<ClosetItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [brandFilter, setBrandFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"categories" | "grid" | "list">("categories");
+  const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
+  
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { hasBrandPromotions, getBrandPromotionCount } = useBrandPromotions();
 
   useEffect(() => {
     if (user) {
       fetchClosetItems();
     }
   }, [user]);
+
+  useEffect(() => {
+    // Check if there's an item ID in the URL to highlight
+    const itemId = searchParams.get('item');
+    if (itemId) {
+      setHighlightedItemId(itemId);
+      // Clear the highlight after 3 seconds
+      setTimeout(() => setHighlightedItemId(null), 3000);
+    }
+  }, [searchParams]);
 
   const fetchClosetItems = async () => {
     if (!user) return;
@@ -85,7 +98,7 @@ export default function Closet() {
         return;
       }
 
-      setItems(data || []);
+      setClosetItems(data || []);
     } catch (error) {
       console.error('Error fetching closet items:', error);
     } finally {
@@ -93,7 +106,7 @@ export default function Closet() {
     }
   };
 
-  const filteredItems = items.filter((item) => {
+  const filteredItems = closetItems.filter((item) => {
     const matchesSearch = 
       item.product_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.brand_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -105,14 +118,14 @@ export default function Closet() {
     return matchesSearch && matchesCategory && matchesBrand;
   });
 
-  const uniqueBrands = [...new Set(items.map(item => item.brand_name))];
-  const uniqueCategories = [...new Set(items.map(item => item.category).filter(Boolean))];
+  const uniqueBrands = [...new Set(closetItems.map(item => item.brand_name))];
+  const uniqueCategories = [...new Set(closetItems.map(item => item.category).filter(Boolean))];
   
   // Get recent purchases (top 3 most recent items)
-  const recentPurchases = items.slice(0, 3);
+  const recentPurchases = closetItems.slice(0, 3);
   
   // Get category counts
-  const categoryCounts = items.reduce((acc, item) => {
+  const categoryCounts = closetItems.reduce((acc, item) => {
     if (item.category) {
       acc[item.category] = (acc[item.category] || 0) + 1;
     }
@@ -183,7 +196,7 @@ export default function Closet() {
     );
   }
 
-  if (items.length === 0) {
+  if (closetItems.length === 0) {
     return (
       <DashboardLayout>
         <div className="container mx-auto p-6">
@@ -212,7 +225,7 @@ export default function Closet() {
           <div>
             <h1 className="text-3xl font-bold">My Closet</h1>
             <p className="text-muted-foreground">
-              Your digital wardrobe ({items.length} items)
+              Your digital wardrobe ({closetItems.length} items)
             </p>
           </div>
           
@@ -266,7 +279,7 @@ export default function Closet() {
                     variant="secondary" 
                     className="bg-blue-100 text-blue-700 hover:bg-blue-200 font-medium text-lg px-3 py-1"
                   >
-                    {items.length} items
+                    {closetItems.length} items
                   </Badge>
                 </CardContent>
               </Card>
@@ -558,7 +571,9 @@ export default function Closet() {
                 {filteredItems.map((item) => (
                   <Card 
                     key={item.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    className={`cursor-pointer hover:shadow-md transition-shadow ${
+                      highlightedItemId === item.id ? 'ring-4 ring-primary ring-opacity-50 shadow-xl' : ''
+                    }`}
                     onClick={() => handleItemClick(item)}
                   >
                     <CardContent className="p-4 relative">

@@ -164,18 +164,18 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
           {/* Tagged Items Thumbnails */}
           {taggedItems.length > 0 && (
             <div className="px-3 pb-3">
-              <div className="flex items-center gap-2">
+              <div className="space-y-2">
                 <span className="text-xs text-muted-foreground font-medium">
                   Tagged items ({taggedItems.length}):
                 </span>
-                <div className="flex gap-1">
+                <div className="flex gap-2 flex-wrap">
                   {taggedItems.map((item) => {
                     console.log('Rendering thumbnail for item:', item);
                     return (
                       <button
                         key={item.id}
                         onClick={() => handleItemClick(item.id)}
-                        className="w-10 h-10 rounded border border-border bg-muted overflow-hidden hover:ring-2 hover:ring-primary/20 transition-all"
+                        className="w-16 h-16 rounded-lg border-2 border-border bg-muted overflow-hidden hover:ring-2 hover:ring-primary hover:border-primary transition-all transform hover:scale-105"
                         title={`${item.product_name} - ${item.brand_name}`}
                       >
                         {item.product_image_url ? (
@@ -190,7 +190,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
                           />
                         ) : (
                           <div className="w-full h-full bg-muted-foreground/20 flex items-center justify-center">
-                            <span className="text-xs text-muted-foreground font-medium">
+                            <span className="text-sm text-muted-foreground font-medium">
                               {item.product_name.charAt(0).toUpperCase()}
                             </span>
                           </div>
