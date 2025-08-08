@@ -92,10 +92,11 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
     setLoading(true);
 
     try {
-      if (!title.trim()) {
+      // Only require brand name
+      if (!brandName.trim()) {
         toast({
           title: "Error",
-          description: "Product name is required",
+          description: "Brand name is required",
           variant: "destructive",
         });
         return;
@@ -177,16 +178,16 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
                 placeholder="Product name"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="brandName">Brand</Label>
+              <Label htmlFor="brandName">Brand *</Label>
               <Input
                 id="brandName"
                 placeholder="Brand name"
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
+                required
               />
             </div>
             <div className="space-y-2">
