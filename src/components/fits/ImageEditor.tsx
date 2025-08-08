@@ -22,7 +22,7 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
 
     const canvas = new FabricCanvas(canvasRef.current, {
       width: 400,
-      height: 400,
+      height: 600, // 2:3 aspect ratio (400 * 1.5)
       backgroundColor: "#f8f9fa",
     });
 
@@ -107,7 +107,7 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
     // Create a temporary canvas for the final crop
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = 400;
-    tempCanvas.height = 400;
+    tempCanvas.height = 600; // 2:3 aspect ratio
     const ctx = tempCanvas.getContext('2d');
     
     if (!ctx) return;
@@ -196,7 +196,7 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
             <ul className="space-y-1">
               <li>• Drag the image to reposition it</li>
               <li>• Use the zoom slider to resize</li>
-              <li>• The final image will be 400x400px square</li>
+              <li>• The final image will be 400x600px (2:3 ratio)</li>
             </ul>
           </div>
         </div>
