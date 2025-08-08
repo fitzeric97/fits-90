@@ -161,95 +161,98 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
     <>
       <Card className="group overflow-hidden">
         <CardContent className="p-0">
-          <div className="relative">{/* fit image container */}
-            <AspectRatio ratio={1}>
-              <img
-                src={fit.image_url}
-                alt={fit.caption || "Fit"}
-                className="object-cover w-full h-full"
-              />
-            </AspectRatio>
-            
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => setShowTagDialog(true)}
-              >
-                <TagIcon className="h-4 w-4 mr-1" />
-                Tag Closet
-              </Button>
+          <div className="flex">
+            {/* Image Section */}
+            <div className="relative flex-1">
+              <AspectRatio ratio={3/2}>
+                <img
+                  src={fit.image_url}
+                  alt={fit.caption || "Fit"}
+                  className="object-cover w-full h-full"
+                />
+              </AspectRatio>
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" variant="secondary">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Image
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-                    Delete Fit
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setShowTagDialog(true)}
+                >
+                  <TagIcon className="h-4 w-4 mr-1" />
+                  Tag Closet
+                </Button>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="secondary">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Image
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+                      Delete Fit
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {fit.is_instagram_url && (
+                <Badge variant="secondary" className="absolute top-2 right-2">
+                  Instagram
+                </Badge>
+              )}
             </div>
 
-            {fit.is_instagram_url && (
-              <Badge variant="secondary" className="absolute top-2 right-2">
-                Instagram
-              </Badge>
+            {/* Tagged Items Section */}
+            {taggedItems.length > 0 && (
+              <div className="w-24 p-2 border-l border-border bg-muted/20">
+                <div className="space-y-2">
+                  <span className="text-xs text-muted-foreground font-medium block">
+                    Tagged ({taggedItems.length})
+                  </span>
+                  <div className="space-y-2">
+                    {taggedItems.map((item) => {
+                      console.log('Rendering thumbnail for item:', item);
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => handleItemClick(item.id)}
+                          className="w-16 h-16 rounded-lg border-2 border-border bg-background overflow-hidden hover:ring-2 hover:ring-primary hover:border-primary transition-all transform hover:scale-105"
+                          title={`${item.product_name} - ${item.brand_name}`}
+                        >
+                          {item.product_image_url ? (
+                            <img
+                              src={item.product_image_url}
+                              alt={item.product_name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.log('Image failed to load:', item.product_image_url);
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-muted-foreground/20 flex items-center justify-center">
+                              <span className="text-sm text-muted-foreground font-medium">
+                                {item.product_name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
           
           {fit.caption && (
-            <div className="p-3 pb-2">
+            <div className="p-3 pt-2">
               <p className="text-sm text-muted-foreground">{fit.caption}</p>
-            </div>
-          )}
-
-          {/* Tagged Items Thumbnails */}
-          {taggedItems.length > 0 && (
-            <div className="px-3 pb-3">
-              <div className="space-y-2">
-                <span className="text-xs text-muted-foreground font-medium">
-                  Tagged items ({taggedItems.length}):
-                </span>
-                <div className="flex gap-2 flex-wrap">
-                  {taggedItems.map((item) => {
-                    console.log('Rendering thumbnail for item:', item);
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => handleItemClick(item.id)}
-                        className="w-16 h-16 rounded-lg border-2 border-border bg-muted overflow-hidden hover:ring-2 hover:ring-primary hover:border-primary transition-all transform hover:scale-105"
-                        title={`${item.product_name} - ${item.brand_name}`}
-                      >
-                        {item.product_image_url ? (
-                          <img
-                            src={item.product_image_url}
-                            alt={item.product_name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              console.log('Image failed to load:', item.product_image_url);
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-muted-foreground/20 flex items-center justify-center">
-                            <span className="text-sm text-muted-foreground font-medium">
-                              {item.product_name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
           )}
         </CardContent>
