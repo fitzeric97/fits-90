@@ -193,7 +193,11 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
                   <DropdownMenuContent>
                     <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit Image
+                      Edit Fit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowTagDialog(true)}>
+                      <TagIcon className="h-4 w-4 mr-2" />
+                      Tag/Untag Products
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                       Delete Fit
