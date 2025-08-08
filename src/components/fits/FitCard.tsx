@@ -31,6 +31,7 @@ interface TaggedItem {
   product_name: string;
   brand_name: string;
   product_image_url?: string;
+  uploaded_image_url?: string;
 }
 
 interface FitCardProps {
@@ -60,7 +61,8 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
             id,
             product_name,
             brand_name,
-            product_image_url
+            product_image_url,
+            uploaded_image_url
           )
         `)
         .eq('fit_id', fit.id)
@@ -214,35 +216,40 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
                   <span className="text-xs text-muted-foreground font-medium block">
                     Tagged ({taggedItems.length})
                   </span>
-                  <div className="space-y-2">
-                    {taggedItems.map((item) => {
-                      console.log('Rendering thumbnail for item:', item);
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => handleItemClick(item.id)}
-                          className="w-16 h-16 rounded-lg border-2 border-border bg-background overflow-hidden hover:ring-2 hover:ring-primary hover:border-primary transition-all transform hover:scale-105"
-                          title={`${item.product_name} - ${item.brand_name}`}
-                        >
-                          {item.product_image_url ? (
-                            <img
-                              src={item.product_image_url}
-                              alt={item.product_name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                console.log('Image failed to load:', item.product_image_url);
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-muted-foreground/20 flex items-center justify-center">
-                              <span className="text-sm text-muted-foreground font-medium">
-                                {item.product_name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                          )}
-                        </button>
-                      );
+                   <div className="space-y-2">
+                     {taggedItems.map((item) => {
+                       console.log('Rendering thumbnail for item:', item);
+                       console.log('Image URL for item:', item.product_image_url);
+                        return (
+                         <button
+                           key={item.id}
+                           onClick={() => handleItemClick(item.id)}
+                           className="w-16 h-16 rounded-lg border-2 border-border bg-background overflow-hidden hover:ring-2 hover:ring-primary hover:border-primary transition-all transform hover:scale-105"
+                           title={`${item.product_name} - ${item.brand_name}`}
+                         >
+                           {/* Use uploaded image first, then fallback to product image */}
+                           {(item.uploaded_image_url || item.product_image_url) ? (
+                             <img
+                               src={item.uploaded_image_url || item.product_image_url}
+                               alt={item.product_name}
+                               className="w-full h-full object-cover"
+                               onError={(e) => {
+                                 console.log('Image failed to load:', item.uploaded_image_url || item.product_image_url);
+                                 console.log('Trying to fallback for item:', item.product_name);
+                                 // Hide the broken image and show fallback
+                                 e.currentTarget.style.display = 'none';
+                                 const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                 if (fallback) fallback.style.display = 'flex';
+                               }}
+                             />
+                           ) : null}
+                           <div className="w-full h-full bg-muted-foreground/20 flex items-center justify-center" style={{ display: (item.uploaded_image_url || item.product_image_url) ? 'none' : 'flex' }}>
+                             <span className="text-sm text-muted-foreground font-medium">
+                               {item.product_name.charAt(0).toUpperCase()}
+                             </span>
+                           </div>
+                         </button>
+                       );
                     })}
                   </div>
                 </div>
