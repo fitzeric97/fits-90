@@ -61,46 +61,59 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate form BEFORE setting loading state
+    if (activeTab === "url" && !url) {
+      toast({
+        title: "Error",
+        description: "Please enter a product URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (activeTab === "upload" && !selectedImage && !title) {
+      toast({
+        title: "Error",
+        description: "Please upload an image or enter a product title",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Require product name
+    if (!title.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter the product name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Require brand name and description
+    if (!brandName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter the brand name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!description.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a description",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // All validation passed, now set loading state
     setLoading(true);
 
     try {
-      // Validate form
-      if (activeTab === "url" && !url) {
-        toast({
-          title: "Error",
-          description: "Please enter a product URL",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (activeTab === "upload" && !selectedImage && !title) {
-        toast({
-          title: "Error",
-          description: "Please upload an image or enter a product title",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Require brand name and description
-      if (!brandName.trim()) {
-        toast({
-          title: "Error",
-          description: "Please enter the brand name",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!description.trim()) {
-        toast({
-          title: "Error",
-          description: "Please enter a description",
-          variant: "destructive",
-        });
-        return;
-      }
 
       // Prepare request data
       const requestData: any = {
@@ -270,7 +283,7 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
           {/* Common fields for both tabs */}
           <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="space-y-2">
-              <Label htmlFor="title">Product Name</Label>
+              <Label htmlFor="title">Product Name *</Label>
               <Input
                 id="title"
                 placeholder="Product name"
