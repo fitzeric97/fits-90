@@ -413,16 +413,33 @@ export default function Brands() {
                     {promotion.promotion_description && (
                       <p className="text-muted-foreground mb-3">{promotion.promotion_description}</p>
                     )}
+                    {promotion.discount_code && (
+                      <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-green-800">Promo Code:</span>
+                            <code className="px-3 py-2 bg-white border border-green-300 rounded font-mono text-lg font-bold text-green-900 select-all">
+                              {promotion.discount_code}
+                            </code>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              navigator.clipboard.writeText(promotion.discount_code || "");
+                              toast.success("Promo code copied to clipboard!");
+                            }}
+                            className="border-green-300 text-green-800 hover:bg-green-100"
+                          >
+                            Copy Code
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       {promotion.discount_percentage && (
                         <div>
                           <span className="font-medium">Discount:</span> {promotion.discount_percentage}
-                        </div>
-                      )}
-                      {promotion.discount_code && (
-                        <div>
-                          <span className="font-medium">Code:</span> 
-                          <code className="ml-1 px-2 py-1 bg-muted rounded">{promotion.discount_code}</code>
                         </div>
                       )}
                       <div>
