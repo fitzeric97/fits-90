@@ -72,39 +72,20 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
       return;
     }
 
-    if (activeTab === "upload" && !selectedImage && !title) {
+    if (activeTab === "upload" && !selectedImage) {
       toast({
         title: "Error",
-        description: "Please upload an image or enter a product title",
+        description: "Please upload an image",
         variant: "destructive",
       });
       return;
     }
 
-    // Require product name
-    if (!title.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter the product name",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Require brand name and description
+    // Require brand name
     if (!brandName.trim()) {
       toast({
         title: "Error",
         description: "Please enter the brand name",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!description.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a description",
         variant: "destructive",
       });
       return;
@@ -283,7 +264,7 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
           {/* Common fields for both tabs */}
           <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="space-y-2">
-              <Label htmlFor="title">Product Name *</Label>
+              <Label htmlFor="title">Product Name</Label>
               <Input
                 id="title"
                 placeholder="Product name"
@@ -365,14 +346,13 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
+              <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 placeholder="Additional details about this item..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                required
               />
             </div>
           </div>
