@@ -138,9 +138,7 @@ export default function Closet() {
   );
 
   const handleItemClick = (item: ClosetItem) => {
-    if (item.company_website_url) {
-      window.open(item.company_website_url, '_blank');
-    }
+    navigate(`/closet/${item.id}`);
   };
 
   const handleViewAllClick = () => {

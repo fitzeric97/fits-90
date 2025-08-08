@@ -101,7 +101,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
   };
 
   const handleItemClick = (itemId: string) => {
-    navigate(`/closet?item=${itemId}`);
+    navigate(`/closet/${itemId}`);
   };
 
   const handleTagDialogClose = (open: boolean) => {

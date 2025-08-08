@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Onboarding from "./pages/Onboarding";
 import Closet from "./pages/Closet";
+import ClosetItemDetail from "./pages/ClosetItemDetail";
 import Fits from "./pages/Fits";
 import Likes from "./pages/Likes";
 import Brands from "./pages/Brands";
@@ -47,6 +48,11 @@ const App = () => (
             <Route path="/closet" element={
               <ProtectedRoute>
                 <Closet />
+              </ProtectedRoute>
+            } />
+            <Route path="/closet/:id" element={
+              <ProtectedRoute>
+                <ClosetItemDetail />
               </ProtectedRoute>
             } />
             <Route path="/fits" element={
