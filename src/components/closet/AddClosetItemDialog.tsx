@@ -83,6 +83,25 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
         return;
       }
 
+      // Require brand name and description
+      if (!brandName.trim()) {
+        toast({
+          title: "Error",
+          description: "Please enter the brand name",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!description.trim()) {
+        toast({
+          title: "Error",
+          description: "Please enter a description",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Prepare request data
       const requestData: any = {
         title: title || undefined,
@@ -260,12 +279,13 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="brandName">Brand</Label>
+              <Label htmlFor="brandName">Brand *</Label>
               <Input
                 id="brandName"
                 placeholder="Brand name"
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
+                required
               />
             </div>
             <div className="space-y-2">
@@ -332,13 +352,14 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Description *</Label>
               <Textarea
                 id="description"
                 placeholder="Additional details about this item..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
+                required
               />
             </div>
           </div>
