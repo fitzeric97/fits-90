@@ -43,43 +43,43 @@ export function AppSidebar() {
   return (
     <Sidebar className={collapsed ? "w-14" : "w-60 sm:w-64"} collapsible="icon">
       <SidebarContent>
-        <div className="p-3 sm:p-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-md flex items-center justify-center p-1">
+        <div className="p-4 sm:p-6">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary rounded-md flex items-center justify-center p-1">
               <img 
                 src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
                 alt="Fits Logo" 
                 className="w-full h-full object-contain"
               />
             </div>
-            {!collapsed && <span className="font-bold text-lg sm:text-xl text-sidebar-foreground">Fits</span>}
+            {!collapsed && <span className="font-bold text-2xl sm:text-3xl text-sidebar-foreground">Fits</span>}
           </div>
         </div>
 
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigationItems.map((item) => (
+               {navigationItems.map((item) => (
                  <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild size="lg" className="h-12 sm:h-11 lg:h-10 min-h-[48px]">
+                  <SidebarMenuButton asChild size="lg" className="h-14 sm:h-12 lg:h-11 min-h-[56px]">
                     <NavLink to={item.url} className={getNavCls}>
-                      <item.icon className="h-5 w-5 sm:h-4 sm:w-4 flex-shrink-0" />
-                      {!collapsed && <span className="text-base sm:text-sm font-medium truncate">{item.title}</span>}
+                      <item.icon className="h-6 w-6 sm:h-5 sm:w-5 flex-shrink-0" />
+                      {!collapsed && <span className="text-lg sm:text-base font-medium truncate">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
+               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mt-auto p-3 sm:p-4">
+        <div className="mt-auto p-4 sm:p-6">
           <Button
             variant="ghost"
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50 h-12 sm:h-11 lg:h-10 min-h-[48px] text-base sm:text-sm font-medium"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50 h-14 sm:h-12 lg:h-11 min-h-[56px] text-lg sm:text-base font-medium"
             onClick={handleLogout}
           >
-            <LogOut className="h-5 w-5 sm:h-4 sm:w-4 flex-shrink-0" />
+            <LogOut className="h-6 w-6 sm:h-5 sm:w-5 flex-shrink-0" />
             {!collapsed && <span className="truncate">Logout</span>}
           </Button>
         </div>
