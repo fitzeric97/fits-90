@@ -152,8 +152,8 @@ const Index = () => {
   if (mode === "select") {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <div className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center mb-8">
-          <span className="text-primary-foreground font-bold text-4xl">F</span>
+        <div className="w-24 h-24 flex items-center justify-center mb-8">
+          <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fitz Logo" className="w-24 h-24 object-contain" />
         </div>
         
         <div className="max-w-sm w-full space-y-4">
@@ -170,7 +170,7 @@ const Index = () => {
             className="w-full h-14 text-lg font-medium"
             variant="outline"
           >
-            Join Us
+            Create Account + @myfits.co Email
           </Button>
         </div>
       </div>
@@ -180,8 +180,8 @@ const Index = () => {
   if (mode === "join") {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <div className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center mb-8">
-          <span className="text-primary-foreground font-bold text-4xl">F</span>
+        <div className="w-24 h-24 flex items-center justify-center mb-8">
+          <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fitz Logo" className="w-24 h-24 object-contain" />
         </div>
         
         <div className="max-w-sm w-full">
@@ -254,8 +254,8 @@ const Index = () => {
   if (mode === "joined") {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <div className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center mb-8">
-          <span className="text-primary-foreground font-bold text-4xl">F</span>
+        <div className="w-24 h-24 flex items-center justify-center mb-8">
+          <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fitz Logo" className="w-24 h-24 object-contain" />
         </div>
         
         <div className="max-w-sm w-full">
