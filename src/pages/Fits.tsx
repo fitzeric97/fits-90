@@ -15,8 +15,7 @@ export default function Fits() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">My Fits</h1>
-            <p className="text-muted-foreground">Share your outfits and tag your closet items</p>
+            <h1 className="text-3xl font-bold">Fits</h1>
           </div>
           <AddFitDialog onFitAdded={handleFitAdded} />
         </div>
