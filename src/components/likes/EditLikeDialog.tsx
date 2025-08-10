@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Edit, Upload, X } from "lucide-react";
+import { Edit, Upload, X, Shirt, User, Layers, Scissors, Crown, Watch, Footprints, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +33,7 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
   const [title, setTitle] = useState(like.title);
   const [brandName, setBrandName] = useState(like.brand_name || "");
   const [price, setPrice] = useState(like.price || "");
-  const [category, setCategory] = useState(like.category || "");
+  const [category, setCategory] = useState(like.category || "none");
   const [description, setDescription] = useState(like.description || "");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -44,7 +44,7 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
     setTitle(like.title);
     setBrandName(like.brand_name || "");
     setPrice(like.price || "");
-    setCategory(like.category || "");
+    setCategory(like.category || "none");
     setDescription(like.description || "");
     setSelectedImage(null);
     setImagePreview(null);
@@ -118,7 +118,7 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
           title: title.trim(),
           brand_name: brandName.trim() || null,
           price: price.trim() || null,
-          category: category || null,
+          category: category === "none" ? null : category,
           description: description.trim() || null,
           uploaded_image_url: uploadedImageUrl,
         })
@@ -206,20 +206,108 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No category</SelectItem>
-                  <SelectItem value="shirts">Shirts</SelectItem>
-                  <SelectItem value="t-shirts">T-Shirts</SelectItem>
-                  <SelectItem value="polo-shirts">Polo Shirts</SelectItem>
-                  <SelectItem value="button-shirts">Button Shirts</SelectItem>
-                  <SelectItem value="jeans">Jeans</SelectItem>
-                  <SelectItem value="pants">Pants</SelectItem>
-                  <SelectItem value="shorts">Shorts</SelectItem>
-                  <SelectItem value="jackets">Jackets</SelectItem>
-                  <SelectItem value="sweaters">Sweaters</SelectItem>
-                  <SelectItem value="hoodies">Hoodies</SelectItem>
-                  <SelectItem value="activewear">Activewear</SelectItem>
-                  <SelectItem value="shoes">Shoes</SelectItem>
-                  <SelectItem value="hats">Hats</SelectItem>
+                  <SelectItem value="none">
+                    <div className="flex items-center gap-2">
+                      <X className="h-4 w-4" />
+                      No category
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="shirts">
+                    <div className="flex items-center gap-2">
+                      <Shirt className="h-4 w-4" />
+                      Shirts
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="t-shirts">
+                    <div className="flex items-center gap-2">
+                      <Shirt className="h-4 w-4" />
+                      T-Shirts
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="polo-shirts">
+                    <div className="flex items-center gap-2">
+                      <Shirt className="h-4 w-4" />
+                      Polo Shirts
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="button-shirts">
+                    <div className="flex items-center gap-2">
+                      <Shirt className="h-4 w-4" />
+                      Button Shirts
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="jeans">
+                    <div className="flex items-center gap-2">
+                      <Layers className="h-4 w-4" />
+                      Jeans
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="pants">
+                    <div className="flex items-center gap-2">
+                      <Layers className="h-4 w-4" />
+                      Pants
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="shorts">
+                    <div className="flex items-center gap-2">
+                      <Scissors className="h-4 w-4" />
+                      Shorts
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="jackets">
+                    <div className="flex items-center gap-2">
+                      <Shirt className="h-4 w-4" />
+                      Jackets
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="sweaters">
+                    <div className="flex items-center gap-2">
+                      <Shirt className="h-4 w-4" />
+                      Sweaters
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="hoodies">
+                    <div className="flex items-center gap-2">
+                      <Shirt className="h-4 w-4" />
+                      Hoodies
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="activewear">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Activewear
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="shoes">
+                    <div className="flex items-center gap-2">
+                      <Footprints className="h-4 w-4" />
+                      Shoes
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="hats">
+                    <div className="flex items-center gap-2">
+                      <Crown className="h-4 w-4" />
+                      Hats
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="accessories">
+                    <div className="flex items-center gap-2">
+                      <Watch className="h-4 w-4" />
+                      Accessories
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="fragrances">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Fragrances
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="colognes">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Colognes
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
