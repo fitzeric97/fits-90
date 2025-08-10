@@ -1,5 +1,5 @@
 import { Home, ShirtIcon, Bell, Settings, LogOut, Heart, Camera, Globe, Users } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -28,6 +28,7 @@ const navigationItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut } = useAuth();
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
@@ -38,6 +39,7 @@ export function AppSidebar() {
 
   const handleLogout = async () => {
     await signOut();
+    navigate('/');
   };
 
   return (
