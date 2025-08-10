@@ -284,15 +284,48 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
               </TabsContent>
 
               <TabsContent value="instagram" className="space-y-4">
-                <InstagramUrlImport 
-                  onUrlImport={(url) => {
-                    setImageUrl(url);
-                    toast({
-                      title: "Instagram photo imported",
-                      description: "Your Instagram photo is ready to be shared!",
-                    });
-                  }}
-                />
+                <div className="space-y-4">
+                  <div className="text-center p-4 border-2 border-dashed rounded-lg">
+                    <Instagram className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <h4 className="font-medium mb-2">Instagram Integration</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Choose your preferred method to import Instagram photos
+                    </p>
+                    
+                    <div className="space-y-3">
+                      <Button
+                        type="button"
+                        onClick={() => setShowInstagramBrowser(true)}
+                        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                      >
+                        <Instagram className="h-4 w-4 mr-2" />
+                        Authorize Instagram Access
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Like Hinge - authorize once, browse all your photos
+                      </p>
+                      
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-background px-2 text-muted-foreground">or</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <InstagramUrlImport 
+                    onUrlImport={(url) => {
+                      setImageUrl(url);
+                      toast({
+                        title: "Instagram photo imported",
+                        description: "Your Instagram photo is ready to be shared!",
+                      });
+                    }}
+                  />
+                </div>
               </TabsContent>
 
               <TabsContent value="url" className="space-y-4">

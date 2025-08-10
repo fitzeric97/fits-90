@@ -15,18 +15,23 @@ export function InstagramUrlImport({ onUrlImport }: InstagramUrlImportProps) {
   const { toast } = useToast();
 
   const openInstagramApp = () => {
-    // Try to open Instagram app first
-    const instagramAppUrl = 'instagram://';
+    // Try to open Instagram app to user's own profile
+    const instagramAppUrl = 'instagram://user'; // Opens to user's own profile
     const instagramWebUrl = 'https://www.instagram.com/';
     
     // For mobile devices, try app first
     if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-      window.location.href = instagramAppUrl;
+      // Create a hidden iframe to test if the app opens
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = instagramAppUrl;
+      document.body.appendChild(iframe);
       
       // Fallback to web if app doesn't open
       setTimeout(() => {
+        document.body.removeChild(iframe);
         window.open(instagramWebUrl, '_blank');
-      }, 2000);
+      }, 1500);
     } else {
       // For desktop, open web version
       window.open(instagramWebUrl, '_blank');
