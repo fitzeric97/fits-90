@@ -9,11 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { useToast } from "@/hooks/use-toast";
 import { useBrandPromotions } from "@/hooks/useBrandPromotions";
-import { ExternalLink, Heart, Trash2, Plus, Tag } from "lucide-react";
+import { ExternalLink, Heart, Trash2, Plus, Tag, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { TestLikeButton } from "@/components/testing/TestLikeButton";
 import { EditLikeDialog } from "@/components/likes/EditLikeDialog";
 
 interface Like {
@@ -40,12 +39,37 @@ export default function Likes() {
   const [loading, setLoading] = useState(true);
   const [newLike, setNewLike] = useState({ url: '', title: '' });
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredLikes, setFilteredLikes] = useState<Like[]>([]);
 
   useEffect(() => {
     if (user) {
       fetchLikes();
     }
   }, [user]);
+
+  // Filter likes based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredLikes(likes);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = likes.filter((like) => {
+      const searchableFields = [
+        like.brand_name?.toLowerCase(),
+        like.category?.toLowerCase(), 
+        like.description?.toLowerCase(),
+        like.title?.toLowerCase(),
+        // You can add color field when it's available in the schema
+      ].filter(Boolean);
+
+      return searchableFields.some(field => field?.includes(query));
+    });
+
+    setFilteredLikes(filtered);
+  }, [likes, searchQuery]);
 
   const fetchLikes = async () => {
     try {
@@ -151,7 +175,6 @@ export default function Likes() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <TestLikeButton />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">My Likes</h1>
@@ -207,6 +230,29 @@ export default function Likes() {
           </Dialog>
         </div>
 
+        {/* Search Bar */}
+        {likes.length > 0 && (
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by brand, category, or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-10"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        )}
+
         {likes.length === 0 ? (
           <Card>
             <CardHeader>
@@ -230,9 +276,27 @@ export default function Likes() {
               </div>
             </CardContent>
           </Card>
+        ) : filteredLikes.length === 0 ? (
+          <Card>
+            <CardContent className="p-8">
+              <div className="text-center">
+                <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">No matches found</h3>
+                <p className="text-muted-foreground mb-4">
+                  No items match your search for "{searchQuery}"
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => setSearchQuery('')}
+                >
+                  Clear search
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {likes.map((like) => (
+            {filteredLikes.map((like) => (
               <Card key={like.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300">
                 <div className="relative">
                   {/* Product Image with Price Overlay */}
