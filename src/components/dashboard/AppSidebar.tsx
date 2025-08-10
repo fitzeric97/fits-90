@@ -45,8 +45,12 @@ export function AppSidebar() {
       <SidebarContent>
         <div className="p-3 sm:p-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm sm:text-base">F</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-md flex items-center justify-center p-1">
+              <img 
+                src="/lovable-uploads/e4a1b3bc-c73c-496e-b3a5-5f401fc40604.png" 
+                alt="Fits Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
             {!collapsed && <span className="font-bold text-lg sm:text-xl text-sidebar-foreground">Fits</span>}
           </div>

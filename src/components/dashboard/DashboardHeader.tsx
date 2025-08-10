@@ -6,7 +6,15 @@ export function DashboardHeader() {
   return (
     <header className="h-14 border-b bg-background flex items-center justify-between px-4">
       <div className="flex items-center gap-4">
-        <SidebarTrigger />
+        <SidebarTrigger className="h-10 w-10 p-2" />
+        <div className="flex items-center gap-2">
+          <img 
+            src="/lovable-uploads/e4a1b3bc-c73c-496e-b3a5-5f401fc40604.png" 
+            alt="Fits Logo" 
+            className="h-8 w-8 object-contain"
+          />
+          <span className="font-bold text-lg text-foreground hidden sm:block">Fits</span>
+        </div>
       </div>
       
       <div className="flex items-center gap-2">
