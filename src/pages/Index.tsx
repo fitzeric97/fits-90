@@ -254,8 +254,8 @@ const Index = () => {
   if (mode === "joined") {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <div className="w-[54rem] h-[54rem] flex items-center justify-center mb-8">
-          <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fitz Logo" className="w-[54rem] h-[54rem] object-contain" />
+        <div className="w-20 h-20 flex items-center justify-center mb-8">
+          <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fitz Logo" className="w-20 h-20 object-contain" />
         </div>
         
         <div className="max-w-sm w-full">
