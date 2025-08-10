@@ -381,120 +381,19 @@ export default function Likes() {
           <>
             {/* Grid View */}
             {viewMode === "grid" && (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-3 gap-4">
                 {filteredLikes.map((like) => (
-                  <Card key={like.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-                    <div className="relative">
-                      {/* Product Image with Price Overlay */}
-                      <div className="aspect-[4/3] bg-muted overflow-hidden">
-                        <FallbackImage
-                          src={like.image_url}
-                          fallbackSrc={like.uploaded_image_url}
-                          alt={like.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          fallbackIcon={<Heart className="h-12 w-12 text-muted-foreground" />}
-                        />
-                      </div>
-                      
-                      {/* Price Badge in Upper Right */}
-                      {like.price && (
-                        <div className="absolute top-3 right-3">
-                          <Badge variant="default" className="bg-background/90 text-foreground font-semibold shadow-md">
-                            {like.price}
-                          </Badge>
-                        </div>
-                      )}
-                      
-                      {/* Action Buttons */}
-                      <EditLikeDialog 
-                        like={{
-                          id: like.id,
-                          title: like.title,
-                          brand_name: like.brand_name,
-                          price: like.price,
-                          category: like.category,
-                          description: like.description,
-                          image_url: like.image_url,
-                          uploaded_image_url: like.uploaded_image_url
-                        }}
-                        onItemUpdated={fetchLikes}
+                  <div key={like.id} className="relative group overflow-hidden rounded-lg">
+                    <div className="aspect-square bg-muted overflow-hidden">
+                      <FallbackImage
+                        src={like.image_url}
+                        fallbackSrc={like.uploaded_image_url}
+                        alt={like.title}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        fallbackIcon={<Heart className="h-12 w-12 text-muted-foreground" />}
                       />
-                      
-                      {/* Delete Button */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeLike(like.id)}
-                        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity bg-background/90 hover:bg-background"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
-                    
-                    <CardContent className="p-4 space-y-3">
-                      {/* Brand and Product Name */}
-                      <div className="space-y-1">
-                        {like.brand_name && (
-                          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                            {like.brand_name}
-                          </p>
-                        )}
-                        <h3 className="font-semibold text-lg leading-tight line-clamp-2">
-                          {like.title}
-                        </h3>
-                      </div>
-                      
-                      {/* Category */}
-                      {like.category && (
-                        <Badge variant="secondary" className="capitalize">
-                          {like.category}
-                        </Badge>
-                      )}
-                      
-                      {/* Description */}
-                      {like.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {like.description}
-                        </p>
-                      )}
-                      
-                      {/* Footer */}
-                      <div className="flex items-center justify-between pt-2 border-t">
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(like.created_at).toLocaleDateString()}
-                        </span>
-                        <div className="flex gap-2">
-                          {/* Promotions Button - Show if brand has active promotions */}
-                          {like.brand_name && hasBrandPromotions(like.brand_name) && (
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => navigate(`/brand-promotions/${encodeURIComponent(like.brand_name)}`)}
-                              className="bg-green-500 hover:bg-green-600 text-white"
-                            >
-                              <Tag className="h-4 w-4 mr-1" />
-                              Promotions ({getBrandPromotionCount(like.brand_name)})
-                            </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(like.url, '_blank')}
-                            className="hover:bg-primary hover:text-primary-foreground"
-                          >
-                            <ExternalLink className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      {like.source_email && (
-                        <p className="text-xs text-muted-foreground">
-                          From: {like.source_email}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
+                  </div>
                 ))}
               </div>
             )}
