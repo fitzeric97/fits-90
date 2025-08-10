@@ -23,7 +23,7 @@ const Index = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      navigate("/home");
     }
   }, [user, navigate]);
 
@@ -60,7 +60,7 @@ const Index = () => {
         email: email,
         password: Math.random().toString(36),
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/home`,
           data: {
             first_name: firstName,
             last_name: lastName,
@@ -114,7 +114,7 @@ const Index = () => {
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email: loginEmail,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/home`,
         }
       });
       

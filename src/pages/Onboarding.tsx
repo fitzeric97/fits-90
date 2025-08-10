@@ -48,7 +48,7 @@ export default function Onboarding() {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      navigate("/dashboard");
+      navigate("/home");
     }
   };
 
@@ -137,7 +137,7 @@ export default function Onboarding() {
           </div>
 
           <div className="flex gap-3">
-            <Button onClick={() => navigate("/dashboard")} variant="outline" className="flex-1">
+            <Button onClick={() => navigate("/home")} variant="outline" className="flex-1">
               Skip Setup
             </Button>
             <Button onClick={nextStep} className="flex-1">

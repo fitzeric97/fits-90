@@ -134,15 +134,15 @@ export default function InteractiveOnboarding() {
         description: "You're all set up and ready to start organizing your fashion journey.",
       });
       
-      navigate("/dashboard");
+      navigate("/home");
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      navigate("/dashboard");
+      navigate("/home");
     }
   };
 
   const skipOnboarding = () => {
-    navigate("/dashboard");
+    navigate("/home");
   };
 
   const currentStepData = steps[currentStep];

@@ -151,7 +151,7 @@ export default function AuthCallback() {
               description: "Your account has been set up successfully.",
             });
             
-            navigate("/dashboard");
+            navigate("/home");
           } else {
             console.log('No provider token found, initiating separate Gmail OAuth');
             // Fallback to separate Gmail OAuth flow
@@ -207,7 +207,7 @@ export default function AuthCallback() {
         description: "Failed to connect to Gmail. Please try from Settings.",
         variant: "destructive",
       });
-      navigate("/dashboard");
+      navigate("/home");
     }
   };
 

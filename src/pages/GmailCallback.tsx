@@ -57,7 +57,7 @@ export default function GmailCallback() {
             description: `Your @fits.co email is ready! We've scanned ${scanData?.processed || 0} promotional emails.`,
           });
 
-          navigate('/dashboard');
+          navigate('/home');
           return;
         }
 
@@ -118,7 +118,7 @@ export default function GmailCallback() {
           throw signInError;
         }
 
-        navigate('/dashboard');
+        navigate('/home');
 
       } catch (error: any) {
         console.error('Gmail callback error:', error);
