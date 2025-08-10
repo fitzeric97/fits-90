@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { EditLikeDialog } from "@/components/likes/EditLikeDialog";
+import { LikeDetailDialog } from "@/components/likes/LikeDetailDialog";
 
 interface Like {
   id: string;
@@ -83,6 +84,8 @@ export default function Likes() {
   const [filteredLikes, setFilteredLikes] = useState<Like[]>([]);
   const [sortByHeadToToe, setSortByHeadToToe] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [selectedLike, setSelectedLike] = useState<Like | null>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -204,6 +207,11 @@ export default function Likes() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleLikeClick = (like: Like) => {
+    setSelectedLike(like);
+    setShowDetailDialog(true);
   };
 
   if (loading) {
@@ -383,7 +391,11 @@ export default function Likes() {
             {viewMode === "grid" && (
               <div className="grid grid-cols-3 gap-4">
                 {filteredLikes.map((like) => (
-                  <div key={like.id} className="relative group overflow-hidden rounded-lg">
+                  <div 
+                    key={like.id} 
+                    className="relative group overflow-hidden rounded-lg cursor-pointer transition-transform hover:scale-105"
+                    onClick={() => handleLikeClick(like)}
+                  >
                     <div className="aspect-square bg-muted overflow-hidden">
                       <FallbackImage
                         src={like.image_url}
@@ -506,6 +518,12 @@ export default function Likes() {
           </>
         )}
       </div>
+      
+      <LikeDetailDialog
+        like={selectedLike}
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
+      />
     </DashboardLayout>
   );
 }
