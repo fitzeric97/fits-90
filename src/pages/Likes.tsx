@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { useToast } from "@/hooks/use-toast";
 import { useBrandPromotions } from "@/hooks/useBrandPromotions";
-import { ExternalLink, Heart, Trash2, Plus, Tag, Search, X, ArrowUpDown, Gem, Shirt, ShirtIcon, Package, Archive, Scissors, Square, Footprints, Dumbbell, Sparkles } from "lucide-react";
+import { ExternalLink, Heart, Trash2, Plus, Tag, Search, X, ArrowUpDown, Gem, Shirt, ShirtIcon, Package, Archive, Scissors, Square, Footprints, Dumbbell, Sparkles, Grid, List } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -82,6 +82,7 @@ export default function Likes() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredLikes, setFilteredLikes] = useState<Like[]>([]);
   const [sortByHeadToToe, setSortByHeadToToe] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   useEffect(() => {
     if (user) {
@@ -223,72 +224,92 @@ export default function Likes() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">My Likes</h1>
+        {/* Header */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold">My Likes</h1>
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
+              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Like
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add a Liked Item</DialogTitle>
+                    <DialogDescription>
+                      Save a product URL and title to your likes
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="url">Product URL</Label>
+                      <Input
+                        id="url"
+                        type="url"
+                        placeholder="https://example.com/product"
+                        value={newLike.url}
+                        onChange={(e) => setNewLike({ ...newLike, url: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Product Title</Label>
+                      <Input
+                        id="title"
+                        placeholder="Product name or description"
+                        value={newLike.title}
+                        onChange={(e) => setNewLike({ ...newLike, title: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={addManualLike}>
+                        Add Like
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              
+              <div className="flex gap-1">
+                <Button
+                  variant={viewMode === "grid" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                  title="Grid View"
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                  title="List View"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
           
-          <div className="flex gap-2">
+          {/* Sort Controls */}
+          <div className="flex items-center justify-end">
             <Button
               variant={sortByHeadToToe ? "default" : "outline"}
               size="sm"
               onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
-              title="Sort Head to Toe"
+              className="flex items-center gap-2"
             >
-              <ArrowUpDown className="h-4 w-4 mr-2" />
-              Head to Toe
+              <ArrowUpDown className="h-4 w-4" />
+              <span className="hidden sm:inline">Sort </span>Head to Toe
             </Button>
-          </div>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-          
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Like
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add a Liked Item</DialogTitle>
-                <DialogDescription>
-                  Save a product URL and title to your likes
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="url">Product URL</Label>
-                  <Input
-                    id="url"
-                    type="url"
-                    placeholder="https://example.com/product"
-                    value={newLike.url}
-                    onChange={(e) => setNewLike({ ...newLike, url: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="title">Product Title</Label>
-                  <Input
-                    id="title"
-                    placeholder="Product name or description"
-                    value={newLike.title}
-                    onChange={(e) => setNewLike({ ...newLike, title: e.target.value })}
-                  />
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={addManualLike}>
-                    Add Like
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
           </div>
         </div>
 
@@ -357,122 +378,233 @@ export default function Likes() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredLikes.map((like) => (
-              <Card key={like.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-                <div className="relative">
-                  {/* Product Image with Price Overlay */}
-                  <div className="aspect-[4/3] bg-muted overflow-hidden">
-                    <FallbackImage
-                      src={like.image_url}
-                      fallbackSrc={like.uploaded_image_url}
-                      alt={like.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      fallbackIcon={<Heart className="h-12 w-12 text-muted-foreground" />}
-                    />
-                  </div>
-                  
-                  {/* Price Badge in Upper Right */}
-                  {like.price && (
-                    <div className="absolute top-3 right-3">
-                      <Badge variant="default" className="bg-background/90 text-foreground font-semibold shadow-md">
-                        {like.price}
-                      </Badge>
-                    </div>
-                  )}
-                  
-                  {/* Action Buttons */}
-                  <EditLikeDialog 
-                    like={{
-                      id: like.id,
-                      title: like.title,
-                      brand_name: like.brand_name,
-                      price: like.price,
-                      category: like.category,
-                      description: like.description,
-                      image_url: like.image_url,
-                      uploaded_image_url: like.uploaded_image_url
-                    }}
-                    onItemUpdated={fetchLikes}
-                  />
-                  
-                  {/* Delete Button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeLike(like.id)}
-                    className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity bg-background/90 hover:bg-background"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <CardContent className="p-4 space-y-3">
-                  {/* Brand and Product Name */}
-                  <div className="space-y-1">
-                    {like.brand_name && (
-                      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                        {like.brand_name}
-                      </p>
-                    )}
-                    <h3 className="font-semibold text-lg leading-tight line-clamp-2">
-                      {like.title}
-                    </h3>
-                  </div>
-                  
-                  {/* Category */}
-                  {like.category && (
-                    <Badge variant="secondary" className="capitalize">
-                      {like.category}
-                    </Badge>
-                  )}
-                  
-                  {/* Description */}
-                  {like.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {like.description}
-                    </p>
-                  )}
-                  
-                  {/* Footer */}
-                  <div className="flex items-center justify-between pt-2 border-t">
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(like.created_at).toLocaleDateString()}
-                    </span>
-                    <div className="flex gap-2">
-                      {/* Promotions Button - Show if brand has active promotions */}
-                      {like.brand_name && hasBrandPromotions(like.brand_name) && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => navigate(`/brand-promotions/${encodeURIComponent(like.brand_name)}`)}
-                          className="bg-green-500 hover:bg-green-600 text-white"
-                        >
-                          <Tag className="h-4 w-4 mr-1" />
-                          Promotions ({getBrandPromotionCount(like.brand_name)})
-                        </Button>
+          <>
+            {/* Grid View */}
+            {viewMode === "grid" && (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredLikes.map((like) => (
+                  <Card key={like.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300">
+                    <div className="relative">
+                      {/* Product Image with Price Overlay */}
+                      <div className="aspect-[4/3] bg-muted overflow-hidden">
+                        <FallbackImage
+                          src={like.image_url}
+                          fallbackSrc={like.uploaded_image_url}
+                          alt={like.title}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          fallbackIcon={<Heart className="h-12 w-12 text-muted-foreground" />}
+                        />
+                      </div>
+                      
+                      {/* Price Badge in Upper Right */}
+                      {like.price && (
+                        <div className="absolute top-3 right-3">
+                          <Badge variant="default" className="bg-background/90 text-foreground font-semibold shadow-md">
+                            {like.price}
+                          </Badge>
+                        </div>
                       )}
+                      
+                      {/* Action Buttons */}
+                      <EditLikeDialog 
+                        like={{
+                          id: like.id,
+                          title: like.title,
+                          brand_name: like.brand_name,
+                          price: like.price,
+                          category: like.category,
+                          description: like.description,
+                          image_url: like.image_url,
+                          uploaded_image_url: like.uploaded_image_url
+                        }}
+                        onItemUpdated={fetchLikes}
+                      />
+                      
+                      {/* Delete Button */}
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        onClick={() => window.open(like.url, '_blank')}
-                        className="hover:bg-primary hover:text-primary-foreground"
+                        onClick={() => removeLike(like.id)}
+                        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity bg-background/90 hover:bg-background"
                       >
-                        <ExternalLink className="h-4 w-4 mr-1" />
-                        View
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
-                  
-                  {like.source_email && (
-                    <p className="text-xs text-muted-foreground">
-                      From: {like.source_email}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    
+                    <CardContent className="p-4 space-y-3">
+                      {/* Brand and Product Name */}
+                      <div className="space-y-1">
+                        {like.brand_name && (
+                          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                            {like.brand_name}
+                          </p>
+                        )}
+                        <h3 className="font-semibold text-lg leading-tight line-clamp-2">
+                          {like.title}
+                        </h3>
+                      </div>
+                      
+                      {/* Category */}
+                      {like.category && (
+                        <Badge variant="secondary" className="capitalize">
+                          {like.category}
+                        </Badge>
+                      )}
+                      
+                      {/* Description */}
+                      {like.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {like.description}
+                        </p>
+                      )}
+                      
+                      {/* Footer */}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(like.created_at).toLocaleDateString()}
+                        </span>
+                        <div className="flex gap-2">
+                          {/* Promotions Button - Show if brand has active promotions */}
+                          {like.brand_name && hasBrandPromotions(like.brand_name) && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => navigate(`/brand-promotions/${encodeURIComponent(like.brand_name)}`)}
+                              className="bg-green-500 hover:bg-green-600 text-white"
+                            >
+                              <Tag className="h-4 w-4 mr-1" />
+                              Promotions ({getBrandPromotionCount(like.brand_name)})
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(like.url, '_blank')}
+                            className="hover:bg-primary hover:text-primary-foreground"
+                          >
+                            <ExternalLink className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {like.source_email && (
+                        <p className="text-xs text-muted-foreground">
+                          From: {like.source_email}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* List View */}
+            {viewMode === "list" && (
+              <div className="space-y-4">
+                {filteredLikes.map((like) => (
+                  <Card key={like.id} className="group hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex gap-4">
+                        {/* Image */}
+                        <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                          <FallbackImage
+                            src={like.image_url}
+                            fallbackSrc={like.uploaded_image_url}
+                            alt={like.title}
+                            className="w-full h-full object-cover"
+                            fallbackIcon={<Heart className="h-8 w-8 text-muted-foreground" />}
+                          />
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              {like.brand_name && (
+                                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                                  {like.brand_name}
+                                </p>
+                              )}
+                              <h3 className="font-semibold text-lg line-clamp-1">
+                                {like.title}
+                              </h3>
+                              {like.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                                  {like.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-2 mt-2">
+                                {like.category && (
+                                  <Badge variant="secondary" className="capitalize">
+                                    {like.category}
+                                  </Badge>
+                                )}
+                                {like.price && (
+                                  <Badge variant="default" className="font-semibold">
+                                    {like.price}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Actions */}
+                            <div className="flex items-center gap-2 ml-4">
+                              <EditLikeDialog 
+                                like={{
+                                  id: like.id,
+                                  title: like.title,
+                                  brand_name: like.brand_name,
+                                  price: like.price,
+                                  category: like.category,
+                                  description: like.description,
+                                  image_url: like.image_url,
+                                  uploaded_image_url: like.uploaded_image_url
+                                }}
+                                onItemUpdated={fetchLikes}
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(like.url, '_blank')}
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeLike(like.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(like.created_at).toLocaleDateString()}
+                            </span>
+                            {like.brand_name && hasBrandPromotions(like.brand_name) && (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => navigate(`/brand-promotions/${encodeURIComponent(like.brand_name)}`)}
+                                className="bg-green-500 hover:bg-green-600 text-white"
+                              >
+                                <Tag className="h-4 w-4 mr-1" />
+                                Promotions ({getBrandPromotionCount(like.brand_name)})
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </DashboardLayout>
