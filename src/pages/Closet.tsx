@@ -150,7 +150,12 @@ export default function Closet() {
     : filteredItems;
 
   const uniqueBrands = [...new Set(closetItems.map(item => item.brand_name))];
-  const uniqueCategories = [...new Set(closetItems.map(item => item.category).filter(Boolean))];
+  const uniqueCategories = [...new Set(closetItems.map(item => item.category).filter(Boolean))]
+    .sort((a, b) => {
+      const aIndex = headToToeOrder.indexOf(a!);
+      const bIndex = headToToeOrder.indexOf(b!);
+      return aIndex - bIndex;
+    });
   
   // Get recent purchases (top 3 most recent items)
   const recentPurchases = closetItems.slice(0, 3);
@@ -163,10 +168,14 @@ export default function Closet() {
     return acc;
   }, {} as Record<string, number>);
   
-  // Available categories with items
-  const availableCategories = Object.keys(categoryConfig).filter(category => 
-    categoryCounts[category] > 0
-  );
+  // Available categories with items, sorted by head-to-toe order
+  const availableCategories = Object.keys(categoryConfig)
+    .filter(category => categoryCounts[category] > 0)
+    .sort((a, b) => {
+      const aIndex = headToToeOrder.indexOf(a);
+      const bIndex = headToToeOrder.indexOf(b);
+      return aIndex - bIndex;
+    });
 
   const handleItemClick = (item: ClosetItem) => {
     navigate(`/closet/${item.id}`);
