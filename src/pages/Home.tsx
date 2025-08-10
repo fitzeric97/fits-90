@@ -6,13 +6,13 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, Avatar as AvatarComponent, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, ShirtIcon, Clock, ExternalLink, Plus } from "lucide-react";
+import { Heart, ShirtIcon, Clock, ExternalLink, Plus, Camera } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { AddLikeDialog } from "@/components/likes/AddLikeDialog";
 
 interface ActivityItem {
   id: string;
-  type: 'like' | 'closet_add';
+  type: 'like' | 'closet_add' | 'fit_post';
   user_name: string;
   user_email: string;
   title: string;
@@ -53,8 +53,16 @@ export default function Home() {
         .order('created_at', { ascending: false })
         .limit(10);
 
+      // Fetch recent fits
+      const { data: fits, error: fitsError } = await supabase
+        .from('fits')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
       if (likesError) console.error('Error fetching likes:', likesError);
       if (closetError) console.error('Error fetching closet items:', closetError);
+      if (fitsError) console.error('Error fetching fits:', fitsError);
 
       // Transform and combine data
       const likeActivities: ActivityItem[] = (likes || []).map(like => ({
@@ -85,8 +93,22 @@ export default function Home() {
         created_at: item.created_at,
       }));
 
+      const fitActivities: ActivityItem[] = (fits || []).map(fit => ({
+        id: fit.id,
+        type: 'fit_post' as const,
+        user_name: 'You', // Will be updated when we have friends system
+        user_email: user.email || '',
+        title: fit.caption || 'New Fit',
+        description: undefined,
+        image_url: fit.image_url,
+        brand_name: undefined,
+        price: undefined,
+        url: undefined,
+        created_at: fit.created_at,
+      }));
+
       // Combine and sort by created_at
-      const combined = [...likeActivities, ...closetActivities]
+      const combined = [...likeActivities, ...closetActivities, ...fitActivities]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 20);
 
@@ -99,13 +121,29 @@ export default function Home() {
   };
 
   const getActivityIcon = (type: string) => {
-    return type === 'like' ? 
-      <Heart className="h-4 w-4 text-red-500 fill-red-500 flex-shrink-0" /> : 
-      <ShirtIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />;
+    switch (type) {
+      case 'like':
+        return <Heart className="h-4 w-4 text-red-500 fill-red-500 flex-shrink-0" />;
+      case 'closet_add':
+        return <ShirtIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />;
+      case 'fit_post':
+        return <Camera className="h-4 w-4 text-green-500 flex-shrink-0" />;
+      default:
+        return <ShirtIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />;
+    }
   };
 
   const getActivityText = (activity: ActivityItem) => {
-    return activity.type === 'like' ? 'liked' : 'added to closet';
+    switch (activity.type) {
+      case 'like':
+        return 'liked';
+      case 'closet_add':
+        return 'added to closet';
+      case 'fit_post':
+        return 'posted a fit';
+      default:
+        return 'updated';
+    }
   };
 
   const handleItemClick = (activity: ActivityItem) => {
@@ -115,6 +153,9 @@ export default function Home() {
     } else if (activity.type === 'closet_add') {
       // Navigate to specific closet item detail page
       navigate(`/closet/${activity.id}`);
+    } else if (activity.type === 'fit_post') {
+      // Navigate to fits page
+      navigate('/fits');
     }
   };
 
