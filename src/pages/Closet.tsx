@@ -259,45 +259,56 @@ export default function Closet() {
     <DashboardLayout>
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">My Closet</h1>
-            <p className="text-muted-foreground">
-              Your digital wardrobe ({closetItems.length} items)
-            </p>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold">My Closet</h1>
+              <p className="text-muted-foreground">
+                Your digital wardrobe ({closetItems.length} items)
+              </p>
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
+              <AddClosetItemDialog onItemAdded={fetchClosetItems} />
+              <div className="flex gap-1">
+                <Button
+                  variant={viewMode === "categories" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("categories")}
+                  title="Categories View"
+                >
+                  <Tag className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "grid" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode(viewMode === "grid" ? "categories" : "grid")}
+                  title="Grid View"
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                  title="List View"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
           
-          <div className="flex gap-2">
-            <AddClosetItemDialog onItemAdded={fetchClosetItems} />
-            <Button
-              variant={viewMode === "categories" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("categories")}
-            >
-              <Tag className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "grid" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode(viewMode === "grid" ? "categories" : "grid")}
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("list")}
-            >
-              <List className="h-4 w-4" />
-            </Button>
+          {/* Sort Controls */}
+          <div className="flex items-center justify-end">
             <Button
               variant={sortByHeadToToe ? "default" : "outline"}
               size="sm"
               onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
-              title="Sort Head to Toe"
+              className="flex items-center gap-2"
             >
-              <ArrowUpDown className="h-4 w-4 mr-2" />
-              Head to Toe
+              <ArrowUpDown className="h-4 w-4" />
+              <span className="hidden sm:inline">Sort </span>Head to Toe
             </Button>
           </div>
         </div>
