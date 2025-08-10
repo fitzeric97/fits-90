@@ -8,6 +8,7 @@ import { Avatar, Avatar as AvatarComponent, AvatarFallback } from "@/components/
 import { Button } from "@/components/ui/button";
 import { Heart, ShirtIcon, Clock, ExternalLink, Plus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { AddLikeDialog } from "@/components/likes/AddLikeDialog";
 
 interface ActivityItem {
   id: string;
@@ -28,6 +29,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddLikeDialog, setShowAddLikeDialog] = useState(false);
 
   useEffect(() => {
     fetchActivityFeed();
@@ -158,7 +160,7 @@ export default function Home() {
               <Button
                 variant="outline"
                 className="h-12 flex items-center justify-center gap-2"
-                onClick={() => navigate('/likes')}
+                onClick={() => setShowAddLikeDialog(true)}
               >
                 <Heart className="h-4 w-4" />
                 <span>Add a Like</span>
@@ -291,6 +293,12 @@ export default function Home() {
           )}
         </div>
       </div>
+      
+      <AddLikeDialog 
+        open={showAddLikeDialog} 
+        onOpenChange={setShowAddLikeDialog}
+        onLikeAdded={fetchActivityFeed}
+      />
     </DashboardLayout>
   );
 }
