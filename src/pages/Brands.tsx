@@ -195,7 +195,7 @@ export default function Brands() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Brand Websites</h1>
+            <h1 className="text-3xl font-bold">All Brands</h1>
             <p className="text-muted-foreground mt-2">
               Manage websites to scrape for promotions and deals
             </p>
@@ -277,114 +277,120 @@ export default function Brands() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
                 {brandWebsites.map((brand) => (
-                  <div
+                  <Card
                     key={brand.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                    className="hover:shadow-md transition-shadow"
                   >
-                    <div className="flex-1">
+                    <CardContent className="p-4">
                       {editingId === brand.id ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <Input
-                            value={editBrand.name}
-                            onChange={(e) => setEditBrand({ ...editBrand, name: e.target.value })}
-                            placeholder="Brand name"
-                          />
-                          <Input
-                            value={editBrand.url}
-                            onChange={(e) => setEditBrand({ ...editBrand, url: e.target.value })}
-                            placeholder="Website URL"
-                          />
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 gap-4">
+                            <Input
+                              value={editBrand.name}
+                              onChange={(e) => setEditBrand({ ...editBrand, name: e.target.value })}
+                              placeholder="Brand name"
+                            />
+                            <Input
+                              value={editBrand.url}
+                              onChange={(e) => setEditBrand({ ...editBrand, url: e.target.value })}
+                              placeholder="Website URL"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleEditBrand(brand.id)}
+                            >
+                              <Save className="w-4 h-4 mr-2" />
+                              Save
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={cancelEditing}
+                            >
+                              <X className="w-4 h-4 mr-2" />
+                              Cancel
+                            </Button>
+                          </div>
                         </div>
                       ) : (
                         <div>
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-semibold text-lg">{brand.brand_name}</h3>
-                            {brand.scraping_enabled ? (
-                              <Badge variant="default">Active</Badge>
-                            ) : (
-                              <Badge variant="secondary">Disabled</Badge>
-                            )}
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h3 className="font-semibold text-lg">{brand.brand_name}</h3>
+                                {brand.scraping_enabled ? (
+                                  <Badge variant="default">Active</Badge>
+                                ) : (
+                                  <Badge variant="secondary">Disabled</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-1 break-all">
+                                <Globe className="w-3 h-3 inline mr-1" />
+                                {brand.website_url}
+                              </p>
+                              {brand.last_scraped_at && (
+                                <p className="text-xs text-muted-foreground">
+                                  Last scraped: {new Date(brand.last_scraped_at).toLocaleString()}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              {/* Promotion Status Indicator */}
+                              {hasScrapedPromotions(brand.brand_name) ? (
+                                <Button
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  onClick={() => setSelectedBrandPromotions(brand.brand_name)}
+                                >
+                                  <Tag className="w-4 h-4 mr-1" />
+                                  Promotions Found
+                                </Button>
+                              ) : (
+                                <div className="px-3 py-1 bg-muted text-muted-foreground text-sm rounded-md border text-center">
+                                  No Promo Found
+                                </div>
+                              )}
+                              
+                              <div className="flex items-center justify-center gap-2 px-3 py-1 border rounded-md">
+                                <Label htmlFor={`scraping-${brand.id}`} className="text-xs">
+                                  Scraping
+                                </Label>
+                                <Switch
+                                  id={`scraping-${brand.id}`}
+                                  checked={brand.scraping_enabled}
+                                  onCheckedChange={(checked) => 
+                                    handleToggleScrapingEnabled(brand.id, checked)
+                                  }
+                                />
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => startEditing(brand)}
+                                >
+                                  <Edit3 className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDeleteBrand(brand.id, brand.brand_name)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                          <p className="text-sm text-muted-foreground mb-1">
-                            <Globe className="w-3 h-3 inline mr-1" />
-                            {brand.website_url}
-                          </p>
-                          {brand.last_scraped_at && (
-                            <p className="text-xs text-muted-foreground">
-                              Last scraped: {new Date(brand.last_scraped_at).toLocaleString()}
-                            </p>
-                          )}
                         </div>
                       )}
-                    </div>
-
-                    <div className="flex items-center gap-2 ml-4">
-                      {editingId === brand.id ? (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={() => handleEditBrand(brand.id)}
-                          >
-                            <Save className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={cancelEditing}
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          {/* Promotion Status Indicator */}
-                          {hasScrapedPromotions(brand.brand_name) ? (
-                            <Button
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                              onClick={() => setSelectedBrandPromotions(brand.brand_name)}
-                            >
-                              <Tag className="w-4 h-4 mr-1" />
-                              Promotions Found
-                            </Button>
-                          ) : (
-                            <div className="px-3 py-1 bg-muted text-muted-foreground text-sm rounded-md border">
-                              No Promo Found
-                            </div>
-                          )}
-                          
-                          <div className="flex items-center gap-2">
-                            <Label htmlFor={`scraping-${brand.id}`} className="text-xs">
-                              Scraping
-                            </Label>
-                            <Switch
-                              id={`scraping-${brand.id}`}
-                              checked={brand.scraping_enabled}
-                              onCheckedChange={(checked) => 
-                                handleToggleScrapingEnabled(brand.id, checked)
-                              }
-                            />
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => startEditing(brand)}
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteBrand(brand.id, brand.brand_name)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             )}
