@@ -1,11 +1,13 @@
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Copy, Check } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Copy, Check, User, Instagram, Mail, Bell, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ConnectedMailboxes } from "@/components/settings/ConnectedMailboxes";
 import { InstagramConnector } from "@/components/settings/InstagramConnector";
@@ -22,11 +24,18 @@ export default function Settings() {
     weekly: false,
   });
   const [userProfile, setUserProfile] = useState<{
+    display_name: string | null;
     gmail_address: string | null;
     myfits_email: string | null;
   }>({
+    display_name: null,
     gmail_address: null,
     myfits_email: null,
+  });
+  const [profileForm, setProfileForm] = useState({
+    firstName: '',
+    lastName: '',
+    username: '',
   });
 
   useEffect(() => {
@@ -50,16 +59,53 @@ export default function Settings() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('gmail_address, myfits_email')
+        .select('display_name, gmail_address, myfits_email')
         .eq('id', user?.id)
         .single();
 
       if (error) throw error;
       if (data) {
         setUserProfile(data);
+        // Parse display name if it exists
+        if (data.display_name) {
+          const nameParts = data.display_name.split(' ');
+          setProfileForm({
+            firstName: nameParts[0] || '',
+            lastName: nameParts.slice(1).join(' ') || '',
+            username: '', // You can extend this to store username separately
+          });
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+    }
+  };
+
+  const updateProfile = async () => {
+    try {
+      const displayName = `${profileForm.firstName} ${profileForm.lastName}`.trim();
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user?.id,
+          display_name: displayName || null,
+        });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved.",
+      });
+      
+      await fetchUserProfile();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -71,141 +117,219 @@ export default function Settings() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-2xl space-y-6">
+      <div className="max-w-4xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground mt-2">
-            Manage your account preferences and email settings
+            Manage your account preferences and settings
           </p>
         </div>
 
-        <ConnectedMailboxes />
-        
-        <InstagramConnector />
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="instagram" className="flex items-center gap-2">
+              <Instagram className="h-4 w-4" />
+              Instagram
+            </TabsTrigger>
+            <TabsTrigger value="email" className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Email
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Notifications
+            </TabsTrigger>
+          </TabsList>
 
-        {userProfile.gmail_address && userProfile.myfits_email && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Email Configuration</CardTitle>
-              <CardDescription>
-                Your primary email and Fits forwarding address
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Your Primary Email</Label>
-                <div className="p-3 bg-muted rounded-md">
-                  <span className="text-sm">{userProfile.gmail_address}</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Your Fits Email</Label>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 p-3 bg-muted rounded-md">
-                    <span className="text-sm font-mono">{userProfile.myfits_email}</span>
+          <TabsContent value="profile" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Information</CardTitle>
+                <CardDescription>
+                  Your name and username to help others find you
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      value={profileForm.firstName}
+                      onChange={(e) => setProfileForm({...profileForm, firstName: e.target.value})}
+                      placeholder="Enter your first name"
+                    />
                   </div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => copyToClipboard(userProfile.myfits_email || '')}
-                  >
-                    {emailCopied ? (
-                      <Check className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={profileForm.lastName}
+                      onChange={(e) => setProfileForm({...profileForm, lastName: e.target.value})}
+                      placeholder="Enter your last name"
+                    />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Use this email when signing up for brand newsletters
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    value={profileForm.username}
+                    onChange={(e) => setProfileForm({...profileForm, username: e.target.value})}
+                    placeholder="Choose a unique username"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This will help others find you in search
+                  </p>
+                </div>
+                <Button onClick={updateProfile}>
+                  Save Profile
+                </Button>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Notification Preferences</CardTitle>
-            <CardDescription>
-              Control how often you receive promotion summaries
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label>Daily Summary</Label>
-                <p className="text-sm text-muted-foreground">
-                  Get a daily email with new promotions
-                </p>
-              </div>
-              <Switch
-                checked={notifications.daily}
-                onCheckedChange={(checked) =>
-                  setNotifications({ ...notifications, daily: checked })
-                }
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label>Weekly Summary</Label>
-                <p className="text-sm text-muted-foreground">
-                  Get a weekly roundup of all promotions
-                </p>
-              </div>
-              <Switch
-                checked={notifications.weekly}
-                onCheckedChange={(checked) =>
-                  setNotifications({ ...notifications, weekly: checked })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Summary Time</Label>
-              <Select defaultValue="morning">
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Choose time" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="morning">Morning (8:00 AM)</SelectItem>
-                  <SelectItem value="afternoon">Afternoon (2:00 PM)</SelectItem>
-                  <SelectItem value="evening">Evening (6:00 PM)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+            {userProfile.gmail_address && userProfile.myfits_email && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Email Configuration</CardTitle>
+                  <CardDescription>
+                    Your primary email and Fits forwarding address
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Your Primary Email</Label>
+                    <div className="p-3 bg-muted rounded-md">
+                      <span className="text-sm">{userProfile.gmail_address}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Your Fits Email</Label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 p-3 bg-muted rounded-md">
+                        <span className="text-sm font-mono">{userProfile.myfits_email}</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => copyToClipboard(userProfile.myfits_email || '')}
+                      >
+                        {emailCopied ? (
+                          <Check className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Use this email when signing up for brand newsletters
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Data Management</CardTitle>
-            <CardDescription>
-              Control your data and account settings
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">Delete My Data</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete your
-                    account and remove all your data from our servers.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                    Yes, delete my data
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Data Management</CardTitle>
+                <CardDescription>
+                  Control your data and account settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="flex items-center gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      Delete My Data
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete your
+                        account and remove all your data from our servers.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Yes, delete my data
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="instagram" className="space-y-6">
+            <InstagramConnector />
+          </TabsContent>
+
+          <TabsContent value="email" className="space-y-6">
+            <ConnectedMailboxes />
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Notification Preferences</CardTitle>
+                <CardDescription>
+                  Control how often you receive promotion summaries
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label>Daily Summary</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Get a daily email with new promotions
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notifications.daily}
+                    onCheckedChange={(checked) =>
+                      setNotifications({ ...notifications, daily: checked })
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label>Weekly Summary</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Get a weekly roundup of all promotions
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notifications.weekly}
+                    onCheckedChange={(checked) =>
+                      setNotifications({ ...notifications, weekly: checked })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Summary Time</Label>
+                  <Select defaultValue="morning">
+                    <SelectTrigger className="w-48 bg-background">
+                      <SelectValue placeholder="Choose time" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border shadow-lg z-50">
+                      <SelectItem value="morning">Morning (8:00 AM)</SelectItem>
+                      <SelectItem value="afternoon">Afternoon (2:00 PM)</SelectItem>
+                      <SelectItem value="evening">Evening (6:00 PM)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
