@@ -132,7 +132,10 @@ export default function Closet() {
     const matchesSearch = 
       item.product_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.brand_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.product_description?.toLowerCase().includes(searchTerm.toLowerCase());
+      item.product_description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.color?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.size?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCategory = categoryFilter === "all" || item.category === categoryFilter;
     const matchesBrand = brandFilter === "all" || item.brand_name === brandFilter;

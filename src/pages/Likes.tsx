@@ -105,6 +105,7 @@ export default function Likes() {
           like.category?.toLowerCase(), 
           like.description?.toLowerCase(),
           like.title?.toLowerCase(),
+          like.item_type?.toLowerCase(),
         ].filter(Boolean);
 
         return searchableFields.some(field => field?.includes(query));
