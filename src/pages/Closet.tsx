@@ -58,7 +58,7 @@ export default function Closet() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [brandFilter, setBrandFilter] = useState("all");
-  const [viewMode, setViewMode] = useState<"categories" | "grid" | "list">("categories");
+  const [viewMode, setViewMode] = useState<"categories" | "grid" | "list">("grid");
   const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
   
   const { user } = useAuth();
@@ -237,13 +237,6 @@ export default function Closet() {
               <Tag className="h-4 w-4" />
             </Button>
             <Button
-              variant={viewMode === "grid" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("grid")}
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-            <Button
               variant={viewMode === "list" ? "default" : "outline"}
               size="sm"
               onClick={() => setViewMode("list")}
@@ -253,7 +246,138 @@ export default function Closet() {
           </div>
         </div>
 
-        {/* Categories View - Default */}
+        {/* Grid View - Default */}
+        {viewMode === "grid" && (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-1 sm:gap-4 md:gap-6">
+            {filteredItems.map((item) => (
+              <Card 
+                key={item.id} 
+                className="group cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
+                onClick={() => handleItemClick(item)}
+              >
+                <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted">
+                  {(item.product_image_url || item.stored_image_path || item.uploaded_image_url) ? (
+                    <FallbackImage
+                      src={item.stored_image_path 
+                        ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
+                        : item.product_image_url
+                      }
+                      fallbackSrc={item.uploaded_image_url}
+                      alt={item.product_name || 'Product'}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                  
+                  {/* Action Buttons */}
+                  <EditClosetItemDialog 
+                    item={{
+                      id: item.id,
+                      product_name: item.product_name,
+                      brand_name: item.brand_name,
+                      product_description: item.product_description,
+                      price: item.price,
+                      size: item.size,
+                      color: item.color,
+                      category: item.category,
+                      purchase_date: item.purchase_date,
+                      product_image_url: item.product_image_url,
+                      uploaded_image_url: item.uploaded_image_url
+                    }}
+                    onItemUpdated={fetchClosetItems}
+                  />
+                  
+                  {/* Delete Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeClosetItem(item.id);
+                    }}
+                    className="absolute top-2 left-12 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white z-10"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                  
+                  {item.company_website_url && (
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-white/90 rounded-full p-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(item.company_website_url!, '_blank');
+                          }}
+                          className="h-8 w-8 rounded-full hover:bg-white"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Promotions Button - Show if brand has active promotions */}
+                  {item.brand_name && hasBrandPromotions(item.brand_name) && (
+                    <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/brand-promotions/${encodeURIComponent(item.brand_name)}`);
+                        }}
+                        className="bg-green-500 hover:bg-green-600 text-white text-xs"
+                      >
+                        <Tag className="h-3 w-3 mr-1" />
+                        Promotions ({getBrandPromotionCount(item.brand_name)})
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                
+                <CardContent className="p-1 sm:p-2 md:p-4">
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between">
+                      <h3 className="font-semibold text-xs sm:text-sm line-clamp-1 md:line-clamp-2">
+                        {item.product_name || `${item.brand_name} Item`}
+                      </h3>
+                        {item.category && (
+                          <Badge variant="secondary" className="ml-1 md:ml-2 flex-shrink-0 hidden sm:flex">
+                            <div className="flex items-center gap-1">
+                              {(() => {
+                                const config = categoryConfig[item.category as keyof typeof categoryConfig];
+                                if (config) {
+                                  const IconComponent = config.icon;
+                                  return <IconComponent className="h-2 w-2 md:h-3 md:w-3" />;
+                                }
+                                return <Tag className="h-2 w-2 md:h-3 md:w-3" />;
+                              })()}
+                              <span className="text-xs hidden md:inline">{categoryConfig[item.category as keyof typeof categoryConfig]?.label || item.category}</span>
+                            </div>
+                          </Badge>
+                        )}
+                    </div>
+                    
+                    <p className="text-xs sm:text-sm text-muted-foreground font-medium line-clamp-1">
+                      {item.brand_name}
+                    </p>
+                    
+                    {item.price && (
+                      <p className="text-xs sm:text-sm font-medium text-primary">{item.price}</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Categories View */}
         {viewMode === "categories" && (
           <div className="space-y-8">
             {/* View All Items */}
@@ -362,8 +486,8 @@ export default function Closet() {
           </div>
         )}
 
-        {/* Filters - Only show when not in categories view */}
-        {viewMode !== "categories" && (
+        {/* Filters - Only show when in grid or list view */}
+        {(viewMode === "grid" || viewMode === "list") && (
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -417,285 +541,137 @@ export default function Closet() {
           </div>
         )}
 
-        {/* Items Grid/List - Only show when not in categories view */}
-        {viewMode !== "categories" && (
-          <>
-            {viewMode === "grid" ? (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-1 sm:gap-4 md:gap-6">
-                {filteredItems.map((item) => (
-                  <Card 
-                    key={item.id} 
-                    className="group cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
-                    onClick={() => handleItemClick(item)}
+        {/* Items List - Only show when in list view */}
+        {viewMode === "list" && (
+          <div className="space-y-4">
+            {filteredItems.map((item) => (
+              <Card 
+                key={item.id}
+                className={`cursor-pointer hover:shadow-md transition-shadow ${
+                  highlightedItemId === item.id ? 'ring-4 ring-primary ring-opacity-50 shadow-xl' : ''
+                }`}
+                onClick={() => handleItemClick(item)}
+              >
+                <CardContent className="p-4 relative">
+                  {/* Edit Button for List View */}
+                  <EditClosetItemDialog 
+                    item={{
+                      id: item.id,
+                      product_name: item.product_name,
+                      brand_name: item.brand_name,
+                      product_description: item.product_description,
+                      price: item.price,
+                      size: item.size,
+                      color: item.color,
+                      category: item.category,
+                      purchase_date: item.purchase_date,
+                      product_image_url: item.product_image_url,
+                      uploaded_image_url: item.uploaded_image_url
+                    }}
+                    onItemUpdated={fetchClosetItems}
+                  />
+                  
+                  {/* Delete Button for List View */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeClosetItem(item.id);
+                    }}
+                    className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white z-10"
                   >
-                    <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted">
-                      {(item.product_image_url || item.stored_image_path || item.uploaded_image_url) ? (
-                        <FallbackImage
-                          src={item.stored_image_path 
-                            ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
-                            : item.product_image_url
-                          }
-                          fallbackSrc={item.uploaded_image_url}
-                          alt={item.product_name || 'Product'}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 text-muted-foreground" />
-                        </div>
-                      )}
-                       
-                      {/* Action Buttons */}
-                      <EditClosetItemDialog 
-                        item={{
-                          id: item.id,
-                          product_name: item.product_name,
-                          brand_name: item.brand_name,
-                          product_description: item.product_description,
-                          price: item.price,
-                          size: item.size,
-                          color: item.color,
-                          category: item.category,
-                          purchase_date: item.purchase_date,
-                          product_image_url: item.product_image_url,
-                          uploaded_image_url: item.uploaded_image_url
-                        }}
-                        onItemUpdated={fetchClosetItems}
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                  
+                  {/* Promotions Button for List View */}
+                  {item.brand_name && hasBrandPromotions(item.brand_name) && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/brand-promotions/${encodeURIComponent(item.brand_name)}`);
+                      }}
+                      className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity bg-green-500 hover:bg-green-600 text-white z-10"
+                    >
+                      <Tag className="h-4 w-4 mr-1" />
+                      Promotions ({getBrandPromotionCount(item.brand_name)})
+                    </Button>
+                  )}
+                  
+                  <div className="flex gap-4">
+                    <div className="w-20 h-20 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
+                      <FallbackImage
+                        src={item.stored_image_path 
+                          ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
+                          : item.product_image_url
+                        }
+                        fallbackSrc={item.uploaded_image_url}
+                        alt={item.product_name || 'Product'}
+                        className="w-full h-full object-cover"
+                        fallbackIcon={<Package className="h-8 w-8 text-muted-foreground" />}
                       />
-                      
-                      {/* Delete Button */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeClosetItem(item.id);
-                        }}
-                        className="absolute top-2 left-12 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white z-10"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                      
-                      {item.company_website_url && (
-                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="bg-white/90 rounded-full p-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(item.company_website_url!, '_blank');
-                              }}
-                              className="h-8 w-8 rounded-full hover:bg-white"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Promotions Button - Show if brand has active promotions */}
-                      {item.brand_name && hasBrandPromotions(item.brand_name) && (
-                        <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/brand-promotions/${encodeURIComponent(item.brand_name)}`);
-                            }}
-                            className="bg-green-500 hover:bg-green-600 text-white text-xs"
-                          >
-                            <Tag className="h-3 w-3 mr-1" />
-                            Promotions ({getBrandPromotionCount(item.brand_name)})
-                          </Button>
-                        </div>
-                      )}
                     </div>
                     
-                    <CardContent className="p-1 sm:p-2 md:p-4">
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between">
-                          <h3 className="font-semibold text-xs sm:text-sm line-clamp-1 md:line-clamp-2">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-semibold">
                             {item.product_name || `${item.brand_name} Item`}
                           </h3>
-                            {item.category && (
-                              <Badge variant="secondary" className="ml-1 md:ml-2 flex-shrink-0 hidden sm:flex">
-                                <div className="flex items-center gap-1">
-                                  {(() => {
-                                    const config = categoryConfig[item.category as keyof typeof categoryConfig];
-                                    if (config) {
-                                      const IconComponent = config.icon;
-                                      return <IconComponent className="h-2 w-2 md:h-3 md:w-3" />;
-                                    }
-                                    return <Tag className="h-2 w-2 md:h-3 md:w-3" />;
-                                  })()}
-                                  <span className="text-xs hidden md:inline">{categoryConfig[item.category as keyof typeof categoryConfig]?.label || item.category}</span>
-                                </div>
-                              </Badge>
-                            )}
+                          <p className="text-sm text-muted-foreground">{item.brand_name}</p>
                         </div>
                         
-                        <p className="text-xs sm:text-sm text-muted-foreground font-medium line-clamp-1">
-                          {item.brand_name}
-                        </p>
-                        
-                        <div className="flex flex-wrap gap-1 text-xs">
-                          {item.price && (
-                            <Badge variant="outline">{item.price}</Badge>
+                        <div className="flex items-center gap-2">
+                          {item.category && (
+                            <Badge variant="secondary">
+                              <div className="flex items-center gap-1">
+                                {(() => {
+                                  const config = categoryConfig[item.category as keyof typeof categoryConfig];
+                                  if (config) {
+                                    const IconComponent = config.icon;
+                                    return <IconComponent className="h-3 w-3" />;
+                                  }
+                                  return <Tag className="h-3 w-3" />;
+                                })()}
+                                <span>{categoryConfig[item.category as keyof typeof categoryConfig]?.label || item.category}</span>
+                              </div>
+                            </Badge>
                           )}
-                          {item.size && (
-                            <Badge variant="outline">Size {item.size}</Badge>
-                          )}
-                          {item.color && (
-                            <Badge variant="outline">{item.color}</Badge>
+                          {item.company_website_url && (
+                            <ExternalLink className="h-4 w-4 text-muted-foreground" />
                           )}
                         </div>
-                        
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {item.price && (
+                          <Badge variant="outline">{item.price}</Badge>
+                        )}
+                        {item.size && (
+                          <Badge variant="outline">Size {item.size}</Badge>
+                        )}
+                        {item.color && (
+                          <Badge variant="outline">{item.color}</Badge>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2">
                           <Calendar className="h-3 w-3" />
-                          <span>{formatDate(item.purchase_date)}</span>
-                          {item.order_number && (
-                            <span className="ml-auto font-mono">#{item.order_number}</span>
-                          )}
+                          <span>Purchased {formatDate(item.purchase_date)}</span>
                         </div>
+                        {item.order_number && (
+                          <span className="font-mono">Order #{item.order_number}</span>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredItems.map((item) => (
-                  <Card 
-                    key={item.id}
-                    className={`cursor-pointer hover:shadow-md transition-shadow ${
-                      highlightedItemId === item.id ? 'ring-4 ring-primary ring-opacity-50 shadow-xl' : ''
-                    }`}
-                    onClick={() => handleItemClick(item)}
-                  >
-                    <CardContent className="p-4 relative">
-                      {/* Edit Button for List View */}
-                      <EditClosetItemDialog 
-                        item={{
-                          id: item.id,
-                          product_name: item.product_name,
-                          brand_name: item.brand_name,
-                          product_description: item.product_description,
-                          price: item.price,
-                          size: item.size,
-                          color: item.color,
-                          category: item.category,
-                          purchase_date: item.purchase_date,
-                          product_image_url: item.product_image_url,
-                          uploaded_image_url: item.uploaded_image_url
-                        }}
-                        onItemUpdated={fetchClosetItems}
-                      />
-                      
-                      {/* Delete Button for List View */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeClosetItem(item.id);
-                        }}
-                        className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white z-10"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                      
-                      {/* Promotions Button for List View */}
-                      {item.brand_name && hasBrandPromotions(item.brand_name) && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/brand-promotions/${encodeURIComponent(item.brand_name)}`);
-                          }}
-                          className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity bg-green-500 hover:bg-green-600 text-white z-10"
-                        >
-                          <Tag className="h-4 w-4 mr-1" />
-                          Promotions ({getBrandPromotionCount(item.brand_name)})
-                        </Button>
-                      )}
-                      
-                      <div className="flex gap-4">
-                        <div className="w-20 h-20 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
-                          <FallbackImage
-                            src={item.stored_image_path 
-                              ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
-                              : item.product_image_url
-                            }
-                            fallbackSrc={item.uploaded_image_url}
-                            alt={item.product_name || 'Product'}
-                            className="w-full h-full object-cover"
-                            fallbackIcon={<Package className="h-8 w-8 text-muted-foreground" />}
-                          />
-                        </div>
-                        
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="font-semibold">
-                                {item.product_name || `${item.brand_name} Item`}
-                              </h3>
-                              <p className="text-sm text-muted-foreground">{item.brand_name}</p>
-                            </div>
-                            
-                            <div className="flex items-center gap-2">
-                              {item.category && (
-                                <Badge variant="secondary">
-                                  <div className="flex items-center gap-1">
-                                    {(() => {
-                                      const config = categoryConfig[item.category as keyof typeof categoryConfig];
-                                      if (config) {
-                                        const IconComponent = config.icon;
-                                        return <IconComponent className="h-3 w-3" />;
-                                      }
-                                      return <Tag className="h-3 w-3" />;
-                                    })()}
-                                    <span>{categoryConfig[item.category as keyof typeof categoryConfig]?.label || item.category}</span>
-                                  </div>
-                                </Badge>
-                              )}
-                              {item.company_website_url && (
-                                <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="flex flex-wrap gap-2">
-                            {item.price && (
-                              <Badge variant="outline">{item.price}</Badge>
-                            )}
-                            {item.size && (
-                              <Badge variant="outline">Size {item.size}</Badge>
-                            )}
-                            {item.color && (
-                              <Badge variant="outline">{item.color}</Badge>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-3 w-3" />
-                              <span>Purchased {formatDate(item.purchase_date)}</span>
-                            </div>
-                            {item.order_number && (
-                              <span className="font-mono">Order #{item.order_number}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
 
         {(viewMode !== "categories" && filteredItems.length === 0) && (
