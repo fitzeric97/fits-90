@@ -19,6 +19,7 @@ interface ActivityItem {
   description?: string;
   image_url?: string;
   brand_name?: string;
+  category?: string;
   price?: string;
   url?: string;
   created_at: string;
@@ -74,6 +75,7 @@ export default function Home() {
         description: like.description,
         image_url: like.image_url,
         brand_name: like.brand_name,
+        category: like.category,
         price: like.price,
         url: like.url,
         created_at: like.created_at,
@@ -88,6 +90,7 @@ export default function Home() {
         description: item.product_description,
         image_url: item.product_image_url || item.uploaded_image_url,
         brand_name: item.brand_name,
+        category: item.category,
         price: item.price,
         url: item.company_website_url,
         created_at: item.created_at,
@@ -102,6 +105,7 @@ export default function Home() {
         description: undefined,
         image_url: fit.image_url,
         brand_name: undefined,
+        category: undefined,
         price: undefined,
         url: undefined,
         created_at: fit.created_at,
@@ -269,35 +273,38 @@ export default function Home() {
                           {activity.brand_name && (
                             <span className="text-xs sm:text-sm text-muted-foreground">from {activity.brand_name}</span>
                           )}
-                        </div>
-                        
-                        <h3 className="font-semibold text-foreground mb-1 line-clamp-2 text-sm sm:text-base leading-tight">
-                          {activity.title}
-                        </h3>
-                        
-                        {activity.description && (
-                          <p className="text-xs sm:text-sm text-muted-foreground mb-2 line-clamp-2 leading-relaxed">
-                            {activity.description}
-                          </p>
-                        )}
-                        
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3 flex-shrink-0" />
-                                <span className="truncate">
-                                  {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
-                                </span>
-                              </div>
-                              {activity.price && (
-                                <span className="font-medium text-foreground text-xs sm:text-sm whitespace-nowrap">
-                                  {activity.price}
-                                </span>
-                              )}
-                            </div>
-                            
-                            {activity.url && (
-                              <Button 
+                         </div>
+                         
+                         <div className="flex flex-wrap items-center gap-2 mb-2">
+                           {activity.brand_name && (
+                             <span className="text-sm font-medium text-foreground">
+                               {activity.brand_name}
+                             </span>
+                           )}
+                           {activity.category && (
+                             <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                               {activity.category}
+                             </span>
+                           )}
+                           {activity.price && (
+                             <span className="text-sm font-medium text-foreground">
+                               {activity.price}
+                             </span>
+                           )}
+                         </div>
+                         
+                           <div className="flex items-center justify-between gap-2">
+                             <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                               <div className="flex items-center gap-1">
+                                 <Clock className="h-3 w-3 flex-shrink-0" />
+                                 <span className="truncate">
+                                   {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                                 </span>
+                               </div>
+                             </div>
+                             
+                             {activity.url && (
+                               <Button
                                 variant="ghost" 
                                 size="sm" 
                                 className="h-8 px-2 text-xs sm:text-sm flex-shrink-0 min-h-[32px]" 
