@@ -96,8 +96,8 @@ export default function Home() {
 
   const getActivityIcon = (type: string) => {
     return type === 'like' ? 
-      <Heart className="h-4 w-4 text-red-500 fill-red-500" /> : 
-      <ShirtIcon className="h-4 w-4 text-blue-500" />;
+      <Heart className="h-4 w-4 text-red-500 fill-red-500 flex-shrink-0" /> : 
+      <ShirtIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />;
   };
 
   const getActivityText = (activity: ActivityItem) => {
@@ -107,15 +107,15 @@ export default function Home() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="p-6">
+        <div className="px-0 sm:px-2">
           <div className="max-w-2xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6">Activity Feed</h1>
-            <div className="space-y-4">
+            <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 px-4 sm:px-0">Activity Feed</h1>
+            <div className="space-y-3 sm:space-y-4">
               {[...Array(5)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
+                <Card key={i} className="animate-pulse mx-2 sm:mx-0">
                   <CardContent className="p-4">
-                    <div className="flex space-x-4">
-                      <div className="w-10 h-10 bg-muted rounded-full"></div>
+                    <div className="flex space-x-3 sm:space-x-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted rounded-full flex-shrink-0"></div>
                       <div className="flex-1 space-y-2">
                         <div className="h-4 bg-muted rounded w-3/4"></div>
                         <div className="h-3 bg-muted rounded w-1/2"></div>
@@ -133,80 +133,95 @@ export default function Home() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="px-0 sm:px-2">
         <div className="max-w-2xl mx-auto">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold">Activity Feed</h1>
-            <p className="text-muted-foreground">See what's happening with your style</p>
+          <div className="mb-4 sm:mb-6 px-4 sm:px-0">
+            <h1 className="text-xl sm:text-2xl font-bold">Activity Feed</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">See what's happening with your style</p>
           </div>
 
           {activities.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Heart className="h-8 w-8 text-muted-foreground" />
+            <Card className="mx-2 sm:mx-0">
+              <CardContent className="p-6 sm:p-8 text-center">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">No activity yet</h3>
-                <p className="text-muted-foreground mb-4">
+                <h3 className="text-base sm:text-lg font-semibold mb-2">No activity yet</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-4 px-2">
                   Start by adding items to your closet or liking some products!
                 </p>
-                <div className="space-x-2">
-                  <Button variant="outline" onClick={() => window.location.href = '/closet'}>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:space-x-2">
+                  <Button 
+                    variant="outline" 
+                    className="min-h-[44px] text-sm sm:text-base"
+                    onClick={() => window.location.href = '/closet'}
+                  >
                     Browse Closet
                   </Button>
-                  <Button variant="outline" onClick={() => window.location.href = '/likes'}>
+                  <Button 
+                    variant="outline"
+                    className="min-h-[44px] text-sm sm:text-base" 
+                    onClick={() => window.location.href = '/likes'}
+                  >
                     View Likes
                   </Button>
                 </div>
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {activities.map((activity) => (
-                <Card key={activity.id} className="hover:shadow-md transition-shadow">
+                <Card key={activity.id} className="hover:shadow-md transition-shadow mx-2 sm:mx-0">
                   <CardContent className="p-4">
                     <div className="flex space-x-3">
-                      <AvatarComponent className="h-10 w-10">
-                        <AvatarFallback className="bg-primary text-primary-foreground">
+                      <AvatarComponent className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+                        <AvatarFallback className="bg-primary text-primary-foreground text-sm sm:text-base">
                           {activity.user_name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </AvatarComponent>
                       
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
                           {getActivityIcon(activity.type)}
-                          <span className="font-medium">{activity.user_name}</span>
-                          <span className="text-muted-foreground">{getActivityText(activity)}</span>
+                          <span className="font-medium text-sm sm:text-base">{activity.user_name}</span>
+                          <span className="text-muted-foreground text-sm">{getActivityText(activity)}</span>
                           {activity.brand_name && (
-                            <span className="text-sm text-muted-foreground">from {activity.brand_name}</span>
+                            <span className="text-xs sm:text-sm text-muted-foreground">from {activity.brand_name}</span>
                           )}
                         </div>
                         
-                        <h3 className="font-semibold text-foreground mb-1 line-clamp-2">
+                        <h3 className="font-semibold text-foreground mb-1 line-clamp-2 text-sm sm:text-base leading-tight">
                           {activity.title}
                         </h3>
                         
                         {activity.description && (
-                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                          <p className="text-xs sm:text-sm text-muted-foreground mb-2 line-clamp-2 leading-relaxed">
                             {activity.description}
                           </p>
                         )}
                         
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                              <Clock className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">
+                                {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                              </span>
                             </div>
                             {activity.price && (
-                              <span className="font-medium text-foreground">
+                              <span className="font-medium text-foreground text-xs sm:text-sm whitespace-nowrap">
                                 {activity.price}
                               </span>
                             )}
                           </div>
                           
                           {activity.url && (
-                            <Button variant="ghost" size="sm" asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 px-2 text-xs sm:text-sm flex-shrink-0 min-h-[32px]" 
+                              asChild
+                            >
                               <a href={activity.url} target="_blank" rel="noopener noreferrer">
                                 <ExternalLink className="h-3 w-3 mr-1" />
                                 View
@@ -221,7 +236,7 @@ export default function Home() {
                           <img 
                             src={activity.image_url} 
                             alt={activity.title}
-                            className="w-16 h-16 object-cover rounded-lg"
+                            className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
                             }}

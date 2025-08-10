@@ -40,14 +40,14 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
+    <Sidebar className={collapsed ? "w-14" : "w-60 sm:w-64"} collapsible="icon">
       <SidebarContent>
-        <div className="p-4">
+        <div className="p-3 sm:p-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">F</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-md flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm sm:text-base">F</span>
             </div>
-            {!collapsed && <span className="font-bold text-lg text-sidebar-foreground">Fits</span>}
+            {!collapsed && <span className="font-bold text-lg sm:text-xl text-sidebar-foreground">Fits</span>}
           </div>
         </div>
 
@@ -56,10 +56,10 @@ export function AppSidebar() {
             <SidebarMenu>
               {navigationItems.map((item) => (
                  <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild size="lg" className="lg:h-10 h-12">
+                  <SidebarMenuButton asChild size="lg" className="h-12 sm:h-11 lg:h-10 min-h-[48px]">
                     <NavLink to={item.url} className={getNavCls}>
-                      <item.icon className="lg:h-4 lg:w-4 h-5 w-5" />
-                      {!collapsed && <span className="lg:text-sm text-base">{item.title}</span>}
+                      <item.icon className="h-5 w-5 sm:h-4 sm:w-4 flex-shrink-0" />
+                      {!collapsed && <span className="text-base sm:text-sm font-medium truncate">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -68,14 +68,14 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mt-auto p-4">
+        <div className="mt-auto p-3 sm:p-4">
           <Button
             variant="ghost"
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50 lg:h-10 h-12 lg:text-sm text-base"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50 h-12 sm:h-11 lg:h-10 min-h-[48px] text-base sm:text-sm font-medium"
             onClick={handleLogout}
           >
-            <LogOut className="lg:h-4 lg:w-4 h-5 w-5" />
-            {!collapsed && <span>Logout</span>}
+            <LogOut className="h-5 w-5 sm:h-4 sm:w-4 flex-shrink-0" />
+            {!collapsed && <span className="truncate">Logout</span>}
           </Button>
         </div>
       </SidebarContent>
