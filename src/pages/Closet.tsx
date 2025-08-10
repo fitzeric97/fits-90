@@ -421,11 +421,11 @@ export default function Closet() {
         {viewMode !== "categories" && (
           <>
             {viewMode === "grid" ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-1 sm:gap-4 md:gap-6">
                 {filteredItems.map((item) => (
                   <Card 
                     key={item.id} 
-                    className="group cursor-pointer hover:shadow-lg transition-shadow"
+                    className="group cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
                     onClick={() => handleItemClick(item)}
                   >
                     <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted">
@@ -441,7 +441,7 @@ export default function Closet() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Package className="h-12 w-12 text-muted-foreground" />
+                          <Package className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 text-muted-foreground" />
                         </div>
                       )}
                        
@@ -513,30 +513,30 @@ export default function Closet() {
                       )}
                     </div>
                     
-                    <CardContent className="p-4">
+                    <CardContent className="p-1 sm:p-2 md:p-4">
                       <div className="space-y-2">
                         <div className="flex items-start justify-between">
-                          <h3 className="font-semibold text-sm line-clamp-2">
+                          <h3 className="font-semibold text-xs sm:text-sm line-clamp-1 md:line-clamp-2">
                             {item.product_name || `${item.brand_name} Item`}
                           </h3>
                             {item.category && (
-                              <Badge variant="secondary" className="ml-2 flex-shrink-0">
+                              <Badge variant="secondary" className="ml-1 md:ml-2 flex-shrink-0 hidden sm:flex">
                                 <div className="flex items-center gap-1">
                                   {(() => {
                                     const config = categoryConfig[item.category as keyof typeof categoryConfig];
                                     if (config) {
                                       const IconComponent = config.icon;
-                                      return <IconComponent className="h-3 w-3" />;
+                                      return <IconComponent className="h-2 w-2 md:h-3 md:w-3" />;
                                     }
-                                    return <Tag className="h-3 w-3" />;
+                                    return <Tag className="h-2 w-2 md:h-3 md:w-3" />;
                                   })()}
-                                  <span className="text-xs">{categoryConfig[item.category as keyof typeof categoryConfig]?.label || item.category}</span>
+                                  <span className="text-xs hidden md:inline">{categoryConfig[item.category as keyof typeof categoryConfig]?.label || item.category}</span>
                                 </div>
                               </Badge>
                             )}
                         </div>
                         
-                        <p className="text-sm text-muted-foreground font-medium">
+                        <p className="text-xs sm:text-sm text-muted-foreground font-medium line-clamp-1">
                           {item.brand_name}
                         </p>
                         
