@@ -321,18 +321,18 @@ export default function Home() {
                           </div>
                       </div>
                       
-                      {activity.image_url && (
-                        <div className="flex-shrink-0">
-                          <img 
-                            src={activity.image_url} 
-                            alt={activity.title}
-                            className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      )}
+                       {activity.image_url && (
+                         <div className="flex-shrink-0">
+                           <img 
+                             src={activity.image_url} 
+                             alt={activity.title}
+                             className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg"
+                             onError={(e) => {
+                               e.currentTarget.style.display = 'none';
+                             }}
+                           />
+                         </div>
+                       )}
                     </div>
                   </CardContent>
                 </Card>
