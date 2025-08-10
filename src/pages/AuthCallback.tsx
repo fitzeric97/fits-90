@@ -33,9 +33,42 @@ export default function AuthCallback() {
         if (data?.session?.user) {
           console.log('User authenticated:', data.session.user.email);
           
+          // Check if this is a new user by looking for existing profile
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', data.session.user.id)
+            .single();
+
+          const isNewUser = !existingProfile;
+          
           // Generate @myfits.co email from user's Google email
           const userEmail = data.session.user.email || '';
           const fitsEmail = userEmail.replace('@gmail.com', '@myfits.co');
+          
+          // Get first and last name from localStorage if available (from signup form)
+          const pendingSignupData = localStorage.getItem('pendingSignupData');
+          let firstName = '';
+          let lastName = '';
+          
+          if (pendingSignupData) {
+            try {
+              const signupData = JSON.parse(pendingSignupData);
+              firstName = signupData.firstName || '';
+              lastName = signupData.lastName || '';
+              localStorage.removeItem('pendingSignupData'); // Clean up
+            } catch (e) {
+              console.error('Error parsing signup data:', e);
+            }
+          }
+          
+          // Fallback to metadata if no signup data
+          if (!firstName && !lastName) {
+            const fullName = data.session.user.user_metadata?.full_name || data.session.user.user_metadata?.name || '';
+            const nameParts = fullName.split(' ');
+            firstName = nameParts[0] || '';
+            lastName = nameParts.slice(1).join(' ') || '';
+          }
           
           // Update or create profile with Gmail address and generated @myfits.co email
           const { error: profileError } = await supabase
@@ -44,7 +77,7 @@ export default function AuthCallback() {
               id: data.session.user.id,
               gmail_address: userEmail,
               myfits_email: fitsEmail,
-              display_name: data.session.user.user_metadata?.full_name || data.session.user.user_metadata?.name
+              display_name: `${firstName} ${lastName}`.trim() || data.session.user.user_metadata?.full_name || data.session.user.user_metadata?.name
             }, {
               onConflict: 'id'
             });
@@ -53,13 +86,31 @@ export default function AuthCallback() {
             console.error('Profile update error:', profileError);
           }
 
+          // Send signup notification email if this is a new user
+          if (isNewUser && firstName && lastName) {
+            try {
+              console.log('Sending signup notification for new user');
+              await supabase.functions.invoke('send-signup-notification', {
+                body: {
+                  email: userEmail,
+                  firstName,
+                  lastName
+                }
+              });
+              console.log('Signup notification sent successfully');
+            } catch (error) {
+              console.error('Failed to send signup notification:', error);
+              // Don't block signup flow if notification fails
+            }
+          }
+
           // Add to connected accounts
           const { error: accountError } = await supabase
             .from('connected_gmail_accounts')
             .upsert({
               user_id: data.session.user.id,
               gmail_address: userEmail,
-              display_name: data.session.user.user_metadata?.full_name || data.session.user.user_metadata?.name,
+              display_name: `${firstName} ${lastName}`.trim() || data.session.user.user_metadata?.full_name || data.session.user.user_metadata?.name,
               is_primary: true, // First account is primary
             }, {
               onConflict: 'user_id,gmail_address'
