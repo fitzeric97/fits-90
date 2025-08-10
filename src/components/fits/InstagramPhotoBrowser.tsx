@@ -95,29 +95,70 @@ export function InstagramPhotoBrowser({ onPhotoSelect, onClose }: InstagramPhoto
     onClose();
   };
 
+  const openInstagramApp = () => {
+    // Try to open Instagram app first, fallback to web
+    const instagramAppUrl = 'instagram://user?username=self';
+    const instagramWebUrl = 'https://www.instagram.com/';
+    
+    // Create a temporary link to try opening the app
+    const tempLink = document.createElement('a');
+    tempLink.href = instagramAppUrl;
+    tempLink.click();
+    
+    // Fallback to web after a short delay if app doesn't open
+    setTimeout(() => {
+      window.open(instagramWebUrl, '_blank');
+    }, 1000);
+  };
+
   if (!accessToken && authUrl) {
     return (
       <div className="space-y-6 p-6 text-center">
         <div className="space-y-2">
           <Instagram className="h-12 w-12 mx-auto text-muted-foreground" />
-          <h3 className="text-lg font-semibold">Connect to Instagram</h3>
+          <h3 className="text-lg font-semibold">Import from Instagram</h3>
           <p className="text-sm text-muted-foreground">
-            Connect your Instagram account to import your photos as fits
+            Choose how you'd like to import your Instagram photos
           </p>
         </div>
         
-        <Button
-          onClick={() => window.open(authUrl, '_blank')}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-        >
-          <Instagram className="h-4 w-4 mr-2" />
-          Connect Instagram
-          <ExternalLink className="h-4 w-4 ml-2" />
-        </Button>
-        
-        <p className="text-xs text-muted-foreground">
-          After connecting, refresh this page to see your photos
-        </p>
+        <div className="space-y-3">
+          <Button
+            onClick={openInstagramApp}
+            variant="outline"
+            className="w-full"
+          >
+            <Instagram className="h-4 w-4 mr-2" />
+            Open Instagram App
+            <ExternalLink className="h-4 w-4 ml-2" />
+          </Button>
+          
+          <div className="text-xs text-muted-foreground">
+            Copy the image URL from Instagram and paste it in the "URL" tab
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">or</span>
+            </div>
+          </div>
+          
+          <Button
+            onClick={() => window.open(authUrl, '_blank')}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+          >
+            <Instagram className="h-4 w-4 mr-2" />
+            Connect Instagram Account
+            <ExternalLink className="h-4 w-4 ml-2" />
+          </Button>
+          
+          <div className="text-xs text-muted-foreground">
+            Full integration - browse and import photos directly
+          </div>
+        </div>
       </div>
     );
   }

@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageEditor } from "./ImageEditor";
 import { InstagramPhotoBrowser } from "./InstagramPhotoBrowser";
+import { InstagramUrlImport } from "./InstagramUrlImport";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -283,19 +284,15 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
               </TabsContent>
 
               <TabsContent value="instagram" className="space-y-4">
-                <div className="text-center p-6">
-                  <Button
-                    type="button"
-                    onClick={() => setShowInstagramBrowser(true)}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                  >
-                    <Instagram className="h-4 w-4 mr-2" />
-                    Browse Instagram Photos
-                  </Button>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Import photos directly from your Instagram account
-                  </p>
-                </div>
+                <InstagramUrlImport 
+                  onUrlImport={(url) => {
+                    setImageUrl(url);
+                    toast({
+                      title: "Instagram photo imported",
+                      description: "Your Instagram photo is ready to be shared!",
+                    });
+                  }}
+                />
               </TabsContent>
 
               <TabsContent value="url" className="space-y-4">
