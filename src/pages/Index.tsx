@@ -45,7 +45,7 @@ const Index = () => {
       <div className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-3xl mx-auto">
           <div className="w-20 h-20 flex items-center justify-center mx-auto mb-8">
-            <img src="/lovable-uploads/81e99535-5f12-4a74-b1ad-7e5b3e2fd668.png" alt="FITS Logo" className="w-20 h-20 object-contain" />
+            <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="FITS Logo" className="w-20 h-20 object-contain" />
           </div>
           <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Welcome to Fits

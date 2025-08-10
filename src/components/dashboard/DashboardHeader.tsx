@@ -9,7 +9,7 @@ export function DashboardHeader() {
         <SidebarTrigger className="h-10 w-10 p-2" />
         <div className="flex items-center gap-2">
           <img 
-            src="/lovable-uploads/e4a1b3bc-c73c-496e-b3a5-5f401fc40604.png" 
+            src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
             alt="Fits Logo" 
             className="h-8 w-8 object-contain"
           />

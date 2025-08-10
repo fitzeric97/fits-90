@@ -47,7 +47,7 @@ export function AppSidebar() {
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-md flex items-center justify-center p-1">
               <img 
-                src="/lovable-uploads/e4a1b3bc-c73c-496e-b3a5-5f401fc40604.png" 
+                src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
                 alt="Fits Logo" 
                 className="w-full h-full object-contain"
               />
