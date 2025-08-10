@@ -78,7 +78,7 @@ const Index = () => {
         }
       } else {
         toast({
-          title: "Welcome to Fitz!",
+          title: "Welcome to Fits!",
           description: "Check your email for the login link.",
         });
       }

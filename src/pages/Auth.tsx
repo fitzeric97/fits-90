@@ -74,7 +74,7 @@ export default function Auth() {
         }
       } else {
         toast({
-          title: "Welcome to Fitz!",
+          title: "Welcome to Fits!",
           description: "Check your email for the login link.",
         });
       }
@@ -192,7 +192,7 @@ export default function Auth() {
               className="w-full h-12 text-lg"
               disabled={loading}
             >
-              {loading ? "Creating Account..." : "Join Fitz"}
+              {loading ? "Creating Account..." : "Join Fits"}
             </Button>
             
             <Button 
