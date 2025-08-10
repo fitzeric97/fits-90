@@ -50,6 +50,36 @@ const Index = () => {
     setError("");
 
     try {
+      // First try to sign up the user to check if they already exist
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: email,
+        password: Math.random().toString(36),
+        options: {
+          emailRedirectTo: `${window.location.origin}/home`,
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            gmail_address: email,
+            myfits_email: generateMyFitsEmail(email)
+          }
+        },
+      });
+
+      // Check if user already exists
+      if (signUpError && signUpError.message.includes('already registered')) {
+        setError("This email is already registered. Please use the 'Joined' option to sign in.");
+        setTimeout(() => {
+          setMode("joined");
+          setLoginEmail(email);
+          setError("");
+        }, 2000);
+        return;
+      }
+
+      if (signUpError) {
+        throw signUpError;
+      }
+
       // Store signup data for later use
       localStorage.setItem('pendingSignupData', JSON.stringify({
         firstName,
@@ -58,7 +88,7 @@ const Index = () => {
         myfitsEmail: generateMyFitsEmail(email)
       }));
 
-      // Send signup notification first
+      // Send signup notification
       try {
         await supabase.functions.invoke('send-signup-notification', {
           body: { email, firstName, lastName }
@@ -68,22 +98,16 @@ const Index = () => {
         // Don't fail the signup if notification fails
       }
 
-      // Use OTP login for new users - this will create the account if it doesn't exist
-      const { error: signInError } = await supabase.auth.signInWithOtp({
+      // Now send OTP for login
+      const { error: otpError } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
           emailRedirectTo: `${window.location.origin}/home`,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            gmail_address: email,
-            myfits_email: generateMyFitsEmail(email)
-          }
         }
       });
       
-      if (signInError) {
-        throw signInError;
+      if (otpError) {
+        throw otpError;
       }
       
       toast({
