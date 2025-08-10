@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive, Square, Footprints, Eye, Trash2, Sparkles } from "lucide-react";
+import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive, Square, Footprints, Eye, Trash2, Sparkles, ArrowUpDown, Gem } from "lucide-react";
 import { AddClosetItemDialog } from "@/components/closet/AddClosetItemDialog";
 import { EditClosetItemDialog } from "@/components/closet/EditClosetItemDialog";
 import { Input } from "@/components/ui/input";
@@ -35,22 +35,43 @@ interface ClosetItem {
 
 // Category configuration with icons and display names
 const categoryConfig = {
+  'hats': { icon: Archive, label: 'Hats', color: 'text-blue-600' },
+  'necklaces': { icon: Gem, label: 'Necklaces', color: 'text-pink-600' },
+  'fragrances': { icon: Sparkles, label: 'Fragrances', color: 'text-purple-600' },
   'shirts': { icon: Shirt, label: 'Shirts', color: 'text-blue-600' },
   't-shirts': { icon: Shirt, label: 'T-Shirts', color: 'text-green-600' },
   'polo-shirts': { icon: ShirtIcon, label: 'Polo Shirts', color: 'text-purple-600' },
   'button-shirts': { icon: Shirt, label: 'Button Shirts', color: 'text-indigo-600' },
-  'jeans': { icon: Scissors, label: 'Jeans', color: 'text-blue-800' },
-  'pants': { icon: Scissors, label: 'Pants', color: 'text-gray-600' },
-  'shorts': { icon: Square, label: 'Shorts', color: 'text-yellow-600' },
-  'jackets': { icon: Archive, label: 'Jackets', color: 'text-gray-800' },
   'sweaters': { icon: Package, label: 'Sweaters', color: 'text-red-600' },
   'hoodies': { icon: ShirtIcon, label: 'Hoodies', color: 'text-orange-600' },
+  'jackets': { icon: Archive, label: 'Jackets', color: 'text-gray-800' },
   'activewear': { icon: Dumbbell, label: 'Activewear', color: 'text-green-700' },
+  'pants': { icon: Scissors, label: 'Pants', color: 'text-gray-600' },
+  'jeans': { icon: Scissors, label: 'Jeans', color: 'text-blue-800' },
+  'shorts': { icon: Square, label: 'Shorts', color: 'text-yellow-600' },
   'shoes': { icon: Footprints, label: 'Shoes', color: 'text-brown-600' },
-  'boots': { icon: Footprints, label: 'Boots', color: 'text-amber-700' },
-  'hats': { icon: Archive, label: 'Hats', color: 'text-blue-600' },
-  'fragrances': { icon: Sparkles, label: 'Fragrances', color: 'text-purple-600' }
+  'boots': { icon: Footprints, label: 'Boots', color: 'text-amber-700' }
 };
+
+// Head to Toe ordering - from top of body to bottom
+const headToToeOrder = [
+  'hats',
+  'necklaces', 
+  'fragrances',
+  'shirts',
+  't-shirts',
+  'polo-shirts', 
+  'button-shirts',
+  'sweaters',
+  'hoodies',
+  'jackets',
+  'activewear',
+  'pants',
+  'jeans', 
+  'shorts',
+  'shoes',
+  'boots'
+];
 
 export default function Closet() {
   const [closetItems, setClosetItems] = useState<ClosetItem[]>([]);
@@ -59,6 +80,7 @@ export default function Closet() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [brandFilter, setBrandFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"categories" | "grid" | "list">("grid");
+  const [sortByHeadToToe, setSortByHeadToToe] = useState(false);
   const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
   
   const { user } = useAuth();
@@ -117,6 +139,15 @@ export default function Closet() {
     
     return matchesSearch && matchesCategory && matchesBrand;
   });
+
+  // Sort items by Head to Toe order if enabled
+  const sortedItems = sortByHeadToToe 
+    ? [...filteredItems].sort((a, b) => {
+        const aIndex = a.category ? headToToeOrder.indexOf(a.category) : 999;
+        const bIndex = b.category ? headToToeOrder.indexOf(b.category) : 999;
+        return aIndex - bIndex;
+      })
+    : filteredItems;
 
   const uniqueBrands = [...new Set(closetItems.map(item => item.brand_name))];
   const uniqueCategories = [...new Set(closetItems.map(item => item.category).filter(Boolean))];
@@ -247,13 +278,21 @@ export default function Closet() {
             >
               <List className="h-4 w-4" />
             </Button>
+            <Button
+              variant={sortByHeadToToe ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
+              title="Sort Head to Toe"
+            >
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
         {/* Grid View - Default */}
         {viewMode === "grid" && (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-1 sm:gap-4 md:gap-6">
-            {filteredItems.map((item) => (
+            {sortedItems.map((item) => (
               <Card 
                 key={item.id} 
                 className="group cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
@@ -548,7 +587,7 @@ export default function Closet() {
         {/* Items List - Only show when in list view */}
         {viewMode === "list" && (
           <div className="space-y-4">
-            {filteredItems.map((item) => (
+            {sortedItems.map((item) => (
               <Card 
                 key={item.id}
                 className={`cursor-pointer hover:shadow-md transition-shadow ${

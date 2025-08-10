@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { useToast } from "@/hooks/use-toast";
 import { useBrandPromotions } from "@/hooks/useBrandPromotions";
-import { ExternalLink, Heart, Trash2, Plus, Tag, Search, X } from "lucide-react";
+import { ExternalLink, Heart, Trash2, Plus, Tag, Search, X, ArrowUpDown, Gem, Shirt, ShirtIcon, Package, Archive, Scissors, Square, Footprints, Dumbbell, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -30,6 +30,46 @@ interface Like {
   created_at: string;
 }
 
+// Category configuration with icons and display names (same as Closet)
+const categoryConfig = {
+  'hats': { icon: Archive, label: 'Hats', color: 'text-blue-600' },
+  'necklaces': { icon: Gem, label: 'Necklaces', color: 'text-pink-600' },
+  'fragrances': { icon: Sparkles, label: 'Fragrances', color: 'text-purple-600' },
+  'shirts': { icon: Shirt, label: 'Shirts', color: 'text-blue-600' },
+  't-shirts': { icon: Shirt, label: 'T-Shirts', color: 'text-green-600' },
+  'polo-shirts': { icon: ShirtIcon, label: 'Polo Shirts', color: 'text-purple-600' },
+  'button-shirts': { icon: Shirt, label: 'Button Shirts', color: 'text-indigo-600' },
+  'sweaters': { icon: Package, label: 'Sweaters', color: 'text-red-600' },
+  'hoodies': { icon: ShirtIcon, label: 'Hoodies', color: 'text-orange-600' },
+  'jackets': { icon: Archive, label: 'Jackets', color: 'text-gray-800' },
+  'activewear': { icon: Dumbbell, label: 'Activewear', color: 'text-green-700' },
+  'pants': { icon: Scissors, label: 'Pants', color: 'text-gray-600' },
+  'jeans': { icon: Scissors, label: 'Jeans', color: 'text-blue-800' },
+  'shorts': { icon: Square, label: 'Shorts', color: 'text-yellow-600' },
+  'shoes': { icon: Footprints, label: 'Shoes', color: 'text-brown-600' },
+  'boots': { icon: Footprints, label: 'Boots', color: 'text-amber-700' }
+};
+
+// Head to Toe ordering - from top of body to bottom
+const headToToeOrder = [
+  'hats',
+  'necklaces', 
+  'fragrances',
+  'shirts',
+  't-shirts',
+  'polo-shirts', 
+  'button-shirts',
+  'sweaters',
+  'hoodies',
+  'jackets',
+  'activewear',
+  'pants',
+  'jeans', 
+  'shorts',
+  'shoes',
+  'boots'
+];
+
 export default function Likes() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -41,6 +81,7 @@ export default function Likes() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredLikes, setFilteredLikes] = useState<Like[]>([]);
+  const [sortByHeadToToe, setSortByHeadToToe] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -50,26 +91,33 @@ export default function Likes() {
 
   // Filter likes based on search query
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredLikes(likes);
-      return;
+    let filtered = likes;
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = likes.filter((like) => {
+        const searchableFields = [
+          like.brand_name?.toLowerCase(),
+          like.category?.toLowerCase(), 
+          like.description?.toLowerCase(),
+          like.title?.toLowerCase(),
+        ].filter(Boolean);
+
+        return searchableFields.some(field => field?.includes(query));
+      });
     }
 
-    const query = searchQuery.toLowerCase();
-    const filtered = likes.filter((like) => {
-      const searchableFields = [
-        like.brand_name?.toLowerCase(),
-        like.category?.toLowerCase(), 
-        like.description?.toLowerCase(),
-        like.title?.toLowerCase(),
-        // You can add color field when it's available in the schema
-      ].filter(Boolean);
-
-      return searchableFields.some(field => field?.includes(query));
-    });
+    // Sort by Head to Toe order if enabled
+    if (sortByHeadToToe) {
+      filtered = [...filtered].sort((a, b) => {
+        const aIndex = a.category ? headToToeOrder.indexOf(a.category) : 999;
+        const bIndex = b.category ? headToToeOrder.indexOf(b.category) : 999;
+        return aIndex - bIndex;
+      });
+    }
 
     setFilteredLikes(filtered);
-  }, [likes, searchQuery]);
+  }, [likes, searchQuery, sortByHeadToToe]);
 
   const fetchLikes = async () => {
     try {
@@ -183,6 +231,21 @@ export default function Likes() {
             </p>
           </div>
           
+          <div className="flex gap-2">
+            <Button
+              variant={sortByHeadToToe ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
+              title="Sort Head to Toe"
+            >
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+          
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
               <Button>
@@ -228,6 +291,7 @@ export default function Likes() {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Search Bar */}
