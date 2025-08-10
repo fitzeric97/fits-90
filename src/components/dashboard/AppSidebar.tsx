@@ -15,12 +15,12 @@ import { useAuth } from "@/components/auth/AuthProvider";
 
 const navigationItems = [
   { title: "Home", url: "/home", icon: Home },
-  { title: "Promotions", url: "/dashboard", icon: Globe },
-  { title: "My Closet", url: "/closet", icon: ShirtIcon },
+  { title: "Connect", url: "/connect", icon: Users },
   { title: "Fits", url: "/fits", icon: Camera },
   { title: "Likes", url: "/likes", icon: Heart },
-  { title: "Connect", url: "/connect", icon: Users },
+  { title: "My Closet", url: "/closet", icon: ShirtIcon },
   { title: "All Brands", url: "/brands", icon: Globe },
+  { title: "Promotions", url: "/dashboard", icon: Globe },
   { title: "Notifications", url: "/notifications", icon: Bell },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
