@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Upload, Link as LinkIcon, Edit } from "lucide-react";
+import { Plus, Upload, Link as LinkIcon, Edit, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageEditor } from "./ImageEditor";
+import { InstagramPhotoBrowser } from "./InstagramPhotoBrowser";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,6 +19,7 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("upload");
+  const [showInstagramBrowser, setShowInstagramBrowser] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   
   // Form data
@@ -65,6 +67,15 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
     setShowImageEditor(false);
     setSelectedImage(null);
     setImagePreview(null);
+  };
+
+  const handleInstagramPhotoSelect = (media: any) => {
+    setImageUrl(media.media_url);
+    setShowInstagramBrowser(false);
+    toast({
+      title: "Instagram photo selected",
+      description: "Your Instagram photo is ready to be shared as a fit!",
+    });
   };
 
   const uploadImageToStorage = async (file: Blob): Promise<string | null> => {
@@ -183,14 +194,18 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
 
           <form onSubmit={handleSubmit}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="upload" className="flex items-center gap-2">
                   <Upload className="h-4 w-4" />
                   Upload Photo
                 </TabsTrigger>
+                <TabsTrigger value="instagram" className="flex items-center gap-2">
+                  <Instagram className="h-4 w-4" />
+                  Instagram
+                </TabsTrigger>
                 <TabsTrigger value="url" className="flex items-center gap-2">
                   <LinkIcon className="h-4 w-4" />
-                  Instagram URL
+                  URL
                 </TabsTrigger>
               </TabsList>
 
@@ -267,13 +282,29 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
                 </div>
               </TabsContent>
 
+              <TabsContent value="instagram" className="space-y-4">
+                <div className="text-center p-6">
+                  <Button
+                    type="button"
+                    onClick={() => setShowInstagramBrowser(true)}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  >
+                    <Instagram className="h-4 w-4 mr-2" />
+                    Browse Instagram Photos
+                  </Button>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Import photos directly from your Instagram account
+                  </p>
+                </div>
+              </TabsContent>
+
               <TabsContent value="url" className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="image-url">Instagram Post URL</Label>
+                  <Label htmlFor="image-url">Image URL</Label>
                   <Input
                     id="image-url"
                     type="url"
-                    placeholder="https://instagram.com/p/..."
+                    placeholder="https://example.com/image.jpg"
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
                   />
@@ -323,6 +354,18 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
               imageUrl={imagePreview}
               onSave={handleImageEditSave}
               onCancel={handleImageEditCancel}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Instagram Browser Dialog */}
+      {showInstagramBrowser && (
+        <Dialog open={showInstagramBrowser} onOpenChange={setShowInstagramBrowser}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <InstagramPhotoBrowser
+              onPhotoSelect={handleInstagramPhotoSelect}
+              onClose={() => setShowInstagramBrowser(false)}
             />
           </DialogContent>
         </Dialog>

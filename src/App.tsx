@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
+import InstagramCallback from "./pages/InstagramCallback";
 import GmailCallback from "./pages/GmailCallback";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
@@ -33,7 +34,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/instagram-callback" element={<InstagramCallback />} />
             <Route path="/gmail-callback" element={<GmailCallback />} />
             <Route path="/onboarding" element={
               <ProtectedRoute>
