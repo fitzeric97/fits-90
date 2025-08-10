@@ -232,7 +232,11 @@ export default function Closet() {
             <Button
               variant={viewMode === "categories" ? "default" : "outline"}
               size="sm"
-              onClick={() => setViewMode(viewMode === "categories" ? "grid" : "categories")}
+              onClick={() => {
+                const newMode = viewMode === "categories" ? "grid" : "categories";
+                console.log("Switching view mode from", viewMode, "to", newMode);
+                setViewMode(newMode);
+              }}
             >
               <Tag className="h-4 w-4" />
             </Button>
