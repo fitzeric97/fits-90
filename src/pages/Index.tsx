@@ -234,7 +234,7 @@ const Index = () => {
               className="w-full h-12 text-lg"
               disabled={loading}
             >
-              {loading ? "Creating Account..." : "Join Fitz"}
+              {loading ? "Creating Account..." : "Join Fits"}
             </Button>
             
             <Button 
