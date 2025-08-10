@@ -287,7 +287,8 @@ export default function Closet() {
               onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
               title="Sort Head to Toe"
             >
-              <ArrowUpDown className="h-4 w-4" />
+              <ArrowUpDown className="h-4 w-4 mr-2" />
+              Head to Toe
             </Button>
           </div>
         </div>
