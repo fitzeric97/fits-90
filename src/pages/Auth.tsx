@@ -40,7 +40,7 @@ export default function Auth() {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-            scope: 'https://www.googleapis.com/auth/gmail.readonly openid email profile'
+            scope: 'openid email profile'
           }
         }
       });
