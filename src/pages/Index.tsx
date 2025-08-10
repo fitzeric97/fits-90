@@ -77,6 +77,16 @@ const Index = () => {
           throw authError;
         }
       } else {
+        // Send signup notification
+        try {
+          await supabase.functions.invoke('send-signup-notification', {
+            body: { email, firstName, lastName }
+          });
+        } catch (notificationError) {
+          console.log('Signup notification failed:', notificationError);
+          // Don't fail the signup if notification fails
+        }
+        
         toast({
           title: "Welcome to Fits!",
           description: "Check your email for the login link.",
