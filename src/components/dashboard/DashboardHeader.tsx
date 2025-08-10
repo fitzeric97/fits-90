@@ -60,7 +60,7 @@ export function DashboardHeader() {
     <header className="h-14 border-b bg-background flex items-center justify-between px-4 relative">
       {/* Left side - Menu button */}
       <div className="flex items-center gap-4 sm:flex-1">
-        <SidebarTrigger className="h-10 w-10 p-2" />
+        <SidebarTrigger className="h-20 w-20 p-4" />
         <div className="hidden sm:flex items-center gap-2">
           <img 
             src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
