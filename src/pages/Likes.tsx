@@ -524,6 +524,7 @@ export default function Likes() {
         like={selectedLike}
         open={showDetailDialog}
         onOpenChange={setShowDetailDialog}
+        onDelete={removeLike}
       />
     </DashboardLayout>
   );

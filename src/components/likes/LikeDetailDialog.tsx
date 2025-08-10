@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FallbackImage } from "@/components/ui/fallback-image";
-import { ExternalLink, Heart, Calendar, Tag } from "lucide-react";
+import { ExternalLink, Heart, Calendar, Tag, Trash2 } from "lucide-react";
 
 interface Like {
   id: string;
@@ -23,10 +23,18 @@ interface LikeDetailDialogProps {
   like: Like | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onDelete?: (likeId: string) => void;
 }
 
-export function LikeDetailDialog({ like, open, onOpenChange }: LikeDetailDialogProps) {
+export function LikeDetailDialog({ like, open, onOpenChange, onDelete }: LikeDetailDialogProps) {
   if (!like) return null;
+
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(like.id);
+      onOpenChange(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -117,6 +125,16 @@ export function LikeDetailDialog({ like, open, onOpenChange }: LikeDetailDialogP
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Visit Store
               </Button>
+              {onDelete && (
+                <Button 
+                  variant="destructive" 
+                  onClick={handleDelete}
+                  className="flex-1"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 onClick={() => onOpenChange(false)}
