@@ -99,33 +99,58 @@ serve(async (req) => {
       }
     }
 
-    // Insert all found promotions
+    // Insert all found promotions with duplicate prevention
     if (allPromotions.length > 0) {
-      // First, mark old promotions as inactive
+      // First, mark old promotions as inactive (older than 24 hours)
       await supabase
         .from('scraped_promotions')
         .update({ is_active: false })
         .lt('scraped_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
-      // Insert new promotions
-      const { error: insertError } = await supabase
+      // Get existing active promotions to check for duplicates
+      const { data: existingPromotions } = await supabase
         .from('scraped_promotions')
-        .insert(allPromotions);
+        .select('brand_name, promotion_title, user_id, discount_percentage, discount_code')
+        .eq('is_active', true);
 
-      if (insertError) {
-        console.error('Error inserting promotions:', insertError);
-        throw insertError;
+      // Create a set of existing promotion signatures for quick lookup
+      const existingSignatures = new Set(
+        existingPromotions?.map(p => 
+          `${p.brand_name}|${p.promotion_title}|${p.user_id}|${p.discount_percentage || ''}|${p.discount_code || ''}`
+        ) || []
+      );
+
+      // Filter out duplicates
+      const uniquePromotions = allPromotions.filter(promotion => {
+        const signature = `${promotion.brand_name}|${promotion.promotion_title}|${promotion.user_id}|${promotion.discount_percentage || ''}|${promotion.discount_code || ''}`;
+        return !existingSignatures.has(signature);
+      });
+
+      // Insert only unique promotions
+      if (uniquePromotions.length > 0) {
+        const { error: insertError } = await supabase
+          .from('scraped_promotions')
+          .insert(uniquePromotions);
+
+        if (insertError) {
+          console.error('Error inserting promotions:', insertError);
+          throw insertError;
+        }
+
+        console.log(`Successfully inserted ${uniquePromotions.length} unique promotions (filtered out ${allPromotions.length - uniquePromotions.length} duplicates)`);
+      } else {
+        console.log('No new unique promotions found');
       }
-
-      console.log(`Successfully inserted ${allPromotions.length} promotions`);
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Scraped ${brandWebsites?.length || 0} brands and found ${allPromotions.length} promotions`,
+        message: `Scraped ${brandWebsites?.length || 0} brands and found ${allPromotions.length} total promotions`,
         brandsScraped: brandWebsites?.length || 0,
-        promotionsFound: allPromotions.length
+        totalPromotionsFound: allPromotions.length,
+        uniquePromotionsInserted: allPromotions.length > 0 ? 
+          (await supabase.from('scraped_promotions').select('id', { count: 'exact' }).gte('scraped_at', new Date().toISOString().split('T')[0])).count || 0 : 0
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
