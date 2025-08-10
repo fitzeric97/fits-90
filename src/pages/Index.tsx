@@ -153,7 +153,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
         <div className="w-72 h-72 flex items-center justify-center mb-8">
-          <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fitz Logo" className="w-72 h-72 object-contain" />
+          <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fits Logo" className="w-72 h-72 object-contain" />
         </div>
         
         <div className="max-w-sm w-full space-y-4">
@@ -181,7 +181,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
         <div className="w-24 h-24 flex items-center justify-center mb-8">
-          <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fitz Logo" className="w-24 h-24 object-contain" />
+          <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fits Logo" className="w-24 h-24 object-contain" />
         </div>
         
         <div className="max-w-sm w-full">
@@ -255,7 +255,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
         <div className="w-32 h-32 flex items-center justify-center mb-8">
-          <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fitz Logo" className="w-32 h-32 object-contain" />
+          <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fits Logo" className="w-32 h-32 object-contain" />
         </div>
         
         <div className="max-w-sm w-full">
