@@ -4,9 +4,11 @@ import { Bell } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export function DashboardHeader() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState<{
     display_name: string | null;
   }>({
@@ -50,30 +52,49 @@ export function DashboardHeader() {
     return firstName.charAt(0).toUpperCase();
   };
 
+  const handleProfileClick = () => {
+    navigate('/settings');
+  };
+
   return (
-    <header className="h-14 border-b bg-background flex items-center justify-between px-4">
-      <div className="flex items-center gap-4">
+    <header className="h-14 border-b bg-background flex items-center justify-between px-4 relative">
+      {/* Left side - Menu button */}
+      <div className="flex items-center gap-4 sm:flex-1">
         <SidebarTrigger className="h-10 w-10 p-2" />
-        <div className="flex items-center gap-2">
+        <div className="hidden sm:flex items-center gap-2">
           <img 
             src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
             alt="Fits Logo" 
             className="h-8 w-8 object-contain"
           />
-          <span className="font-bold text-lg text-foreground hidden sm:block">Fits</span>
+          <span className="font-bold text-lg text-foreground">Fits</span>
         </div>
       </div>
+
+      {/* Center - Logo (mobile only) */}
+      <div className="absolute left-1/2 transform -translate-x-1/2 sm:hidden">
+        <img 
+          src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
+          alt="Fits Logo" 
+          className="h-12 w-12 object-contain"
+        />
+      </div>
       
+      {/* Right side - Notifications and User */}
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon">
           <Bell className="h-4 w-4" />
         </Button>
-        <div className="flex items-center gap-2">
+        <Button 
+          variant="ghost" 
+          className="flex items-center gap-2 h-8 px-2 hover:bg-accent rounded-full"
+          onClick={handleProfileClick}
+        >
           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
             <span className="text-sm font-medium text-primary-foreground">{getInitial()}</span>
           </div>
           <span className="text-sm font-medium hidden sm:block">{getFirstName()}</span>
-        </div>
+        </Button>
       </div>
     </header>
   );
