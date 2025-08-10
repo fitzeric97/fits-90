@@ -39,13 +39,10 @@ User context: ${userProfile?.display_name ? `User's name is ${userProfile.displa
 
     const stepPrompts = {
       welcome: "Create a warm welcome message introducing Fits as their new fashion companion.",
-      email: "Explain how their personal @myfits.co email will keep their inbox clean while they discover new brands.",
-      closet: "Introduce the digital closet feature and how it helps organize their wardrobe.",
-      fits: "Explain how they can create and share outfit combinations ('fits') with the community.",
-      likes: "Describe how they can save and organize items they love from any website.",
-      connect: "Introduce the social features and how they can connect with other fashion enthusiasts.",
-      promotions: "Explain how Fits automatically finds and organizes brand deals and promotions for them.",
-      ready: "Create an encouraging message that they're ready to start their fashion journey with Fits."
+      closet: "Explain how to add items to their closet - either by uploading photos or pasting product URLs. Make it sound exciting and easy.",
+      likes: "Describe how they can save and organize items they love from any website by adding URLs to their likes collection.",
+      brands: "Explain how they can manually add brand websites to follow for promotions and deals, keeping track of their favorite brands.",
+      ready: "Create an encouraging message that they're ready to start their fashion journey with Fits and have learned the key features."
     };
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
