@@ -232,7 +232,7 @@ export default function Closet() {
             <Button
               variant={viewMode === "categories" ? "default" : "outline"}
               size="sm"
-              onClick={() => setViewMode("categories")}
+              onClick={() => setViewMode(viewMode === "categories" ? "grid" : "categories")}
             >
               <Tag className="h-4 w-4" />
             </Button>
