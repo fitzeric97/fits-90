@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Copy, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ConnectedMailboxes } from "@/components/settings/ConnectedMailboxes";
+import { InstagramConnector } from "@/components/settings/InstagramConnector";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -79,6 +80,8 @@ export default function Settings() {
         </div>
 
         <ConnectedMailboxes />
+        
+        <InstagramConnector />
 
         {userProfile.gmail_address && userProfile.myfits_email && (
           <Card>

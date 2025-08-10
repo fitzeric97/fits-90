@@ -59,6 +59,7 @@ export default function Auth() {
   };
 
 
+
   const generateMyFitsEmail = (gmailAddress: string): string => {
     // Extract username from Gmail address and create myfits.co email
     const username = gmailAddress.split('@')[0];
@@ -189,6 +190,7 @@ export default function Auth() {
                   </svg>
                   {loading ? "Connecting..." : "Continue with Google"}
                 </Button>
+
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
