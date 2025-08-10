@@ -6,7 +6,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, Avatar as AvatarComponent, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, ShirtIcon, Clock, ExternalLink } from "lucide-react";
+import { Heart, ShirtIcon, Clock, ExternalLink, Plus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface ActivityItem {
@@ -150,6 +150,28 @@ export default function Home() {
           <div className="mb-4 sm:mb-6 px-4 sm:px-0">
             <h1 className="text-xl sm:text-2xl font-bold">Activity Feed</h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-1">See what's happening with your style</p>
+          </div>
+
+          {/* Quick Action Buttons */}
+          <div className="mb-6 px-4 sm:px-0">
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="h-12 flex items-center justify-center gap-2"
+                onClick={() => navigate('/likes')}
+              >
+                <Heart className="h-4 w-4" />
+                <span>Add a Like</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-12 flex items-center justify-center gap-2"
+                onClick={() => navigate('/closet')}
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add to Closet</span>
+              </Button>
+            </div>
           </div>
 
           {activities.length === 0 ? (
