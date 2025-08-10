@@ -14,7 +14,7 @@ import InstagramCallback from "./pages/InstagramCallback";
 import GmailCallback from "./pages/GmailCallback";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
-import Onboarding from "./pages/Onboarding";
+import InteractiveOnboarding from "./components/onboarding/InteractiveOnboarding";
 import Closet from "./pages/Closet";
 import ClosetItemDetail from "./pages/ClosetItemDetail";
 import Fits from "./pages/Fits";
@@ -41,7 +41,7 @@ const App = () => (
             <Route path="/gmail-callback" element={<GmailCallback />} />
             <Route path="/onboarding" element={
               <ProtectedRoute>
-                <Onboarding />
+                <InteractiveOnboarding />
               </ProtectedRoute>
             } />
             <Route path="/home" element={

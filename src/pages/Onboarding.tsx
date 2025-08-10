@@ -6,18 +6,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 const steps = [
   {
+    id: "welcome",
     title: "Welcome to Fits!",
-    description: "Your unique Fits inbox has been created",
-    completed: true,
-  },
-  {
-    title: "Update Brand Preferences",
-    description: "Use your Fits email for newsletter signups",
+    description: "Your fashion organization companion is ready",
     completed: false,
   },
   {
-    title: "Start Organizing",
-    description: "We'll organize promotions so your inbox stays clean",
+    id: "closet",
+    title: "Build Your Digital Closet",
+    description: "Add items by photo upload or product URLs",
+    completed: false,
+  },
+  {
+    id: "likes",
+    title: "Save Items You Love",
+    description: "Like and organize items from any website",
+    completed: false,
+  },
+  {
+    id: "brands",
+    title: "Follow Brand Promotions",
+    description: "Add websites to track deals and promotions",
     completed: false,
   },
 ];

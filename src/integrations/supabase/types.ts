@@ -254,6 +254,7 @@ export type Database = {
           gmail_address: string | null
           id: string
           myfits_email: string | null
+          onboarding_completed: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -262,6 +263,7 @@ export type Database = {
           gmail_address?: string | null
           id: string
           myfits_email?: string | null
+          onboarding_completed?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -270,6 +272,7 @@ export type Database = {
           gmail_address?: string | null
           id?: string
           myfits_email?: string | null
+          onboarding_completed?: boolean | null
           updated_at?: string | null
         }
         Relationships: []
