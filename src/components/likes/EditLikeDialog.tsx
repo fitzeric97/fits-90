@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Edit, Upload, X, Shirt, User, Square, Scissors, Crown, Watch, Footprints, Sparkles } from "lucide-react";
+import { Edit, Upload, X, Shirt, User, Square, Scissors, Crown, Watch, Footprints, Sparkles, Archive, Gem, ShirtIcon, Package, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,52 @@ interface Like {
   image_url: string | null;
   uploaded_image_url: string | null;
 }
+
+// Category configuration with icons and display names (same as Closet)
+const categoryConfig = {
+  'hats': { icon: Archive, label: 'Hats', color: 'text-blue-600' },
+  'necklaces': { icon: Gem, label: 'Necklaces', color: 'text-pink-600' },
+  'fragrances': { icon: Sparkles, label: 'Fragrances', color: 'text-purple-600' },
+  'shirts': { icon: Shirt, label: 'Shirts', color: 'text-blue-600' },
+  't-shirts': { icon: Shirt, label: 'T-Shirts', color: 'text-green-600' },
+  'polo-shirts': { icon: ShirtIcon, label: 'Polo Shirts', color: 'text-purple-600' },
+  'button-shirts': { icon: Shirt, label: 'Button Shirts', color: 'text-indigo-600' },
+  'sweaters': { icon: Package, label: 'Sweaters', color: 'text-red-600' },
+  'hoodies': { icon: ShirtIcon, label: 'Hoodies', color: 'text-orange-600' },
+  'jackets': { icon: Archive, label: 'Jackets', color: 'text-gray-800' },
+  'activewear': { icon: Dumbbell, label: 'Activewear', color: 'text-green-700' },
+  'pants': { icon: Scissors, label: 'Pants', color: 'text-gray-600' },
+  'jeans': { icon: Scissors, label: 'Jeans', color: 'text-blue-800' },
+  'shorts': { icon: Square, label: 'Shorts', color: 'text-yellow-600' },
+  'shoes': { icon: Footprints, label: 'Shoes', color: 'text-brown-600' },
+  'boots': { icon: Footprints, label: 'Boots', color: 'text-amber-700' }
+};
+
+// Head to Toe ordering - from top of body to bottom
+const headToToeOrder = [
+  'hats',
+  'necklaces', 
+  'fragrances',
+  'shirts',
+  't-shirts',
+  'polo-shirts', 
+  'button-shirts',
+  'sweaters',
+  'hoodies',
+  'jackets',
+  'activewear',
+  'pants',
+  'jeans', 
+  'shorts',
+  'shoes',
+  'boots'
+];
+
+// Get ordered categories for dropdown
+const orderedCategories = headToToeOrder.map(key => ({
+  key,
+  label: categoryConfig[key as keyof typeof categoryConfig]?.label || key
+}));
 
 interface EditLikeDialogProps {
   like: Like;
@@ -205,109 +251,25 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border shadow-lg z-50">
                   <SelectItem value="none">
                     <div className="flex items-center gap-2">
                       <X className="h-4 w-4" />
                       No category
                     </div>
                   </SelectItem>
-                  <SelectItem value="shirts">
-                    <div className="flex items-center gap-2">
-                      <Shirt className="h-4 w-4" />
-                      Shirts
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="t-shirts">
-                    <div className="flex items-center gap-2">
-                      <Shirt className="h-4 w-4" />
-                      T-Shirts
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="polo-shirts">
-                    <div className="flex items-center gap-2">
-                      <Shirt className="h-4 w-4" />
-                      Polo Shirts
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="button-shirts">
-                    <div className="flex items-center gap-2">
-                      <Shirt className="h-4 w-4" />
-                      Button Shirts
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="jeans">
-                    <div className="flex items-center gap-2">
-                      <Square className="h-4 w-4" />
-                      Jeans
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="pants">
-                    <div className="flex items-center gap-2">
-                      <Square className="h-4 w-4" />
-                      Pants
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="shorts">
-                    <div className="flex items-center gap-2">
-                      <Scissors className="h-4 w-4" />
-                      Shorts
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="jackets">
-                    <div className="flex items-center gap-2">
-                      <Shirt className="h-4 w-4" />
-                      Jackets
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="sweaters">
-                    <div className="flex items-center gap-2">
-                      <Shirt className="h-4 w-4" />
-                      Sweaters
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="hoodies">
-                    <div className="flex items-center gap-2">
-                      <Shirt className="h-4 w-4" />
-                      Hoodies
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="activewear">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      Activewear
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="shoes">
-                    <div className="flex items-center gap-2">
-                      <Footprints className="h-4 w-4" />
-                      Shoes
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="hats">
-                    <div className="flex items-center gap-2">
-                      <Crown className="h-4 w-4" />
-                      Hats
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="accessories">
-                    <div className="flex items-center gap-2">
-                      <Watch className="h-4 w-4" />
-                      Accessories
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="fragrances">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      Fragrances
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="colognes">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      Colognes
-                    </div>
-                  </SelectItem>
+                  {orderedCategories.map((category) => {
+                    const config = categoryConfig[category.key as keyof typeof categoryConfig];
+                    const IconComponent = config?.icon || Shirt;
+                    return (
+                      <SelectItem key={category.key} value={category.key}>
+                        <div className="flex items-center gap-2">
+                          <IconComponent className="h-4 w-4" />
+                          {category.label}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
