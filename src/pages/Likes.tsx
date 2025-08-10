@@ -226,9 +226,6 @@ export default function Likes() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">My Likes</h1>
-            <p className="text-muted-foreground mt-2">
-              Products you've saved for later from links sent to your @myfits.co email
-            </p>
           </div>
           
           <div className="flex gap-2">
