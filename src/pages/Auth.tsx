@@ -237,7 +237,7 @@ export default function Auth() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-4 h-4 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs">3</span>
-                  <span>Use your @myfits.co email for future brand signups</span>
+                  <span>Add items via link to your likes and closet to share your style</span>
                 </div>
               </div>
             </div>
