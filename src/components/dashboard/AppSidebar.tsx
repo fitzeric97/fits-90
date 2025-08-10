@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 const navigationItems = [
-  { title: "Dashboard", url: "/dashboard", icon: Home },
+  { title: "Promotions", url: "/promotions", icon: Home },
   { title: "My Closet", url: "/closet", icon: ShirtIcon },
   { title: "Fits", url: "/fits", icon: Camera },
   { title: "Likes", url: "/likes", icon: Heart },

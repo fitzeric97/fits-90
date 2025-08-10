@@ -42,7 +42,7 @@ const App = () => (
                 <Onboarding />
               </ProtectedRoute>
             } />
-            <Route path="/dashboard" element={
+            <Route path="/promotions" element={
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
