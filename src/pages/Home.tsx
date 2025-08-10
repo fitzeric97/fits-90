@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -24,6 +25,7 @@ interface ActivityItem {
 
 export default function Home() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -104,6 +106,16 @@ export default function Home() {
     return activity.type === 'like' ? 'liked' : 'added to closet';
   };
 
+  const handleItemClick = (activity: ActivityItem) => {
+    if (activity.type === 'like') {
+      // Navigate to likes page with the specific item highlighted
+      navigate('/likes');
+    } else if (activity.type === 'closet_add') {
+      // Navigate to specific closet item detail page
+      navigate(`/closet/${activity.id}`);
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -173,14 +185,8 @@ export default function Home() {
               {activities.map((activity) => (
                 <Card 
                   key={activity.id} 
-                  className={`hover:shadow-md transition-shadow mx-2 sm:mx-0 ${
-                    activity.url ? 'cursor-pointer' : ''
-                  }`}
-                  onClick={() => {
-                    if (activity.url) {
-                      window.open(activity.url, '_blank', 'noopener,noreferrer');
-                    }
-                  }}
+                  className="hover:shadow-md transition-shadow mx-2 sm:mx-0 cursor-pointer"
+                  onClick={() => handleItemClick(activity)}
                 >
                   <CardContent className="p-4">
                     <div className="flex space-x-3">
@@ -210,29 +216,37 @@ export default function Home() {
                           </p>
                         )}
                         
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3 flex-shrink-0" />
-                              <span className="truncate">
-                                {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
-                              </span>
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">
+                                  {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                                </span>
+                              </div>
+                              {activity.price && (
+                                <span className="font-medium text-foreground text-xs sm:text-sm whitespace-nowrap">
+                                  {activity.price}
+                                </span>
+                              )}
                             </div>
-                            {activity.price && (
-                              <span className="font-medium text-foreground text-xs sm:text-sm whitespace-nowrap">
-                                {activity.price}
-                              </span>
+                            
+                            {activity.url && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 px-2 text-xs sm:text-sm flex-shrink-0 min-h-[32px]" 
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent card click
+                                  window.open(activity.url, '_blank', 'noopener,noreferrer');
+                                }}
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                <span className="hidden sm:inline">Visit Store</span>
+                                <span className="sm:hidden">Store</span>
+                              </Button>
                             )}
                           </div>
-                          
-                          {activity.url && (
-                            <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
-                              <ExternalLink className="h-3 w-3" />
-                              <span className="hidden sm:inline">Tap to view</span>
-                              <span className="sm:hidden">View</span>
-                            </div>
-                          )}
-                        </div>
                       </div>
                       
                       {activity.image_url && (
