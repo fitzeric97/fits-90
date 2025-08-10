@@ -263,13 +263,16 @@ export default function Closet() {
             <Button
               variant={viewMode === "categories" ? "default" : "outline"}
               size="sm"
-              onClick={() => {
-                const newMode = viewMode === "categories" ? "grid" : "categories";
-                console.log("Switching view mode from", viewMode, "to", newMode);
-                setViewMode(newMode);
-              }}
+              onClick={() => setViewMode("categories")}
             >
               <Tag className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "grid" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode(viewMode === "grid" ? "categories" : "grid")}
+            >
+              <Grid className="h-4 w-4" />
             </Button>
             <Button
               variant={viewMode === "list" ? "default" : "outline"}
