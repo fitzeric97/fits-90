@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import InstagramCallback from "./pages/InstagramCallback";
 import GmailCallback from "./pages/GmailCallback";
+import Feed from "./pages/Feed";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Onboarding from "./pages/Onboarding";
@@ -40,6 +41,11 @@ const App = () => (
             <Route path="/onboarding" element={
               <ProtectedRoute>
                 <Onboarding />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Feed />
               </ProtectedRoute>
             } />
             <Route path="/promotions" element={

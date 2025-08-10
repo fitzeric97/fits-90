@@ -14,10 +14,11 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 const navigationItems = [
-  { title: "Promotions", url: "/promotions", icon: Home },
+  { title: "Feed", url: "/dashboard", icon: Home },
   { title: "My Closet", url: "/closet", icon: ShirtIcon },
   { title: "Fits", url: "/fits", icon: Camera },
   { title: "Likes", url: "/likes", icon: Heart },
+  { title: "Promotions", url: "/promotions", icon: Globe },
   { title: "All Brands", url: "/brands", icon: Globe },
   { title: "Notifications", url: "/notifications", icon: Bell },
   { title: "Settings", url: "/settings", icon: Settings },
