@@ -50,15 +50,27 @@ const Index = () => {
     setError("");
 
     try {
+      // Store signup data for later use
       localStorage.setItem('pendingSignupData', JSON.stringify({
         firstName,
         lastName,
-        email
+        email,
+        myfitsEmail: generateMyFitsEmail(email)
       }));
 
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Send signup notification first
+      try {
+        await supabase.functions.invoke('send-signup-notification', {
+          body: { email, firstName, lastName }
+        });
+      } catch (notificationError) {
+        console.log('Signup notification failed:', notificationError);
+        // Don't fail the signup if notification fails
+      }
+
+      // Use OTP login for new users - this will create the account if it doesn't exist
+      const { error: signInError } = await supabase.auth.signInWithOtp({
         email: email,
-        password: Math.random().toString(36),
         options: {
           emailRedirectTo: `${window.location.origin}/home`,
           data: {
@@ -67,31 +79,17 @@ const Index = () => {
             gmail_address: email,
             myfits_email: generateMyFitsEmail(email)
           }
-        },
+        }
       });
-
-      if (authError) {
-        if (authError.message.includes('already registered')) {
-          setError("This email is already registered. Please use the 'Joined' option to sign in.");
-        } else {
-          throw authError;
-        }
-      } else {
-        // Send signup notification
-        try {
-          await supabase.functions.invoke('send-signup-notification', {
-            body: { email, firstName, lastName }
-          });
-        } catch (notificationError) {
-          console.log('Signup notification failed:', notificationError);
-          // Don't fail the signup if notification fails
-        }
-        
-        toast({
-          title: "Welcome to Fits!",
-          description: "Check your email for the login link.",
-        });
+      
+      if (signInError) {
+        throw signInError;
       }
+      
+      toast({
+        title: "Welcome to Fits!",
+        description: "Check your email for the login link to complete your account setup.",
+      });
     } catch (error: any) {
       setError(error.message);
     } finally {
