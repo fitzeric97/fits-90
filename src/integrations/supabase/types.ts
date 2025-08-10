@@ -424,6 +424,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_connections: {
+        Row: {
+          connected_user_id: string
+          created_at: string
+          id: string
+          requested_by: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connected_user_id: string
+          created_at?: string
+          id?: string
+          requested_by: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connected_user_id?: string
+          created_at?: string
+          id?: string
+          requested_by?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_gmail_tokens: {
         Row: {
           access_token: string

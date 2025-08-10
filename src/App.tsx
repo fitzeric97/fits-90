@@ -7,6 +7,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
+import ConnectPage from "./pages/ConnectPage";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import InstagramCallback from "./pages/InstagramCallback";
@@ -71,6 +72,11 @@ const App = () => (
             <Route path="/likes" element={
               <ProtectedRoute>
                 <Likes />
+              </ProtectedRoute>
+            } />
+            <Route path="/connect" element={
+              <ProtectedRoute>
+                <ConnectPage />
               </ProtectedRoute>
             } />
             <Route path="/brands" element={
