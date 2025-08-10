@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Edit, Upload, X, Shirt, User, Layers, Scissors, Crown, Watch, Footprints, Sparkles } from "lucide-react";
+import { Edit, Upload, X, Shirt, User, Square, Scissors, Crown, Watch, Footprints, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -238,13 +238,13 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
                   </SelectItem>
                   <SelectItem value="jeans">
                     <div className="flex items-center gap-2">
-                      <Layers className="h-4 w-4" />
+                      <Square className="h-4 w-4" />
                       Jeans
                     </div>
                   </SelectItem>
                   <SelectItem value="pants">
                     <div className="flex items-center gap-2">
-                      <Layers className="h-4 w-4" />
+                      <Square className="h-4 w-4" />
                       Pants
                     </div>
                   </SelectItem>
