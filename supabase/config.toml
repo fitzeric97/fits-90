@@ -57,3 +57,6 @@ verify_jwt = false
 
 [functions.scrape-brand-promotions]
 verify_jwt = false
+
+[functions.instagram-api]
+verify_jwt = false
