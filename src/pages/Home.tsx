@@ -171,7 +171,17 @@ export default function Home() {
           ) : (
             <div className="space-y-3 sm:space-y-4">
               {activities.map((activity) => (
-                <Card key={activity.id} className="hover:shadow-md transition-shadow mx-2 sm:mx-0">
+                <Card 
+                  key={activity.id} 
+                  className={`hover:shadow-md transition-shadow mx-2 sm:mx-0 ${
+                    activity.url ? 'cursor-pointer' : ''
+                  }`}
+                  onClick={() => {
+                    if (activity.url) {
+                      window.open(activity.url, '_blank', 'noopener,noreferrer');
+                    }
+                  }}
+                >
                   <CardContent className="p-4">
                     <div className="flex space-x-3">
                       <AvatarComponent className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
@@ -216,17 +226,11 @@ export default function Home() {
                           </div>
                           
                           {activity.url && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 px-2 text-xs sm:text-sm flex-shrink-0 min-h-[32px]" 
-                              asChild
-                            >
-                              <a href={activity.url} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="h-3 w-3 mr-1" />
-                                View
-                              </a>
-                            </Button>
+                            <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                              <ExternalLink className="h-3 w-3" />
+                              <span className="hidden sm:inline">Tap to view</span>
+                              <span className="sm:hidden">View</span>
+                            </div>
                           )}
                         </div>
                       </div>
