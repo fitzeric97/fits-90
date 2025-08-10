@@ -143,7 +143,7 @@ export default function AuthCallback() {
         userId, 
         gmailAddress,
         isAdditionalAccount: false,
-        redirectTo: `${window.location.origin}/dashboard`
+        redirectTo: 'https://08f391db-8e85-41a6-b6ae-20821228cf40.lovableproject.com/dashboard'
       }));
 
       // Redirect to Gmail OAuth
