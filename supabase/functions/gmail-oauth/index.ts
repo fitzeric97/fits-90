@@ -162,7 +162,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Handle redirect based on account type
     if (isAdditionalAccount) {
       // For additional accounts, just redirect back to settings
-      const redirectUrl = redirectTo || 'https://myfits.co/settings?gmail_connected=true';
+      const redirectUrl = redirectTo || `${Deno.env.get('SITE_URL') || 'https://08f391db-8e85-41a6-b6ae-20821228cf40.lovableproject.com'}/settings?gmail_connected=true`;
       
       return new Response(null, {
         status: 302,
@@ -178,7 +178,7 @@ const handler = async (req: Request): Promise<Response> => {
         type: 'magiclink',
         email: fitsEmail, // Use the @fits.co email for auth
         options: {
-          redirectTo: 'https://myfits.co/home?oauth_success=true'
+          redirectTo: `${Deno.env.get('SITE_URL') || 'https://08f391db-8e85-41a6-b6ae-20821228cf40.lovableproject.com'}/home?oauth_success=true`
         }
       });
 
@@ -193,7 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(null, {
         status: 302,
         headers: {
-          'Location': authData.properties?.action_link || 'https://myfits.co/home?oauth_success=true',
+          'Location': authData.properties?.action_link || `${Deno.env.get('SITE_URL') || 'https://08f391db-8e85-41a6-b6ae-20821228cf40.lovableproject.com'}/home?oauth_success=true`,
           ...corsHeaders
         }
       });
