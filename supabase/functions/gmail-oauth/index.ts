@@ -162,7 +162,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Handle redirect based on account type
     if (isAdditionalAccount) {
       // For additional accounts, just redirect back to settings
-      const redirectUrl = redirectTo || `${req.headers.get('origin') || 'https://preview--fits-forward-hub.lovable.app'}/settings?gmail_connected=true`;
+      const redirectUrl = redirectTo || `${req.headers.get('origin') || 'https://myfits.co'}/settings?gmail_connected=true`;
       
       return new Response(null, {
         status: 302,
@@ -178,7 +178,7 @@ const handler = async (req: Request): Promise<Response> => {
         type: 'magiclink',
         email: fitsEmail, // Use the @fits.co email for auth
         options: {
-          redirectTo: `${req.headers.get('origin') || 'https://preview--fits-forward-hub.lovable.app'}/dashboard?oauth_success=true`
+          redirectTo: `${req.headers.get('origin') || 'https://myfits.co'}/home?oauth_success=true`
         }
       });
 
@@ -193,7 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(null, {
         status: 302,
         headers: {
-          'Location': authData.properties?.action_link || `${req.headers.get('origin') || 'https://preview--fits-forward-hub.lovable.app'}/dashboard?oauth_success=true`,
+          'Location': authData.properties?.action_link || `${req.headers.get('origin') || 'https://myfits.co'}/home?oauth_success=true`,
           ...corsHeaders
         }
       });
