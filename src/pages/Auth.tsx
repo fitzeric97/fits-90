@@ -123,28 +123,40 @@ export default function Auth() {
   const handleDevLogin = async () => {
     setLoading(true);
     try {
-      // Create a temporary session for the app owner
-      const { error } = await supabase.auth.signInWithOtp({
+      console.log('Starting dev login process...');
+      
+      // Try password login first (your existing account)
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: 'fitzeric97@gmail.com',
-        options: {
-          emailRedirectTo: `${window.location.origin}/home`,
-        }
+        password: 'temp123', // temporary password
       });
       
       if (error) {
-        // If OTP fails, try direct navigation as fallback
-        console.log('OTP failed, creating manual session...');
-        navigate('/home');
-      } else {
-        toast({
-          title: "Dev login link sent!",
-          description: "Check your email for the login link, or try refreshing in a moment.",
+        console.log('Password login failed, trying magic link...');
+        // If that fails, try magic link
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: 'fitzeric97@gmail.com',
         });
+        
+        if (otpError) {
+          console.log('Magic link failed, navigating directly...');
+          // Last resort: direct navigation to skip auth
+          localStorage.setItem('dev_bypass', 'true');
+          navigate('/dashboard');
+        } else {
+          toast({
+            title: "Login link sent!",
+            description: "Check your email for the login link.",
+          });
+        }
+      } else {
+        console.log('Login successful!');
+        navigate('/dashboard');
       }
     } catch (error: any) {
       console.error('Dev login error:', error);
-      // Fallback: direct navigation
-      navigate('/home');
+      localStorage.setItem('dev_bypass', 'true');
+      navigate('/dashboard');
     } finally {
       setLoading(false);
     }
