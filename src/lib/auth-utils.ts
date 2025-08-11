@@ -3,8 +3,8 @@
  * Always returns the production URL to avoid localhost issues
  */
 export const getAuthBaseUrl = (): string => {
-  // Always use the production URL for authentication redirects
-  return 'https://myfits.co';
+  // Use the current origin to ensure the app works in all environments
+  return window.location.origin;
 };
 
 /**
