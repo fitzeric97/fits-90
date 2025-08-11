@@ -52,7 +52,6 @@ interface Fit {
   caption: string | null;
   is_instagram_url: boolean;
   created_at: string;
-  tagged_items?: ClosetItem[];
 }
 
 interface Brand {
@@ -154,7 +153,7 @@ const ConnectionProfile = () => {
         setClosetItems(closetData || []);
       }
 
-      // Fetch fits with tagged items
+      // Fetch fits
       const { data: fitsData, error: fitsError } = await supabase
         .from("fits")
         .select("*")
@@ -163,42 +162,8 @@ const ConnectionProfile = () => {
 
       if (fitsError) {
         console.error("Fits fetch error:", fitsError);
-        setFits([]);
-      } else if (fitsData) {
-        // For each fit, fetch its tagged closet items
-        const fitsWithTags = await Promise.all(
-          fitsData.map(async (fit) => {
-            const { data: taggedItemsData } = await supabase
-              .from("fit_tags")
-              .select(`
-                closet_item_id,
-                item_order,
-                closet_items (
-                  id,
-                  product_name,
-                  brand_name,
-                  product_description,
-                  product_image_url,
-                  uploaded_image_url,
-                  category,
-                  color,
-                  size,
-                  price,
-                  created_at
-                )
-              `)
-              .eq("fit_id", fit.id)
-              .order("item_order", { ascending: true });
-
-            return {
-              ...fit,
-              tagged_items: taggedItemsData?.map(tag => tag.closet_items).filter(Boolean) || []
-            };
-          })
-        );
-        setFits(fitsWithTags);
       } else {
-        setFits([]);
+        setFits(fitsData || []);
       }
 
       // Calculate brands from closet items and likes
@@ -385,105 +350,30 @@ const ConnectionProfile = () => {
                 <p className="text-muted-foreground">This user hasn't posted any fits yet.</p>
               </div>
             ) : (
-              <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filterAndSortItems(fits).map((fit) => (
                   <Card key={fit.id} className="overflow-hidden">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-                      {/* Left side - Fit image */}
-                      <div className="space-y-4">
-                        <div className="aspect-square relative rounded-lg overflow-hidden">
-                          <FallbackImage
-                            src={getImageUrl(fit)}
-                            alt={fit.caption || "Fit"}
-                            className="w-full h-full object-cover"
-                          />
-                          {fit.is_instagram_url && (
-                            <Badge className="absolute top-2 right-2 bg-purple-600">
-                              Instagram
-                            </Badge>
-                          )}
-                        </div>
-                        {fit.caption && (
-                          <div className="space-y-2">
-                            <h3 className="font-semibold">Caption</h3>
-                            <p className="text-muted-foreground">{fit.caption}</p>
-                          </div>
+                    <CardHeader className="p-0">
+                      <div className="aspect-square relative">
+                        <FallbackImage
+                          src={getImageUrl(fit)}
+                          alt={fit.caption || "Fit"}
+                          className="w-full h-full object-cover"
+                        />
+                        {fit.is_instagram_url && (
+                          <Badge className="absolute top-2 right-2 bg-purple-600">
+                            Instagram
+                          </Badge>
                         )}
                       </div>
-
-                      {/* Right side - Tagged products */}
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-lg">Tagged Products</h3>
-                          {fit.tagged_items && fit.tagged_items.length > 0 && (
-                            <Badge variant="secondary">
-                              {fit.tagged_items.length} item{fit.tagged_items.length !== 1 ? 's' : ''}
-                            </Badge>
-                          )}
-                        </div>
-
-                        {!fit.tagged_items || fit.tagged_items.length === 0 ? (
-                          <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
-                            <ShirtIcon className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                            <p className="text-muted-foreground">No items tagged in this fit</p>
-                          </div>
-                        ) : (
-                          <div className="space-y-3 max-h-96 overflow-y-auto">
-                            {fit.tagged_items.map((item, index) => (
-                              <Card key={`${fit.id}-${item.id}-${index}`} className="p-3 hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-primary">
-                                <div className="flex gap-3">
-                                  <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
-                                    <FallbackImage
-                                      src={getImageUrl(item)}
-                                      alt={item.product_name || "Product"}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="font-medium text-sm line-clamp-1">
-                                      {item.product_name || "Untitled Item"}
-                                    </h4>
-                                    <p className="text-xs text-muted-foreground mb-1">
-                                      {item.brand_name}
-                                    </p>
-                                    <div className="flex flex-wrap gap-1">
-                                      {item.category && (
-                                        <Badge variant="outline" className="text-xs px-1 py-0">
-                                          {item.category}
-                                        </Badge>
-                                      )}
-                                      {item.color && (
-                                        <Badge variant="outline" className="text-xs px-1 py-0">
-                                          {item.color}
-                                        </Badge>
-                                      )}
-                                      {item.size && (
-                                        <Badge variant="outline" className="text-xs px-1 py-0">
-                                          {item.size}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    {item.price && (
-                                      <p className="text-sm font-semibold text-primary mt-1">
-                                        {item.price}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              </Card>
-                            ))}
-                          </div>
-                        )}
-
-                        {fit.tagged_items && fit.tagged_items.length > 0 && (
-                          <div className="pt-3 border-t">
-                            <p className="text-xs text-muted-foreground text-center">
-                              💡 Discover new brands through your connections
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    </CardHeader>
+                    {fit.caption && (
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground line-clamp-3">
+                          {fit.caption}
+                        </p>
+                      </CardContent>
+                    )}
                   </Card>
                 ))}
               </div>
