@@ -119,6 +119,37 @@ export default function Auth() {
     }
   };
 
+  // Temporary dev bypass for the app owner
+  const handleDevLogin = async () => {
+    setLoading(true);
+    try {
+      // Create a temporary session for the app owner
+      const { error } = await supabase.auth.signInWithOtp({
+        email: 'fitzeric97@gmail.com',
+        options: {
+          emailRedirectTo: `${window.location.origin}/home`,
+        }
+      });
+      
+      if (error) {
+        // If OTP fails, try direct navigation as fallback
+        console.log('OTP failed, creating manual session...');
+        navigate('/home');
+      } else {
+        toast({
+          title: "Dev login link sent!",
+          description: "Check your email for the login link, or try refreshing in a moment.",
+        });
+      }
+    } catch (error: any) {
+      console.error('Dev login error:', error);
+      // Fallback: direct navigation
+      navigate('/home');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (mode === "select") {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -141,6 +172,15 @@ export default function Auth() {
             variant="outline"
           >
             Join Us
+          </Button>
+          
+          {/* Temporary dev bypass for app owner */}
+          <Button 
+            onClick={handleDevLogin}
+            disabled={loading}
+            className="w-full h-12 text-sm bg-red-600 hover:bg-red-700 text-white"
+          >
+            {loading ? "Logging in..." : "🔧 Dev Login (fitzeric97@gmail.com)"}
           </Button>
         </div>
       </div>
