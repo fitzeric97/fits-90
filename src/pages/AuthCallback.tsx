@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { getAuthRedirectUrl } from "@/lib/auth-utils";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -194,7 +195,7 @@ export default function AuthCallback() {
         userId, 
         gmailAddress,
         isAdditionalAccount: false,
-        redirectTo: `${window.location.origin}/home`
+        redirectTo: getAuthRedirectUrl('/home')
       }));
 
       // Redirect to Gmail OAuth

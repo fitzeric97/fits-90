@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { getAuthRedirectUrl } from "@/lib/auth-utils";
 
 const Index = () => {
   const [firstName, setFirstName] = useState("");
@@ -55,7 +56,7 @@ const Index = () => {
         email: email,
         password: Math.random().toString(36),
         options: {
-          emailRedirectTo: `${window.location.origin}/home`,
+          emailRedirectTo: getAuthRedirectUrl('/home'),
           data: {
             first_name: firstName,
             last_name: lastName,
@@ -102,7 +103,7 @@ const Index = () => {
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
-          emailRedirectTo: `${window.location.origin}/home`,
+          emailRedirectTo: getAuthRedirectUrl('/home'),
         }
       });
       
@@ -136,7 +137,7 @@ const Index = () => {
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email: loginEmail,
         options: {
-          emailRedirectTo: `${window.location.origin}/home`,
+          emailRedirectTo: getAuthRedirectUrl('/home'),
         }
       });
       
@@ -163,7 +164,7 @@ const Index = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: getAuthRedirectUrl('/auth/callback'),
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
