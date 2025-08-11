@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { getAuthRedirectUrl } from "@/lib/auth-utils";
 
 export default function GmailCallback() {
   const navigate = useNavigate();
@@ -110,7 +111,7 @@ export default function GmailCallback() {
         const { error: signInError } = await supabase.auth.signInWithOtp({
           email: fitsEmail,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: getAuthRedirectUrl('/home'),
           }
         });
 
