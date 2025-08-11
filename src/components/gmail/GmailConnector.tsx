@@ -33,7 +33,7 @@ export function GmailConnector() {
         userId: user.id, 
         gmailAddress: user.email,
         isAdditionalAccount: true,
-        redirectTo: 'https://myfits.co/settings'
+        redirectTo: `${window.location.origin}/settings`
       }));
 
       // Redirect directly to Gmail OAuth (same as auth page approach)

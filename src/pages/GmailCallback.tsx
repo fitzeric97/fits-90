@@ -110,7 +110,7 @@ export default function GmailCallback() {
         const { error: signInError } = await supabase.auth.signInWithOtp({
           email: fitsEmail,
           options: {
-            emailRedirectTo: 'https://myfits.co/dashboard',
+            emailRedirectTo: `${window.location.origin}/dashboard`,
           }
         });
 

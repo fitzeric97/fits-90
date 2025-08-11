@@ -57,7 +57,7 @@ export default function Auth() {
         email: email,
         password: Math.random().toString(36),
         options: {
-          emailRedirectTo: 'https://myfits.co/dashboard',
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             first_name: firstName,
             gmail_address: email,
@@ -100,7 +100,7 @@ export default function Auth() {
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email: loginEmail,
         options: {
-          emailRedirectTo: 'https://myfits.co/dashboard',
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         }
       });
       

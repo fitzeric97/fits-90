@@ -58,7 +58,7 @@ export function InstagramPhotoBrowser({ onPhotoSelect, onClose }: InstagramPhoto
     // Note: In production, you'd get this from your backend
     // For now, we'll need to configure this properly with the Instagram app
     const clientId = 'NEED_TO_CONFIGURE'; // This will be set when Instagram app is configured
-    const redirectUri = encodeURIComponent('https://myfits.co/instagram-callback');
+    const redirectUri = encodeURIComponent(`${window.location.origin}/instagram-callback`);
     const scope = 'user_profile,user_media';
     
     const url = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
