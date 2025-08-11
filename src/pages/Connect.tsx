@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -335,8 +336,10 @@ export default function Connect() {
                       <p className="text-sm text-muted-foreground">{connection.connected_profile?.myfits_email}</p>
                     </div>
                   </div>
-                  <Button size="sm" variant="outline">
-                    View Profile
+                  <Button size="sm" variant="outline" asChild>
+                    <Link to={`/profile/${connection.connected_user_id}`}>
+                      View Profile
+                    </Link>
                   </Button>
                 </div>
               ))}

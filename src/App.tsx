@@ -23,6 +23,7 @@ import Brands from "./pages/Brands";
 import BrandPromotions from "./pages/BrandPromotions";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import ConnectionProfile from "./pages/ConnectionProfile";
 
 const queryClient = new QueryClient();
 
@@ -97,6 +98,11 @@ const App = () => (
             <Route path="/settings" element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile/:userId" element={
+              <ProtectedRoute>
+                <ConnectionProfile />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
