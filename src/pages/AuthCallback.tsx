@@ -194,7 +194,7 @@ export default function AuthCallback() {
         userId, 
         gmailAddress,
         isAdditionalAccount: false,
-        redirectTo: 'https://myfits.co/dashboard'
+        redirectTo: `${window.location.origin}/home`
       }));
 
       // Redirect to Gmail OAuth
