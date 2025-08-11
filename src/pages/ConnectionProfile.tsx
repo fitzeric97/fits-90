@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Search, Heart, ShirtIcon, ExternalLink } from "lucide-react";
+import { ArrowLeft, Search, Heart, ShirtIcon, ExternalLink, Camera, Store } from "lucide-react";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,6 +46,19 @@ interface ClosetItem {
   created_at: string;
 }
 
+interface Fit {
+  id: string;
+  image_url: string;
+  caption: string | null;
+  is_instagram_url: boolean;
+  created_at: string;
+}
+
+interface Brand {
+  brand_name: string;
+  count: number;
+}
+
 const ConnectionProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
@@ -55,10 +68,12 @@ const ConnectionProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [likes, setLikes] = useState<UserLike[]>([]);
   const [closetItems, setClosetItems] = useState<ClosetItem[]>([]);
+  const [fits, setFits] = useState<Fit[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "alphabetical">("newest");
-  const [activeTab, setActiveTab] = useState("likes");
+  const [activeTab, setActiveTab] = useState("fits");
 
   useEffect(() => {
     if (!userId || !user) return;
@@ -137,6 +152,43 @@ const ConnectionProfile = () => {
       } else {
         setClosetItems(closetData || []);
       }
+
+      // Fetch fits
+      const { data: fitsData, error: fitsError } = await supabase
+        .from("fits")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (fitsError) {
+        console.error("Fits fetch error:", fitsError);
+      } else {
+        setFits(fitsData || []);
+      }
+
+      // Calculate brands from closet items and likes
+      const brandCounts: { [key: string]: number } = {};
+      
+      // Count brands from closet items
+      closetData?.forEach(item => {
+        if (item.brand_name) {
+          brandCounts[item.brand_name] = (brandCounts[item.brand_name] || 0) + 1;
+        }
+      });
+
+      // Count brands from likes
+      likesData?.forEach(like => {
+        if (like.brand_name) {
+          brandCounts[like.brand_name] = (brandCounts[like.brand_name] || 0) + 1;
+        }
+      });
+
+      // Convert to array and sort by count
+      const brandsArray = Object.entries(brandCounts)
+        .map(([brand_name, count]) => ({ brand_name, count }))
+        .sort((a, b) => b.count - a.count);
+
+      setBrands(brandsArray);
     } catch (error) {
       console.error("Fetch error:", error);
       toast({
@@ -152,7 +204,7 @@ const ConnectionProfile = () => {
   const filterAndSortItems = (items: any[]) => {
     let filtered = items.filter(item => {
       const searchableText = [
-        item.title || item.product_name || "",
+        item.title || item.product_name || item.caption || "",
         item.brand_name || "",
         item.description || item.product_description || "",
         item.category || ""
@@ -168,8 +220,8 @@ const ConnectionProfile = () => {
         return filtered.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
       case "alphabetical":
         return filtered.sort((a, b) => {
-          const aName = (a.title || a.product_name || "").toLowerCase();
-          const bName = (b.title || b.product_name || "").toLowerCase();
+          const aName = (a.title || a.product_name || a.caption || "").toLowerCase();
+          const bName = (b.title || b.product_name || b.caption || "").toLowerCase();
           return aName.localeCompare(bName);
         });
       default:
@@ -177,7 +229,23 @@ const ConnectionProfile = () => {
     }
   };
 
-  const getImageUrl = (item: UserLike | ClosetItem) => {
+  const filterAndSortBrands = (brands: Brand[]) => {
+    let filtered = brands.filter(brand =>
+      brand.brand_name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    switch (sortBy) {
+      case "newest":
+      case "oldest":
+        return filtered.sort((a, b) => b.count - a.count); // Sort by count for brands
+      case "alphabetical":
+        return filtered.sort((a, b) => a.brand_name.toLowerCase().localeCompare(b.brand_name.toLowerCase()));
+      default:
+        return filtered;
+    }
+  };
+
+  const getImageUrl = (item: UserLike | ClosetItem | Fit) => {
     if ('uploaded_image_url' in item && item.uploaded_image_url) {
       return item.uploaded_image_url;
     }
@@ -255,16 +323,115 @@ const ConnectionProfile = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="likes" className="flex items-center gap-2">
-              <Heart className="h-4 w-4" />
-              Likes ({likes.length})
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+            <TabsTrigger value="fits" className="flex items-center gap-2">
+              <Camera className="h-4 w-4" />
+              Fits ({fits.length})
             </TabsTrigger>
             <TabsTrigger value="closet" className="flex items-center gap-2">
               <ShirtIcon className="h-4 w-4" />
               Closet ({closetItems.length})
             </TabsTrigger>
+            <TabsTrigger value="likes" className="flex items-center gap-2">
+              <Heart className="h-4 w-4" />
+              Likes ({likes.length})
+            </TabsTrigger>
+            <TabsTrigger value="brands" className="flex items-center gap-2">
+              <Store className="h-4 w-4" />
+              Brands ({brands.length})
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="fits" className="mt-6">
+            {fits.length === 0 ? (
+              <div className="text-center py-12">
+                <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No fits yet</h3>
+                <p className="text-muted-foreground">This user hasn't posted any fits yet.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filterAndSortItems(fits).map((fit) => (
+                  <Card key={fit.id} className="overflow-hidden">
+                    <CardHeader className="p-0">
+                      <div className="aspect-square relative">
+                        <FallbackImage
+                          src={getImageUrl(fit)}
+                          alt={fit.caption || "Fit"}
+                          className="w-full h-full object-cover"
+                        />
+                        {fit.is_instagram_url && (
+                          <Badge className="absolute top-2 right-2 bg-purple-600">
+                            Instagram
+                          </Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                    {fit.caption && (
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground line-clamp-3">
+                          {fit.caption}
+                        </p>
+                      </CardContent>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="closet" className="mt-6">
+            {closetItems.length === 0 ? (
+              <div className="text-center py-12">
+                <ShirtIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Empty closet</h3>
+                <p className="text-muted-foreground">This user hasn't added any items to their closet yet.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filterAndSortItems(closetItems).map((item) => (
+                  <Card key={item.id} className="overflow-hidden">
+                    <CardHeader className="p-0">
+                      <div className="aspect-square relative">
+                        <FallbackImage
+                          src={getImageUrl(item)}
+                          alt={item.product_name || "Closet item"}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <div className="space-y-2">
+                        <h3 className="font-semibold line-clamp-2">
+                          {item.product_name || "Untitled Item"}
+                        </h3>
+                        <Badge variant="secondary">{item.brand_name}</Badge>
+                        <div className="flex flex-wrap gap-2">
+                          {item.category && (
+                            <Badge variant="outline">{item.category}</Badge>
+                          )}
+                          {item.color && (
+                            <Badge variant="outline">{item.color}</Badge>
+                          )}
+                          {item.size && (
+                            <Badge variant="outline">Size {item.size}</Badge>
+                          )}
+                        </div>
+                        {item.price && (
+                          <p className="text-lg font-bold text-primary">{item.price}</p>
+                        )}
+                        {item.product_description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {item.product_description}
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
           <TabsContent value="likes" className="mt-6">
             {likes.length === 0 ? (
@@ -328,53 +495,28 @@ const ConnectionProfile = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="closet" className="mt-6">
-            {closetItems.length === 0 ? (
+          <TabsContent value="brands" className="mt-6">
+            {brands.length === 0 ? (
               <div className="text-center py-12">
-                <ShirtIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Empty closet</h3>
-                <p className="text-muted-foreground">This user hasn't added any items to their closet yet.</p>
+                <Store className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No brands yet</h3>
+                <p className="text-muted-foreground">This user hasn't interacted with any brands yet.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filterAndSortItems(closetItems).map((item) => (
-                  <Card key={item.id} className="overflow-hidden">
-                    <CardHeader className="p-0">
-                      <div className="aspect-square relative">
-                        <FallbackImage
-                          src={getImageUrl(item)}
-                          alt={item.product_name || "Closet item"}
-                          className="w-full h-full object-cover"
-                        />
+                {filterAndSortBrands(brands).map((brand) => (
+                  <Card key={brand.brand_name} className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-lg">{brand.brand_name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {brand.count} item{brand.count !== 1 ? 's' : ''}
+                        </p>
                       </div>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <div className="space-y-2">
-                        <h3 className="font-semibold line-clamp-2">
-                          {item.product_name || "Untitled Item"}
-                        </h3>
-                        <Badge variant="secondary">{item.brand_name}</Badge>
-                        <div className="flex flex-wrap gap-2">
-                          {item.category && (
-                            <Badge variant="outline">{item.category}</Badge>
-                          )}
-                          {item.color && (
-                            <Badge variant="outline">{item.color}</Badge>
-                          )}
-                          {item.size && (
-                            <Badge variant="outline">Size {item.size}</Badge>
-                          )}
-                        </div>
-                        {item.price && (
-                          <p className="text-lg font-bold text-primary">{item.price}</p>
-                        )}
-                        {item.product_description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {item.product_description}
-                          </p>
-                        )}
-                      </div>
-                    </CardContent>
+                      <Badge variant="secondary" className="text-lg px-3 py-1">
+                        {brand.count}
+                      </Badge>
+                    </div>
                   </Card>
                 ))}
               </div>
