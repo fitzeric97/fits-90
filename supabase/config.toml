@@ -31,8 +31,8 @@ file_size_limit = "50MiB"
 [auth]
 enabled = true
 port = 54328
-site_url = "http://127.0.0.1:3000"
-additional_redirect_urls = ["https://08f391db-8e85-41a6-b6ae-20821228cf40.lovableproject.com"]
+site_url = "https://myfits.co"
+additional_redirect_urls = ["https://myfits.co/**", "https://08f391db-8e85-41a6-b6ae-20821228cf40.lovableproject.com"]
 jwt_expiry = 3600
 enable_signup = true
 enable_email_confirmations = false
