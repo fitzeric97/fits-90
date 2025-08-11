@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 const Index = () => {
+  console.log('Index component rendering...');
+  
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -20,6 +22,8 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  console.log('Index component state:', { mode, user, loading });
 
   useEffect(() => {
     if (user) {
