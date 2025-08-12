@@ -42,9 +42,9 @@ export default function AuthCallback() {
 
           const isNewUser = !existingProfile;
           
-          // Generate @myfits.co email from user's Google email
+          // Use the user's actual email instead of generating myfits email
           const userEmail = data.session.user.email || '';
-          const fitsEmail = userEmail.replace('@gmail.com', '@myfits.co');
+          const fitsEmail = userEmail; // Use the actual email
           
           // Get first and last name from localStorage if available (from signup form)
           const pendingSignupData = localStorage.getItem('pendingSignupData');
@@ -70,7 +70,7 @@ export default function AuthCallback() {
             lastName = nameParts.slice(1).join(' ') || '';
           }
           
-          // Update or create profile with Gmail address and generated @myfits.co email
+          // Update or create profile with Gmail address
           const { error: profileError } = await supabase
             .from('profiles')
             .upsert({
@@ -194,7 +194,7 @@ export default function AuthCallback() {
         userId, 
         gmailAddress,
         isAdditionalAccount: false,
-        redirectTo: 'https://myfits.co/dashboard'
+        redirectTo: `${window.location.origin}/dashboard`
       }));
 
       // Redirect to Gmail OAuth

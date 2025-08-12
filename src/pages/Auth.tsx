@@ -25,10 +25,9 @@ export default function Auth() {
     }
   }, [user, navigate]);
 
+  // Remove myfits email generation - use regular email
   const generateMyFitsEmail = (email: string): string => {
-    const username = email.split('@')[0];
-    const cleanUsername = username.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    return `${cleanUsername}@myfits.co`;
+    return email; // Just return the original email
   };
 
   const handleJoinUs = async (e: React.FormEvent) => {

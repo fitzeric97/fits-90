@@ -57,10 +57,9 @@ const Index = () => {
     }
   }, [user, navigate]);
 
+  // Remove myfits email generation - use regular email  
   const generateMyFitsEmail = (email: string): string => {
-    const username = email.split('@')[0];
-    const cleanUsername = username.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    return `${cleanUsername}@myfits.co`;
+    return email; // Just return the original email
   };
 
   const handleJoinUs = async (e: React.FormEvent) => {
@@ -232,7 +231,7 @@ const Index = () => {
             className="w-full h-14 text-lg font-medium"
             variant="outline"
           >
-            Create Account + @myfits.co Email
+            Create Account
           </Button>
         </div>
       </div>

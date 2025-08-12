@@ -353,17 +353,17 @@ export default function Likes() {
                 No Likes Yet
               </CardTitle>
               <CardDescription>
-                Send product URLs to your @myfits.co email to save them here automatically, or add them manually.
+                Add product URLs manually or they'll be saved automatically when shared.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
                 <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
-                  Your @myfits.co email: <strong>{user?.user_metadata?.myfits_email || 'N/A'}</strong>
+                  Your email: <strong>{user?.email || 'N/A'}</strong>
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Send yourself links to products you want to save for later!
+                  Save links to products you want to keep track of!
                 </p>
               </div>
             </CardContent>

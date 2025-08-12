@@ -106,7 +106,7 @@ export function ConnectedMailboxes() {
       <CardHeader>
         <CardTitle>Connected Gmail Accounts</CardTitle>
         <CardDescription>
-          Manage multiple Gmail accounts to pull promotions from. All emails will be accessible in your single @myfits.co account.
+          Manage multiple Gmail accounts to pull promotions from. All emails will be accessible in your dashboard.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -162,7 +162,7 @@ export function ConnectedMailboxes() {
           <div className="mt-4 p-4 border rounded-lg bg-muted/50">
             <h3 className="font-medium mb-2">Connect Additional Gmail Account</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Add another Gmail account to pull promotions from. All promotional emails will be accessible in your single dashboard under your @myfits.co account.
+              Add another Gmail account to pull promotions from. All promotional emails will be accessible in your dashboard.
             </p>
             <GmailConnector />
             <Button 
