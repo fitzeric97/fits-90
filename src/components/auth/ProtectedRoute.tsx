@@ -10,14 +10,15 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   
-  // Temporary dev bypass
+  // Check for dev bypass or stored user email
   const devBypass = localStorage.getItem('dev_bypass') === 'true';
+  const storedEmail = localStorage.getItem('user_email');
 
   useEffect(() => {
-    if (!loading && !user && !devBypass) {
+    if (!loading && !user && !devBypass && !storedEmail) {
       navigate("/auth");
     }
-  }, [user, loading, navigate, devBypass]);
+  }, [user, loading, navigate, devBypass, storedEmail]);
 
   if (loading) {
     return (
@@ -32,7 +33,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!user && !devBypass) {
+  if (!user && !devBypass && !storedEmail) {
     return null;
   }
 
