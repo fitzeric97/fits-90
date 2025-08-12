@@ -90,7 +90,8 @@ export default function Closet() {
   const { hasBrandPromotions, getBrandPromotionCount } = useBrandPromotions();
 
   useEffect(() => {
-    if (user) {
+    const directAccess = localStorage.getItem('direct_access') === 'true';
+    if (user || directAccess) {
       fetchClosetItems();
     }
   }, [user]);
@@ -106,13 +107,20 @@ export default function Closet() {
   }, [searchParams]);
 
   const fetchClosetItems = async () => {
-    if (!user) return;
+    // Check for direct access mode
+    const directAccess = localStorage.getItem('direct_access') === 'true';
+    const storedUserId = localStorage.getItem('user_id');
+    
+    if (!user && !directAccess) return;
 
     try {
+      const userId = directAccess && storedUserId ? storedUserId : user?.id;
+      if (!userId) return;
+      
       const { data, error } = await supabase
         .from('closet_items')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {

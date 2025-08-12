@@ -88,7 +88,8 @@ export default function Likes() {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    const directAccess = localStorage.getItem('direct_access') === 'true';
+    if (user || directAccess) {
       fetchLikes();
     }
   }, [user]);
@@ -126,10 +127,17 @@ export default function Likes() {
 
   const fetchLikes = async () => {
     try {
+      // Check for direct access mode
+      const directAccess = localStorage.getItem('direct_access') === 'true';
+      const storedUserId = localStorage.getItem('user_id');
+      const userId = directAccess && storedUserId ? storedUserId : user?.id;
+      
+      if (!userId) return;
+      
       const { data, error } = await supabase
         .from('user_likes')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

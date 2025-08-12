@@ -22,10 +22,18 @@ export function FitsGrid() {
 
   const loadFits = async () => {
     try {
-      const { data, error } = await supabase
-        .from('fits')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Check for direct access mode
+      const directAccess = localStorage.getItem('direct_access') === 'true';
+      const storedUserId = localStorage.getItem('user_id');
+      
+      let query = supabase.from('fits').select('*');
+      
+      if (directAccess && storedUserId) {
+        // Use stored user ID for direct access
+        query = query.eq('user_id', storedUserId);
+      }
+      
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching fits:', error);

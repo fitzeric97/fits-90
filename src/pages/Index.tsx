@@ -349,56 +349,39 @@ const Index = () => {
                 {loading ? "Sending Login Link..." : "Send Login Link"}
               </Button>
               
-              {/* Simplified login for fitzeric97@gmail.com */}
+              {/* Direct access for fitzeric97@gmail.com */}
               {loginEmail === "fitzeric97@gmail.com" && (
                 <Button 
                   type="button"
                   onClick={async () => {
                     setLoading(true);
                     try {
-                      // Try to sign in with magic link first
-                      const { error: otpError } = await supabase.auth.signInWithOtp({
-                        email: 'fitzeric97@gmail.com',
-                        options: {
-                          emailRedirectTo: `${window.location.origin}/dashboard`,
-                        }
+                      // Store user info and set up direct access
+                      localStorage.setItem('user_email', 'fitzeric97@gmail.com');
+                      localStorage.setItem('user_id', 'eec9fa4a-8e91-4ef7-9469-099426cbbad6');
+                      localStorage.setItem('direct_access', 'true');
+                      
+                      toast({
+                        title: "Connected!",
+                        description: "Accessing your account with saved data.",
                       });
                       
-                      if (otpError) {
-                        console.error('OTP error:', otpError);
-                        // If magic link fails, try to force session for existing user
-                        const { data: users } = await supabase
-                          .from('profiles')
-                          .select('*')
-                          .eq('gmail_address', 'fitzeric97@gmail.com')
-                          .single();
-                          
-                        if (users) {
-                          // User exists, redirect to dashboard
-                          localStorage.setItem('user_email', 'fitzeric97@gmail.com');
-                          navigate('/dashboard');
-                        } else {
-                          throw new Error('Account not found');
-                        }
-                      } else {
-                        toast({
-                          title: "Login link sent!",
-                          description: "Check your email for the login link.",
-                        });
-                      }
+                      navigate('/dashboard');
                     } catch (error: any) {
                       console.error('Login error:', error);
-                      // Last resort - direct access
-                      localStorage.setItem('user_email', 'fitzeric97@gmail.com');
-                      navigate('/dashboard');
+                      toast({
+                        title: "Error",
+                        description: "Could not connect to your account.",
+                        variant: "destructive",
+                      });
                     } finally {
                       setLoading(false);
                     }
                   }}
-                  className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full h-12 text-lg bg-green-600 hover:bg-green-700 text-white"
                   disabled={loading}
                 >
-                  🔐 Direct Login (Your Account)
+                  ✅ Access My Account & Data
                 </Button>
               )}
             </form>
