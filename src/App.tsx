@@ -22,6 +22,7 @@ import Likes from "./pages/Likes";
 import Brands from "./pages/Brands";
 import BrandPromotions from "./pages/BrandPromotions";
 import Notifications from "./pages/Notifications";
+import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
 import ConnectionProfile from "./pages/ConnectionProfile";
 
@@ -96,6 +97,11 @@ const App = () => {
             <Route path="/notifications" element={
               <ProtectedRoute>
                 <Notifications />
+              </ProtectedRoute>
+            } />
+            <Route path="/notifications/settings" element={
+              <ProtectedRoute>
+                <NotificationSettings />
               </ProtectedRoute>
             } />
             <Route path="/settings" element={
