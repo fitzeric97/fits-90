@@ -27,10 +27,10 @@ const Index = () => {
     
     setLoading(true);
     try {
-      // Use the current Lovable project URL for redirect
-      const redirectUrl = window.location.origin.includes('lovableproject.com') 
-        ? `${window.location.origin}/auth/callback`
-        : 'https://020860e3-48a9-44e3-9426-735365ec659b.lovableproject.com/auth/callback';
+      // Always use the current origin for redirect to ensure we're on the right project
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      
+      console.log('Using redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.signInWithOtp({
         email,
