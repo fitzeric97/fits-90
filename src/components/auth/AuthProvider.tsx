@@ -24,6 +24,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('user_id');
     localStorage.removeItem('user_email');
     localStorage.removeItem('dev_bypass');
+
+    // Universal auth hash catcher: redirect any route with tokens to /auth/callback
+    try {
+      const hash = window.location.hash || '';
+      const path = window.location.pathname || '/';
+      if ((hash.includes('access_token=') || hash.includes('refresh_token=')) && !path.startsWith('/auth/callback')) {
+        console.log('[AuthProvider] Detected auth tokens in hash - redirecting to /auth/callback');
+        window.location.replace(`/auth/callback${hash}`);
+        return;
+      }
+    } catch (err) {
+      console.error('[AuthProvider] Error handling auth hash redirect', err);
+    }
     
     // Set up Supabase auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
