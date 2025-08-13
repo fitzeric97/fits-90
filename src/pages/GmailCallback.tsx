@@ -127,7 +127,7 @@ export default function GmailCallback() {
           description: error.message || "Failed to complete Gmail setup",
           variant: "destructive",
         });
-        navigate('/');
+        navigate('/auth');
       }
     };
 

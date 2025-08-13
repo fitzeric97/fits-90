@@ -40,12 +40,8 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Index />} />
-            <Route path="/login" element={<Index />} />
-            <Route path="/signup" element={<Index />} />
-            <Route path="/welcome" element={<Index />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/instagram-callback" element={<InstagramCallback />} />
+          <Route path="/instagram-callback" element={<InstagramCallback />} />
             <Route path="/gmail-callback" element={<GmailCallback />} />
             <Route path="/onboarding" element={
               <ProtectedRoute>
