@@ -57,7 +57,7 @@ export default function GmailCallback() {
             description: `Your @fits.co email is ready! We've scanned ${scanData?.processed || 0} promotional emails.`,
           });
 
-          navigate('/home');
+          navigate('/dashboard');
           return;
         }
 
@@ -110,7 +110,7 @@ export default function GmailCallback() {
         const { error: signInError } = await supabase.auth.signInWithOtp({
           email: fitsEmail,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           }
         });
 
@@ -118,7 +118,7 @@ export default function GmailCallback() {
           throw signInError;
         }
 
-        navigate('/home');
+        navigate('/dashboard');
 
       } catch (error: any) {
         console.error('Gmail callback error:', error);
