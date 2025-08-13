@@ -57,7 +57,7 @@ export function InstagramPhotoBrowser({ onPhotoSelect, onClose }: InstagramPhoto
   const generateAuthUrl = () => {
     // Note: In production, you'd get this from your backend
     // For now, we'll need to configure this properly with the Instagram app
-    const clientId = 'NEED_TO_CONFIGURE'; // This will be set when Instagram app is configured
+    const clientId = import.meta.env.VITE_INSTAGRAM_CLIENT_ID;
     const redirectUri = encodeURIComponent(`${window.location.origin}/instagram-callback`);
     const scope = 'user_profile,user_media';
     
