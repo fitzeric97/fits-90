@@ -32,13 +32,13 @@ export function InstagramConnector() {
 
   const fetchConnections = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('instagram_connections')
         .select('*')
         .eq('user_id', user?.id);
 
       if (error) throw error;
-      setConnections(data || []);
+      setConnections((data as InstagramConnection[]) || []);
     } catch (error: any) {
       console.error('Error fetching Instagram connections:', error);
     }
@@ -70,7 +70,7 @@ export function InstagramConnector() {
     try {
       // For now, we'll store the username directly
       // In a real implementation, you'd need Instagram's API to get the user_id
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('instagram_connections')
         .insert({
           user_id: user.id,
@@ -102,7 +102,7 @@ export function InstagramConnector() {
 
   const handleDisconnect = async (connectionId: string, username: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('instagram_connections')
         .delete()
         .eq('id', connectionId)

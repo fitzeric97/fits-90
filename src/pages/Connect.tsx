@@ -47,7 +47,7 @@ export default function Connect() {
   const fetchConnections = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('user_connections')
       .select('*')
       .eq('user_id', user.id)
@@ -78,7 +78,7 @@ export default function Connect() {
   const fetchPendingRequests = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('user_connections')
       .select('*')
       .eq('connected_user_id', user.id)
@@ -137,7 +137,7 @@ export default function Connect() {
     if (!user) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('user_connections')
         .insert({
           user_id: user.id,
@@ -168,7 +168,7 @@ export default function Connect() {
 
   const handleConnectionRequest = async (connectionId: string, action: 'accepted' | 'rejected') => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('user_connections')
         .update({ status: action })
         .eq('id', connectionId);

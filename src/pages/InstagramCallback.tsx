@@ -55,7 +55,7 @@ export default function InstagramCallback() {
         setStatus("Saving connection to your account...");
 
         // Store the connection in our database
-        const { error: dbError } = await supabase
+        const { error: dbError } = await (supabase as any)
           .from('instagram_connections')
           .upsert({
             user_id: user.id,
