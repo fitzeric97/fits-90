@@ -16,30 +16,24 @@ interface Fit {
 export function FitsGrid() {
   const [fits, setFits] = useState<Fit[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user, authMode } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     loadFits();
-  }, [authMode, user]);
+  }, [user]);
 
   const loadFits = async () => {
     console.log('[FitsGrid] Starting loadFits...');
     console.log('[FitsGrid] Supabase client connected');
     
     try {
-      // Use unified auth system
-      const effectiveUserId = authMode === 'dev' ? localStorage.getItem('user_id') : user?.id;
-      
-      console.log('[FitsGrid] Auth mode:', authMode);
-      console.log('[FitsGrid] Effective user ID:', effectiveUserId);
-      
       let query = supabase.from('fits').select('*');
       
-      if (effectiveUserId) {
-        query = query.eq('user_id', effectiveUserId);
-        console.log('[FitsGrid] Filtering by user_id:', effectiveUserId);
+      if (user?.id) {
+        query = query.eq('user_id', user.id);
+        console.log('[FitsGrid] Filtering by user_id:', user.id);
       } else {
-        console.log('[FitsGrid] No user filtering applied');
+        console.log('[FitsGrid] No user - loading all fits');
       }
       
       console.log('[FitsGrid] Executing fits query...');
