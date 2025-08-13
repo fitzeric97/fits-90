@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useNavigate } from "react-router-dom";
 
 type Notification = {
   id: string;
@@ -22,6 +23,7 @@ type Notification = {
 export default function Notifications() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
   // Enable real-time notifications
   useRealtimeNotifications();
@@ -131,7 +133,11 @@ export default function Notifications() {
               Stay updated with your promotional emails and account activity
             </p>
           </div>
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/notifications/settings')}
+          >
             <Settings className="h-4 w-4 mr-2" />
             Notification Settings
           </Button>

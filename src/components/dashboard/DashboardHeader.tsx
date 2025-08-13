@@ -56,6 +56,10 @@ export function DashboardHeader() {
     navigate('/settings');
   };
 
+  const handleNotificationSettingsClick = () => {
+    navigate('/notifications');
+  };
+
   return (
     <header className="h-14 border-b bg-background flex items-center justify-between px-4 relative">
       {/* Left side - Menu button */}
