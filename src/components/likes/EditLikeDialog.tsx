@@ -214,7 +214,7 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
           {/* Common fields matching AddClosetItemDialog structure */}
           <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="space-y-2">
