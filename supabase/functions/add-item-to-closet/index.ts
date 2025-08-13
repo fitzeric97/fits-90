@@ -137,7 +137,7 @@ serve(async (req: Request) => {
       }
     }
 
-    // If URL is provided and essential data is missing, extract product data (simplified approach)
+    // If URL is provided and essential data is missing, extract product data using simple approach
     if (requestData.url && (!productData.title || !productData.brand_name || (!productData.image_url && !storedImagePath))) {
       console.log('Extracting missing product data from URL...');
       
@@ -216,8 +216,10 @@ serve(async (req: Request) => {
           }
           if (imageMatch && !productData.image_url && !storedImagePath) {
             let imgUrl = imageMatch[1];
+            // Ensure HTTPS for all image URLs to avoid mixed content issues
             if (imgUrl.startsWith('//')) imgUrl = 'https:' + imgUrl;
             if (imgUrl.startsWith('/')) imgUrl = new URL(requestData.url).origin + imgUrl;
+            if (imgUrl.startsWith('http://')) imgUrl = imgUrl.replace('http://', 'https://');
             productData.image_url = imgUrl;
           }
           if (descriptionMatch && !productData.description) {
