@@ -88,7 +88,7 @@ export default function Home() {
         user_email: user.email || '',
         title: item.product_name || 'New Item',
         description: item.product_description,
-        image_url: item.product_image_url || item.uploaded_image_url,
+        image_url: item.product_image_url || (item as any).uploaded_image_url,
         brand_name: item.brand_name,
         category: item.category,
         price: item.price,

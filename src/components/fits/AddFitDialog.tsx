@@ -145,7 +145,7 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
         return;
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('fits')
         .insert({
           user_id: session.user.id,

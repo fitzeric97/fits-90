@@ -27,7 +27,7 @@ export function FitsGrid() {
     console.log('[FitsGrid] Supabase client connected');
     
     try {
-      let query = supabase.from('fits').select('*');
+      let query = (supabase as any).from('fits').select('*');
       
       if (user?.id) {
         query = query.eq('user_id', user.id);
@@ -50,7 +50,7 @@ export function FitsGrid() {
       } else {
         console.log('[FitsGrid] Query successful. Fits found:', data?.length || 0);
         console.log('[FitsGrid] Sample fits data:', data?.slice(0, 2));
-        setFits(data || []);
+        setFits((data as Fit[]) || []);
       }
     } catch (error) {
       console.error('[FitsGrid] Fetch error:', {

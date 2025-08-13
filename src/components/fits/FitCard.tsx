@@ -87,7 +87,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
     try {
       console.log('Fetching tagged items for fit:', fit.id);
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('fit_tags')
         .select(`
           id,
@@ -125,7 +125,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
 
   const handleDelete = async () => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('fits')
         .delete()
         .eq('id', fit.id);

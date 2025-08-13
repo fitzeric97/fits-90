@@ -137,7 +137,7 @@ const ConnectionProfile = () => {
       if (likesError) {
         console.error("Likes fetch error:", likesError);
       } else {
-        setLikes(likesData || []);
+        setLikes((likesData as unknown as UserLike[]) || []);
       }
 
       // Fetch closet items
@@ -150,7 +150,7 @@ const ConnectionProfile = () => {
       if (closetError) {
         console.error("Closet fetch error:", closetError);
       } else {
-        setClosetItems(closetData || []);
+        setClosetItems((closetData as unknown as ClosetItem[]) || []);
       }
 
       // Fetch fits

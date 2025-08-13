@@ -45,7 +45,7 @@ export default function ClosetItemDetail() {
 
   const fetchItem = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('closet_items')
         .select('*')
         .eq('id', id)

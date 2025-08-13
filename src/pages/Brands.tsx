@@ -40,13 +40,13 @@ export default function Brands() {
 
   const fetchBrandWebsites = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('brand_websites')
         .select('*')
         .order('brand_name', { ascending: true });
 
       if (error) throw error;
-      setBrandWebsites(data || []);
+      setBrandWebsites((data as BrandWebsite[]) || []);
     } catch (error) {
       console.error('Error fetching brand websites:', error);
       toast.error("Failed to load brand websites");
@@ -70,7 +70,7 @@ export default function Brands() {
     }
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('brand_websites')
         .insert({
           brand_name: newBrand.name.trim(),
@@ -109,7 +109,7 @@ export default function Brands() {
     }
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('brand_websites')
         .update({
           brand_name: editBrand.name.trim(),
@@ -135,7 +135,7 @@ export default function Brands() {
     }
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('brand_websites')
         .delete()
         .eq('id', id);
@@ -152,7 +152,7 @@ export default function Brands() {
 
   const handleToggleScrapingEnabled = async (id: string, enabled: boolean) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('brand_websites')
         .update({ scraping_enabled: enabled })
         .eq('id', id);

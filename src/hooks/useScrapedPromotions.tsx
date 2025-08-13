@@ -28,7 +28,7 @@ export function useScrapedPromotions(brandName?: string) {
     console.log('[ScrapedPromotions] Supabase client connected');
     
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from('scraped_promotions')
         .select('*')
         .eq('is_active', true)
@@ -55,7 +55,7 @@ export function useScrapedPromotions(brandName?: string) {
       console.log('[ScrapedPromotions] Query successful. Records found:', data?.length || 0);
       console.log('[ScrapedPromotions] Sample data:', data?.slice(0, 2));
 
-      setScrapedPromotions(data || []);
+      setScrapedPromotions((data as ScrapedPromotion[]) || []);
     } catch (error) {
       console.error('[ScrapedPromotions] Fetch error:', {
         error,
