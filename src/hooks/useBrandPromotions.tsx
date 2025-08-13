@@ -14,13 +14,27 @@ export function useBrandPromotions() {
   }, []);
 
   const fetchBrandPromotions = async () => {
+    console.log('[BrandPromotions] Starting fetch...');
+    console.log('[BrandPromotions] Supabase client connected');
+    
     try {
+      console.log('[BrandPromotions] Executing promotional_emails query...');
       const { data, error } = await supabase
         .from('promotional_emails')
         .select('brand_name')
         .not('brand_name', 'is', null);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[BrandPromotions] Database error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+
+      console.log('[BrandPromotions] Query successful. Records found:', data?.length || 0);
 
       // Count promotions per brand
       const counts: BrandPromotionCount = {};
@@ -30,11 +44,19 @@ export function useBrandPromotions() {
         }
       });
 
+      console.log('[BrandPromotions] Brand counts:', counts);
+      console.log('[BrandPromotions] Unique brands found:', Object.keys(counts).length);
+
       setBrandPromotions(counts);
     } catch (error) {
-      console.error('Error fetching brand promotions:', error);
+      console.error('[BrandPromotions] Fetch error:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
     } finally {
       setLoading(false);
+      console.log('[BrandPromotions] Fetch completed');
     }
   };
 

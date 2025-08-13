@@ -17,12 +17,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('AuthProvider: Setting up auth state...');
+    console.log('[AuthProvider] Setting up auth state...');
+    console.log('[AuthProvider] Supabase client connected');
+    console.log('[AuthProvider] LocalStorage direct_access:', localStorage.getItem('direct_access'));
+    console.log('[AuthProvider] LocalStorage user_id:', localStorage.getItem('user_id'));
     
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('AuthProvider: Auth state changed', { event, session: !!session, user: session?.user?.email });
+        console.log('[AuthProvider] Auth state changed', { 
+          event, 
+          session: !!session, 
+          user: session?.user?.email,
+          userId: session?.user?.id 
+        });
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -30,14 +38,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('AuthProvider: Got existing session', { session: !!session, user: session?.user?.email });
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('[AuthProvider] Error getting session:', error);
+      }
+      console.log('[AuthProvider] Got existing session', { 
+        session: !!session, 
+        user: session?.user?.email,
+        userId: session?.user?.id,
+        error: error?.message
+      });
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('[AuthProvider] Cleaning up auth subscription');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {

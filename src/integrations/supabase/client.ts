@@ -16,4 +16,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
-console.log('Supabase client initialized successfully');
+console.log('[SupabaseClient] Supabase client initialized successfully');
+console.log('[SupabaseClient] URL:', SUPABASE_URL);
+console.log('[SupabaseClient] Key prefix:', SUPABASE_PUBLISHABLE_KEY.substring(0, 20) + '...');
+
+// Test basic connectivity
+supabase.from('profiles').select('count', { count: 'exact', head: true }).then(({ count, error }) => {
+  if (error) {
+    console.error('[SupabaseClient] Connection test failed:', error);
+  } else {
+    console.log('[SupabaseClient] Connection test successful. Profiles count:', count);
+  }
+});

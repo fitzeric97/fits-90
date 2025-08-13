@@ -21,31 +21,52 @@ export function FitsGrid() {
   }, []);
 
   const loadFits = async () => {
+    console.log('[FitsGrid] Starting loadFits...');
+    console.log('[FitsGrid] Supabase client connected');
+    
     try {
       // Check for direct access mode
       const directAccess = localStorage.getItem('direct_access') === 'true';
       const storedUserId = localStorage.getItem('user_id');
+      
+      console.log('[FitsGrid] Access mode:', { directAccess, storedUserId });
       
       let query = supabase.from('fits').select('*');
       
       if (directAccess && storedUserId) {
         // Use stored user ID for direct access
         query = query.eq('user_id', storedUserId);
+        console.log('[FitsGrid] Using direct access with user_id:', storedUserId);
+      } else {
+        console.log('[FitsGrid] No user filtering applied');
       }
       
+      console.log('[FitsGrid] Executing fits query...');
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching fits:', error);
+        console.error('[FitsGrid] Database error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         setFits([]);
       } else {
+        console.log('[FitsGrid] Query successful. Fits found:', data?.length || 0);
+        console.log('[FitsGrid] Sample fits data:', data?.slice(0, 2));
         setFits(data || []);
       }
     } catch (error) {
-      console.error('Error fetching fits:', error);
+      console.error('[FitsGrid] Fetch error:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
       setFits([]);
     } finally {
       setLoading(false);
+      console.log('[FitsGrid] loadFits completed');
     }
   };
 

@@ -24,6 +24,9 @@ export function useScrapedPromotions(brandName?: string) {
   }, [brandName]);
 
   const fetchScrapedPromotions = async () => {
+    console.log('[ScrapedPromotions] Starting fetch for brand:', brandName || 'all brands');
+    console.log('[ScrapedPromotions] Supabase client connected');
+    
     try {
       let query = supabase
         .from('scraped_promotions')
@@ -33,17 +36,35 @@ export function useScrapedPromotions(brandName?: string) {
 
       if (brandName) {
         query = query.eq('brand_name', brandName);
+        console.log('[ScrapedPromotions] Filtering by brand:', brandName);
       }
 
+      console.log('[ScrapedPromotions] Executing query...');
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('[ScrapedPromotions] Database error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+
+      console.log('[ScrapedPromotions] Query successful. Records found:', data?.length || 0);
+      console.log('[ScrapedPromotions] Sample data:', data?.slice(0, 2));
 
       setScrapedPromotions(data || []);
     } catch (error) {
-      console.error('Error fetching scraped promotions:', error);
+      console.error('[ScrapedPromotions] Fetch error:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
     } finally {
       setLoading(false);
+      console.log('[ScrapedPromotions] Fetch completed');
     }
   };
 
