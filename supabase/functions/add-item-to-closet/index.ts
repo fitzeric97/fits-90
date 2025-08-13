@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import FirecrawlApp from 'https://esm.sh/@mendable/firecrawl-js@1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -138,195 +137,118 @@ serve(async (req: Request) => {
       }
     }
 
-    // If URL is provided, extract product data
-    if (requestData.url && (!productData.title || !productData.brand_name || !productData.image_url)) {
-      console.log('Extracting product data from URL:', requestData.url);
-      const urlDomain = new URL(requestData.url).hostname;
-      console.log('Domain being scraped:', urlDomain);
+    // If URL is provided and essential data is missing, extract product data (simplified approach)
+    if (requestData.url && (!productData.title || !productData.brand_name || (!productData.image_url && !storedImagePath))) {
+      console.log('Extracting missing product data from URL...');
       
-      let extractionSuccess = false;
-      
-      // First, try Firecrawl for robust extraction
-      const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
-      if (firecrawlApiKey) {
-        console.log('Attempting Firecrawl extraction...');
-        try {
-          const app = new FirecrawlApp({ apiKey: firecrawlApiKey });
-          
-          const scrapeResult = await app.scrapeUrl(requestData.url, {
-            formats: ['markdown', 'html'],
-            onlyMainContent: true,
-            includeTags: ['title', 'meta', 'h1', 'h2', 'img', 'p', 'span', 'div'],
-          });
-          
-          if (scrapeResult.success && scrapeResult.data) {
-            console.log('Firecrawl extraction successful');
-            const data = scrapeResult.data;
-            
-            // Extract product information from Firecrawl data
-            if (data.metadata) {
-              if (data.metadata.title && !productData.title) {
-                productData.title = data.metadata.title.replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim();
-              }
-              if (data.metadata.description && !productData.description) {
-                productData.description = data.metadata.description.replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim();
-              }
-              if (data.metadata.ogImage && !productData.image_url && !storedImagePath) {
-                productData.image_url = data.metadata.ogImage;
-              }
-            }
-            
-            // Look for price in the markdown content
-            if (data.markdown && !productData.price) {
-              const priceRegex = /\$\d+(?:,\d{3})*(?:\.\d{2})?/g;
-              const priceMatches = data.markdown.match(priceRegex);
-              if (priceMatches && priceMatches.length > 0) {
-                // Take the first price found
-                productData.price = priceMatches[0];
-              }
-            }
-            
-            // Enhanced brand extraction from domain
-            const domain = new URL(requestData.url).hostname;
-            let brandFromDomain = domain.replace(/^www\./, '').split('.')[0];
-            
-            const brandCleanup: { [key: string]: string } = {
-              'tecovas': 'Tecovas',
-              'fahertybrand': 'Faherty Brand',
-              'patagonia': 'Patagonia',
-              'outerknown': 'Outerknown',
-              'rip-curl': 'Rip Curl',
-              'ripcurl': 'Rip Curl',
-              'billabong': 'Billabong',
-              'volcom': 'Volcom',
-              'quicksilver': 'Quicksilver',
-              'vans': 'Vans',
-              'nike': 'Nike',
-              'adidas': 'Adidas',
-              'amazon': 'Amazon',
-              'target': 'Target',
-              'walmart': 'Walmart'
-            };
-            
-            if (brandCleanup[brandFromDomain.toLowerCase()]) {
-              brandFromDomain = brandCleanup[brandFromDomain.toLowerCase()];
-            } else {
-              brandFromDomain = brandFromDomain.charAt(0).toUpperCase() + brandFromDomain.slice(1);
-            }
-            
-            if (!productData.brand_name) {
-              productData.brand_name = brandFromDomain;
-            }
-            
-            extractionSuccess = true;
-            console.log('Firecrawl extraction results:', {
-              title: !!productData.title,
-              price: !!productData.price,
-              image: !!productData.image_url,
-              brand: !!productData.brand_name
-            });
+      try {
+        const response = await fetch(requestData.url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
           }
-        } catch (error) {
-          console.error('Firecrawl extraction failed:', error);
-        }
-      } else {
-        console.log('Firecrawl API key not found, skipping Firecrawl extraction');
-      }
-      
-      // Fallback to regular scraping if Firecrawl failed or is unavailable
-      if (!extractionSuccess) {
-        console.log('Attempting fallback extraction with regular fetch...');
-        try {
-          const response = await fetch(requestData.url, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-              'Accept-Language': 'en-US,en;q=0.9',
-              'Accept-Encoding': 'gzip, deflate, br',
-              'DNT': '1',
-              'Connection': 'keep-alive',
-              'Upgrade-Insecure-Requests': '1',
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache',
-              'Sec-Fetch-Dest': 'document',
-              'Sec-Fetch-Mode': 'navigate', 
-              'Sec-Fetch-Site': 'none',
-            }
-          });
+        });
+        
+        if (response.ok) {
+          const html = await response.text();
+          console.log('Successfully fetched webpage content');
           
-          console.log('Fallback fetch response:', { 
-            status: response.status, 
-            statusText: response.statusText
-          });
+          // Use the same proven extraction patterns as the likes function
+          const titleMatch = html.match(/<title[^>]*>([^<]+)</i) || 
+                           html.match(/<h1[^>]*class="[^"]*product[^"]*"[^>]*>([^<]+)</i) ||
+                           html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i) ||
+                           html.match(/<h1[^>]*>([^<]+)</i) ||
+                           html.match(/data-product-title="([^"]+)"/i) ||
+                           html.match(/productTitle[^>]*>([^<]+)</i);
           
-          if (response.ok) {
-            const html = await response.text();
-            console.log('Successfully fetched webpage content for fallback extraction');
-            
-            // Enhanced extraction patterns for various e-commerce sites
-            const titleMatch = html.match(/<title[^>]*>([^<]+)</i) || 
-                             html.match(/<h1[^>]*class="[^"]*product[^"]*"[^>]*>([^<]+)</i) ||
-                             html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i) ||
-                             html.match(/<h1[^>]*>([^<]+)</i);
-            
-            const priceMatch = html.match(/["\s](\$\d+(?:,\d{3})*(?:\.\d{2})?)["\s]/) ||
-                             html.match(/price[^>]*>.*?(\$\d+(?:,\d{3})*(?:\.\d{2})?)/i) ||
-                             html.match(/data-price="([^"]+)"/i);
-            
-            const imageMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i) ||
-                             html.match(/<img[^>]*class="[^"]*product[^"]*"[^>]*src="([^"]+)"/i) ||
-                             html.match(/data-src="([^"]*\.(?:jpg|jpeg|png|webp)[^"]*)"/i);
-            
-            const descriptionMatch = html.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i) ||
-                                   html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
+          const priceMatch = html.match(/["\s](\$\d+(?:,\d{3})*(?:\.\d{2})?)["\s]/) ||
+                           html.match(/price[^>]*>.*?(\$\d+(?:,\d{3})*(?:\.\d{2})?)/i) ||
+                           html.match(/data-price="([^"]+)"/i) ||
+                           html.match(/price[^>]*:.*?(\$[\d,]+(?:\.\d{2})?)/i);
+          
+          const imageMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i) ||
+                           html.match(/<img[^>]*class="[^"]*product[^"]*"[^>]*src="([^"]+)"/i) ||
+                           html.match(/<img[^>]*src="([^"]+)"[^>]*class="[^"]*product[^"]*"/i) ||
+                           html.match(/data-src="([^"]*\.(?:jpg|jpeg|png|webp)[^"]*)"/i) ||
+                           html.match(/<img[^>]*src="([^"]*\.(?:jpg|jpeg|png|webp)[^"]*)"/i);
+          
+          const descriptionMatch = html.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i) ||
+                                 html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i) ||
+                                 html.match(/product-description[^>]*>([^<]+)</i);
 
-            // Apply extracted data only if not already provided
-            if (titleMatch && !productData.title) {
-              productData.title = titleMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim();
-            }
-            if (priceMatch && !productData.price) {
-              productData.price = priceMatch[1];
-            }
-            if (imageMatch && !productData.image_url && !storedImagePath) {
-              let imgUrl = imageMatch[1];
-              if (imgUrl.startsWith('//')) imgUrl = 'https:' + imgUrl;
-              if (imgUrl.startsWith('/')) imgUrl = new URL(requestData.url).origin + imgUrl;
-              productData.image_url = imgUrl;
-            }
-            if (descriptionMatch && !productData.description) {
-              productData.description = descriptionMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim();
-            }
-            
-            // Brand extraction fallback
-            if (!productData.brand_name) {
-              const domain = new URL(requestData.url).hostname;
-              let brandFromDomain = domain.replace(/^www\./, '').split('.')[0];
-              productData.brand_name = brandFromDomain.charAt(0).toUpperCase() + brandFromDomain.slice(1);
-            }
-            
-            console.log('Fallback extraction results:', {
-              title: !!productData.title,
-              price: !!productData.price,
-              image: !!productData.image_url,
-              brand: !!productData.brand_name
-            });
+          // Enhanced brand extraction (same as likes function)
+          const domain = new URL(requestData.url).hostname;
+          let brandFromDomain = domain.replace(/^www\./, '').split('.')[0];
+          
+          // Brand name cleanup (same as likes function)
+          const brandCleanup: { [key: string]: string } = {
+            'tecovas': 'Tecovas',
+            'fahertybrand': 'Faherty Brand',
+            'patagonia': 'Patagonia',
+            'outerknown': 'Outerknown',
+            'rip-curl': 'Rip Curl',
+            'ripcurl': 'Rip Curl',
+            'billabong': 'Billabong',
+            'volcom': 'Volcom',
+            'quicksilver': 'Quicksilver',
+            'vans': 'Vans',
+            'nike': 'Nike',
+            'adidas': 'Adidas'
+          };
+          
+          if (brandCleanup[brandFromDomain.toLowerCase()]) {
+            brandFromDomain = brandCleanup[brandFromDomain.toLowerCase()];
           } else {
-            console.warn('Fallback fetch failed:', response.status, response.statusText);
-            // Try to extract basic info from URL structure as last resort
-            const urlParts = requestData.url.split('/');
-            const potentialProductName = urlParts[urlParts.length - 1]
-              ?.replace(/-/g, ' ')
-              ?.replace(/\b\w/g, l => l.toUpperCase());
-            
-            if (potentialProductName && !productData.title) {
-              productData.title = potentialProductName;
-              console.log('Extracted title from URL structure:', potentialProductName);
-            }
+            brandFromDomain = brandFromDomain.charAt(0).toUpperCase() + brandFromDomain.slice(1);
           }
-        } catch (error) {
-          console.error('Fallback extraction failed:', error);
-          // Continue with whatever data we have
+          
+          // Apply extracted data only if not already provided
+          if (titleMatch && !productData.title) {
+            productData.title = titleMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim();
+          }
+          if (priceMatch && !productData.price) {
+            productData.price = priceMatch[1];
+          }
+          if (imageMatch && !productData.image_url && !storedImagePath) {
+            let imgUrl = imageMatch[1];
+            if (imgUrl.startsWith('//')) imgUrl = 'https:' + imgUrl;
+            if (imgUrl.startsWith('/')) imgUrl = new URL(requestData.url).origin + imgUrl;
+            productData.image_url = imgUrl;
+          }
+          if (descriptionMatch && !productData.description) {
+            productData.description = descriptionMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim();
+          }
+          if (!productData.brand_name) {
+            productData.brand_name = brandFromDomain;
+          }
+          
+          console.log('Product data extracted:', {
+            title: !!productData.title,
+            price: !!productData.price,
+            image: !!productData.image_url,
+            brand: !!productData.brand_name
+          });
+        } else {
+          console.warn('Failed to fetch webpage:', response.status, response.statusText);
+          // For failed fetches, try to extract basic info from URL structure
+          const urlParts = requestData.url.split('/');
+          const potentialProductName = urlParts[urlParts.length - 1]
+            ?.replace(/-/g, ' ')
+            ?.replace(/\b\w/g, l => l.toUpperCase());
+          
+          if (potentialProductName && !productData.title) {
+            productData.title = potentialProductName;
+            console.log('Extracted title from URL structure:', potentialProductName);
+          }
         }
+      } catch (error) {
+        console.error('Error extracting product data:', error);
+        // Continue with whatever data we have
       }
     }
 
@@ -351,7 +273,7 @@ serve(async (req: Request) => {
         brand_name: productData.brand_name || 'Unknown Brand',
         product_description: productData.description,
         product_image_url: productData.image_url,
-        stored_image_path: storedImagePath,
+        uploaded_image_url: storedImagePath ? supabase.storage.from('closet-items').getPublicUrl(storedImagePath).data.publicUrl : null,
         company_website_url: productData.url,
         price: productData.price,
         size: productData.size,
