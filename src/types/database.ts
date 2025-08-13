@@ -62,9 +62,8 @@ export interface PromotionalEmail {
 export interface Profile {
   id: string;
   display_name: string | null;
-  username: string | null;
-  bio: string | null;
-  avatar_url: string | null;
+  gmail_address: string | null;
+  myfits_email: string | null;
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;

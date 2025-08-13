@@ -39,11 +39,11 @@ export function GmailConnector() {
       // Redirect directly to Gmail OAuth (same as auth page approach)
       window.location.href = authUrl.toString();
 
-    } catch (error: any) {
-      console.error('Gmail connection error:', error);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Connection failed';
       toast({
         title: "Connection Failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       setConnecting(false);
@@ -98,11 +98,11 @@ export function GmailConnector() {
       // Refresh the page to show new emails
       window.location.reload();
 
-    } catch (error: any) {
-      console.error('Gmail scan error:', error);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to scan Gmail';
       toast({
         title: "Scan Failed",
-        description: error.message || "Failed to scan Gmail",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

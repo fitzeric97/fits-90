@@ -78,7 +78,8 @@ export function InstagramPhotoBrowser({ onPhotoSelect, onClose }: InstagramPhoto
       if (error) throw error;
 
       setMedia(data.data || []);
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       console.error('Error fetching Instagram media:', error);
       toast({
         title: "Error",

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { FitTag } from "@/types/database";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -106,7 +107,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
 
       if (error) throw error;
       
-      const items: TaggedItem[] = data?.map((tag: any) => ({
+      const items: TaggedItem[] = data?.map((tag: FitTag & { closet_items: any }) => ({
         ...tag.closet_items,
         tagId: tag.id,
         item_order: tag.item_order || 0

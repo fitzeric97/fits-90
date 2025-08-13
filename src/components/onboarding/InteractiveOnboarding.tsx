@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Profile } from "@/types/database";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ArrowLeft, Sparkles, Upload, Heart, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -49,7 +50,7 @@ export default function InteractiveOnboarding() {
   const [currentStep, setCurrentStep] = useState(0);
   const [stepContent, setStepContent] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
