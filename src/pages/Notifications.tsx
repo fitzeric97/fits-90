@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 type Notification = {
   id: string;
@@ -21,6 +22,9 @@ type Notification = {
 export default function Notifications() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Enable real-time notifications
+  useRealtimeNotifications();
 
   // Fetch notifications
   const { data: notifications = [], isLoading } = useQuery({
