@@ -15,8 +15,20 @@ const Index = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Redirect if already authenticated
+  // Handle auth tokens in URL fragment and redirect if already authenticated
   useEffect(() => {
+    // Check if there are auth tokens in the URL fragment (from magic link)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    
+    if (accessToken && refreshToken) {
+      // Redirect to auth callback to handle the tokens properly
+      const authCallbackUrl = `/auth/callback${window.location.hash}`;
+      navigate(authCallbackUrl, { replace: true });
+      return;
+    }
+    
     if (user) {
       navigate('/dashboard');
     }
