@@ -1,13 +1,17 @@
 import { useState } from "react";
-import { Edit, Upload, X, Shirt, User, Square, Scissors, Crown, Watch, Footprints, Sparkles, Archive, Gem, ShirtIcon, Package, Dumbbell } from "lucide-react";
+import { Edit, Upload, X, Shirt, User, Square, Scissors, Crown, Watch, Footprints, Sparkles, Archive, Gem, ShirtIcon, Package, Dumbbell, ShoppingBag, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface Like {
   id: string;
@@ -74,8 +78,9 @@ interface EditLikeDialogProps {
 export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isMovingToCloset, setIsMovingToCloset] = useState(false);
   
-  // Form data
+  // Form data - existing fields
   const [title, setTitle] = useState(like.title);
   const [brandName, setBrandName] = useState(like.brand_name || "");
   const [price, setPrice] = useState(like.price || "");
@@ -83,6 +88,12 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
   const [description, setDescription] = useState(like.description || "");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // Closet-specific fields
+  const [size, setSize] = useState("");
+  const [color, setColor] = useState("");
+  const [purchaseDate, setPurchaseDate] = useState<Date | undefined>(undefined);
+  const [orderNumber, setOrderNumber] = useState("");
   
   const { toast } = useToast();
 
@@ -94,6 +105,11 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
     setDescription(like.description || "");
     setSelectedImage(null);
     setImagePreview(null);
+    setIsMovingToCloset(false);
+    setSize("");
+    setColor("");
+    setPurchaseDate(undefined);
+    setOrderNumber("");
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,8 +149,93 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
     }
   };
 
+  const moveToCloset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Only require brand name
+      if (!brandName.trim()) {
+        toast({
+          title: "Error",
+          description: "Brand name is required",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to move items to closet",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      let uploadedImageUrl = like.uploaded_image_url;
+
+      // Upload new image if selected
+      if (selectedImage) {
+        uploadedImageUrl = await uploadImage(selectedImage, session.user.id);
+      }
+
+      // Start transaction: Insert into closet_items, then delete from user_likes
+      const { error: insertError } = await supabase
+        .from('closet_items')
+        .insert({
+          user_id: session.user.id,
+          product_name: title.trim(),
+          brand_name: brandName.trim(),
+          price: price.trim() || null,
+          category: category === "none" ? null : category,
+          product_description: description.trim() || null,
+          product_image_url: like.image_url,
+          uploaded_image_url: uploadedImageUrl,
+          size: size.trim() || null,
+          color: color.trim() || null,
+          purchase_date: purchaseDate ? purchaseDate.toISOString() : null,
+          order_number: orderNumber.trim() || null,
+        });
+
+      if (insertError) throw insertError;
+
+      // If closet insertion succeeded, delete from likes
+      const { error: deleteError } = await supabase
+        .from('user_likes')
+        .delete()
+        .eq('id', like.id);
+
+      if (deleteError) throw deleteError;
+
+      toast({
+        title: "Success",
+        description: "Item moved to your closet successfully!",
+      });
+
+      setOpen(false);
+      onItemUpdated();
+    } catch (error) {
+      console.error('Error moving item to closet:', error);
+      toast({
+        title: "Error",
+        description: "Failed to move item to closet. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isMovingToCloset) {
+      await moveToCloset(e);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -208,9 +309,12 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
-          <DialogTitle>Edit Liked Item</DialogTitle>
+          <DialogTitle>{isMovingToCloset ? "Move to Closet" : "Edit Liked Item"}</DialogTitle>
           <DialogDescription>
-            Update the details of your liked item
+            {isMovingToCloset 
+              ? "Add ownership details and move this item to your closet"
+              : "Update the details of your liked item"
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -287,6 +391,68 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
               />
             </div>
 
+            {/* Closet-specific fields - only show when moving to closet */}
+            {isMovingToCloset && (
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                <div className="col-span-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Ownership Details</Label>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="size">Size</Label>
+                  <Input
+                    id="size"
+                    placeholder="e.g., M, L, 32x30"
+                    value={size}
+                    onChange={(e) => setSize(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="color">Color</Label>
+                  <Input
+                    id="color"
+                    placeholder="e.g., Navy Blue, Black"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="purchaseDate">Purchase Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !purchaseDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {purchaseDate ? format(purchaseDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-background border shadow-lg z-50" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={purchaseDate}
+                        onSelect={setPurchaseDate}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="orderNumber">Order Number (Optional)</Label>
+                  <Input
+                    id="orderNumber"
+                    placeholder="e.g., #ORDER123456"
+                    value={orderNumber}
+                    onChange={(e) => setOrderNumber(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Image Upload Section */}
             <div className="space-y-2">
               <Label>Upload Photo (fallback when web image doesn't load)</Label>
@@ -354,9 +520,36 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
             >
               Cancel
             </Button>
+            
+            {!isMovingToCloset && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setIsMovingToCloset(true)}
+                className="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border-emerald-300"
+              >
+                <ShoppingBag className="w-4 h-4 mr-2" />
+                Move to Closet
+              </Button>
+            )}
+            
             <Button type="submit" disabled={loading}>
-              {loading ? "Updating..." : "Update Like"}
+              {loading 
+                ? (isMovingToCloset ? "Moving..." : "Updating...") 
+                : (isMovingToCloset ? "Move to Closet" : "Update Like")
+              }
             </Button>
+            
+            {isMovingToCloset && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsMovingToCloset(false)}
+                disabled={loading}
+              >
+                Back to Edit
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
