@@ -23,45 +23,24 @@ export function FitsGrid() {
   }, [user]);
 
   const loadFits = async () => {
-    console.log('[FitsGrid] Starting loadFits...');
-    console.log('[FitsGrid] Supabase client connected');
-    
     try {
       let query = supabase.from('fits').select('*');
       
       if (user?.id) {
         query = query.eq('user_id', user.id);
-        console.log('[FitsGrid] Filtering by user_id:', user.id);
-      } else {
-        console.log('[FitsGrid] No user - loading all fits');
       }
       
-      console.log('[FitsGrid] Executing fits query...');
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
-        console.error('[FitsGrid] Database error:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
         setFits([]);
       } else {
-        console.log('[FitsGrid] Query successful. Fits found:', data?.length || 0);
-        console.log('[FitsGrid] Sample fits data:', data?.slice(0, 2));
         setFits(data || []);
       }
     } catch (error) {
-      console.error('[FitsGrid] Fetch error:', {
-        error,
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
-      });
       setFits([]);
     } finally {
       setLoading(false);
-      console.log('[FitsGrid] loadFits completed');
     }
   };
 

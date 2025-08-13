@@ -85,8 +85,6 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
 
   const fetchTaggedItems = async () => {
     try {
-      console.log('Fetching tagged items for fit:', fit.id);
-      
       const { data, error } = await supabase
         .from('fit_tags')
         .select(`
@@ -106,8 +104,6 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
         .order('created_at', { ascending: true })
         .limit(3);
 
-      console.log('Tagged items query result:', { data, error });
-
       if (error) throw error;
       
       const items: TaggedItem[] = data?.map((tag: any) => ({
@@ -116,10 +112,9 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
         item_order: tag.item_order || 0
       })).filter(Boolean) || [];
       
-      console.log('Processed tagged items with order:', items);
       setTaggedItems(items);
     } catch (error) {
-      console.error('Error fetching tagged items:', error);
+      // Silently handle error
     }
   };
 
@@ -274,8 +269,6 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
               alt={item.product_name}
               className="w-full h-full object-cover"
               onError={(e) => {
-                console.log('Image failed to load:', item.uploaded_image_url || item.product_image_url);
-                console.log('Trying to fallback for item:', item.product_name);
                 // Hide the broken image and show fallback
                 e.currentTarget.style.display = 'none';
                 const fallback = e.currentTarget.nextElementSibling as HTMLElement;

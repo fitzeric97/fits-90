@@ -17,7 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('[AuthProvider] Setting up Supabase authentication v2');
+    
     
     // Clear any legacy dev mode data
     localStorage.removeItem('direct_access');
@@ -30,23 +30,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const hash = window.location.hash || '';
       const path = window.location.pathname || '/';
       if ((hash.includes('access_token=') || hash.includes('refresh_token=')) && !path.startsWith('/auth/callback')) {
-        console.log('[AuthProvider] Detected auth tokens in hash - redirecting to /auth/callback');
+        
         window.location.replace(`/auth/callback${hash}`);
         return;
       }
     } catch (err) {
-      console.error('[AuthProvider] Error handling auth hash redirect', err);
+      
     }
     
     // Set up Supabase auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('[AuthProvider] Auth state changed', { 
-          event, 
-          hasSession: !!session, 
-          userEmail: session?.user?.email,
-          userId: session?.user?.id 
-        });
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -55,32 +49,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Check for existing Supabase session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('[AuthProvider] Error getting session:', error);
-      }
-      console.log('[AuthProvider] Initial session check', { 
-        hasSession: !!session, 
-        userEmail: session?.user?.email,
-        userId: session?.user?.id,
-        error: error?.message
-      });
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
     return () => {
-      console.log('[AuthProvider] Cleaning up auth subscription');
       subscription.unsubscribe();
     };
   }, []);
 
   const signOut = async () => {
-    console.log('[AuthProvider] Signing out from Supabase');
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('[AuthProvider] Error signing out:', error);
-    }
+    await supabase.auth.signOut();
   };
 
   const value = {
