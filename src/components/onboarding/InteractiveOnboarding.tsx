@@ -122,10 +122,11 @@ export default function InteractiveOnboarding() {
   const completeOnboarding = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      // Skipping DB update as 'onboarding_completed' column may not exist in types
-      // You can add this column in Supabase and re-generate types to enable this
       if (user) {
-        console.log('Onboarding complete for user', user.id);
+        await supabase
+          .from('profiles')
+          .update({ onboarding_completed: true })
+          .eq('id', user.id);
       }
       
       toast({

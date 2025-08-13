@@ -87,7 +87,7 @@ const ConnectionProfile = () => {
       setLoading(true);
       
       // Check if users are connected
-      const { data: connection, error: connectionError } = await (supabase as any)
+      const { data: connection, error: connectionError } = await supabase
         .from("user_connections")
         .select("*")
         .or(`and(user_id.eq.${user?.id},connected_user_id.eq.${userId}),and(user_id.eq.${userId},connected_user_id.eq.${user?.id})`)
