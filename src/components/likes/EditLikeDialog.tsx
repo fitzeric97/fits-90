@@ -206,7 +206,7 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
           <Edit className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>Edit Liked Item</DialogTitle>
           <DialogDescription>
