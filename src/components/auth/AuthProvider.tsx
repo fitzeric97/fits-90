@@ -17,7 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('[AuthProvider] Setting up Supabase authentication');
+    console.log('[AuthProvider] Setting up Supabase authentication v2');
     
     // Clear any legacy dev mode data
     localStorage.removeItem('direct_access');
