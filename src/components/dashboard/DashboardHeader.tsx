@@ -1,10 +1,10 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Bell } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { NotificationBell } from "./NotificationBell";
 
 export function DashboardHeader() {
   const { user } = useAuth();
@@ -82,9 +82,7 @@ export function DashboardHeader() {
       
       {/* Right side - Notifications and User */}
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon">
-          <Bell className="h-4 w-4" />
-        </Button>
+        <NotificationBell />
         <Button 
           variant="ghost" 
           className="flex items-center gap-2 h-8 px-2 hover:bg-accent rounded-full"
