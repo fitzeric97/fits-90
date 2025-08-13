@@ -87,7 +87,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
     try {
       console.log('Fetching tagged items for fit:', fit.id);
       
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('fit_tags')
         .select(`
           id,
@@ -125,7 +125,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
 
   const handleDelete = async () => {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('fits')
         .delete()
         .eq('id', fit.id);
@@ -178,7 +178,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
         .getPublicUrl(uploadData.path);
 
       // Update the fit with the new image URL
-      const { error: updateError } = await (supabase as any)
+      const { error: updateError } = await supabase
         .from('fits')
         .update({ image_url: urlData.publicUrl })
         .eq('id', fit.id);
@@ -227,7 +227,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
         }));
 
         for (const update of updates) {
-          await (supabase as any)
+          await supabase
             .from('fit_tags')
             .update({ item_order: update.item_order })
             .eq('id', update.id);

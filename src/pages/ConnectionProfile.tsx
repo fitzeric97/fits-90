@@ -137,7 +137,7 @@ const ConnectionProfile = () => {
       if (likesError) {
         console.error("Likes fetch error:", likesError);
       } else {
-        setLikes((likesData as unknown as UserLike[]) || []);
+        setLikes(likesData || []);
       }
 
       // Fetch closet items
@@ -150,11 +150,11 @@ const ConnectionProfile = () => {
       if (closetError) {
         console.error("Closet fetch error:", closetError);
       } else {
-        setClosetItems((closetData as unknown as ClosetItem[]) || []);
+        setClosetItems(closetData || []);
       }
 
       // Fetch fits
-      const { data: fitsData, error: fitsError } = await (supabase as any)
+      const { data: fitsData, error: fitsError } = await supabase
         .from("fits")
         .select("*")
         .eq("user_id", userId)
@@ -163,7 +163,7 @@ const ConnectionProfile = () => {
       if (fitsError) {
         console.error("Fits fetch error:", fitsError);
       } else {
-        setFits((fitsData as unknown as Fit[]) || []);
+        setFits(fitsData || []);
       }
 
       // Calculate brands from closet items and likes

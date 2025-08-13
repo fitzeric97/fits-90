@@ -71,7 +71,7 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
 
   const loadClosetItems = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('closet_items')
         .select('id, product_name, brand_name, category, product_image_url')
         .or(`product_name.ilike.%${searchTerm}%,brand_name.ilike.%${searchTerm}%`)
@@ -87,7 +87,7 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
 
   const loadTaggedItems = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('fit_tags')
         .select(`
           id,
@@ -138,7 +138,7 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
       const maxOrder = taggedItems.length > 0 ? Math.max(...taggedItems.map(t => t.item_order)) : -1;
       const newOrder = maxOrder + 1;
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('fit_tags')
         .insert([
           {
@@ -178,7 +178,7 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
   const handleUntagItem = async (item: TaggedItem) => {
     setLoading(true);
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('fit_tags')
         .delete()
         .eq('id', item.tagId);
@@ -227,7 +227,7 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
         }));
 
         for (const update of updates) {
-          await (supabase as any)
+          await supabase
             .from('fit_tags')
             .update({ item_order: update.item_order })
             .eq('id', update.id);
