@@ -6,6 +6,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isDevMode: boolean;
+  authMode: 'supabase' | 'dev' | 'unauthenticated';
   signOut: () => Promise<void>;
 }
 
@@ -16,19 +18,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    console.log('[AuthProvider] Setting up auth state...');
-    console.log('[AuthProvider] Supabase client connected');
-    console.log('[AuthProvider] LocalStorage direct_access:', localStorage.getItem('direct_access'));
-    console.log('[AuthProvider] LocalStorage user_id:', localStorage.getItem('user_id'));
+  // Detect dev mode - check for development environment
+  const isDevMode = import.meta.env.DEV || import.meta.env.MODE === 'development';
+
+  // Determine authentication mode
+  const getAuthMode = (): 'supabase' | 'dev' | 'unauthenticated' => {
+    const directAccess = localStorage.getItem('direct_access') === 'true';
+    const storedUserId = localStorage.getItem('user_id');
     
-    // Set up auth state listener FIRST
+    if (session?.user) {
+      return 'supabase';
+    }
+    
+    if (isDevMode && directAccess && storedUserId) {
+      return 'dev';
+    }
+    
+    return 'unauthenticated';
+  };
+
+  const authMode = getAuthMode();
+
+  useEffect(() => {
+    console.log('[AuthProvider] Unified Auth Setup');
+    console.log('[AuthProvider] Dev Mode:', isDevMode);
+    console.log('[AuthProvider] Auth Mode:', authMode);
+    
+    // Clear dev access if not in dev mode
+    if (!isDevMode) {
+      const hadDirectAccess = localStorage.getItem('direct_access') === 'true';
+      if (hadDirectAccess) {
+        console.log('[AuthProvider] Clearing dev access - not in dev mode');
+        localStorage.removeItem('direct_access');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('user_email');
+      }
+    }
+    
+    // Set up Supabase auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('[AuthProvider] Auth state changed', { 
+        console.log('[AuthProvider] Supabase auth changed', { 
           event, 
-          session: !!session, 
-          user: session?.user?.email,
+          hasSession: !!session, 
+          userEmail: session?.user?.email,
           userId: session?.user?.id 
         });
         setSession(session);
@@ -37,14 +70,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // THEN check for existing session
+    // Check for existing Supabase session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.error('[AuthProvider] Error getting session:', error);
       }
-      console.log('[AuthProvider] Got existing session', { 
-        session: !!session, 
-        user: session?.user?.email,
+      console.log('[AuthProvider] Initial session check', { 
+        hasSession: !!session, 
+        userEmail: session?.user?.email,
         userId: session?.user?.id,
         error: error?.message
       });
@@ -57,12 +90,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('[AuthProvider] Cleaning up auth subscription');
       subscription.unsubscribe();
     };
-  }, []);
+  }, [isDevMode, authMode]);
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error signing out:', error);
+    console.log('[AuthProvider] Signing out, current mode:', authMode);
+    
+    // Clear dev mode data
+    if (authMode === 'dev') {
+      localStorage.removeItem('direct_access');
+      localStorage.removeItem('user_id');
+      localStorage.removeItem('user_email');
+      console.log('[AuthProvider] Cleared dev mode data');
+    }
+    
+    // Sign out from Supabase if in supabase mode
+    if (authMode === 'supabase') {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('[AuthProvider] Error signing out from Supabase:', error);
+      }
     }
   };
 
@@ -70,6 +116,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     session,
     loading,
+    isDevMode,
+    authMode,
     signOut,
   };
 

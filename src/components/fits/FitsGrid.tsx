@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FitCard } from "./FitCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 interface Fit {
   id: string;
@@ -15,28 +16,28 @@ interface Fit {
 export function FitsGrid() {
   const [fits, setFits] = useState<Fit[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user, authMode } = useAuth();
 
   useEffect(() => {
     loadFits();
-  }, []);
+  }, [authMode, user]);
 
   const loadFits = async () => {
     console.log('[FitsGrid] Starting loadFits...');
     console.log('[FitsGrid] Supabase client connected');
     
     try {
-      // Check for direct access mode
-      const directAccess = localStorage.getItem('direct_access') === 'true';
-      const storedUserId = localStorage.getItem('user_id');
+      // Use unified auth system
+      const effectiveUserId = authMode === 'dev' ? localStorage.getItem('user_id') : user?.id;
       
-      console.log('[FitsGrid] Access mode:', { directAccess, storedUserId });
+      console.log('[FitsGrid] Auth mode:', authMode);
+      console.log('[FitsGrid] Effective user ID:', effectiveUserId);
       
       let query = supabase.from('fits').select('*');
       
-      if (directAccess && storedUserId) {
-        // Use stored user ID for direct access
-        query = query.eq('user_id', storedUserId);
-        console.log('[FitsGrid] Using direct access with user_id:', storedUserId);
+      if (effectiveUserId) {
+        query = query.eq('user_id', effectiveUserId);
+        console.log('[FitsGrid] Filtering by user_id:', effectiveUserId);
       } else {
         console.log('[FitsGrid] No user filtering applied');
       }

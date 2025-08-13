@@ -26,7 +26,7 @@ export default function AuthCallback() {
             description: error.message,
             variant: "destructive",
           });
-          navigate("/auth");
+          navigate("/");
           return;
         }
 
@@ -159,8 +159,8 @@ export default function AuthCallback() {
           }
           
         } else {
-          // No session, redirect to auth
-          navigate("/auth");
+          // No session, redirect to unified auth
+          navigate("/");
         }
       } catch (error: any) {
         console.error('Callback processing error:', error);
@@ -169,7 +169,7 @@ export default function AuthCallback() {
           description: "Failed to complete setup. Please try again.",
           variant: "destructive",
         });
-        navigate("/auth");
+        navigate("/");
       }
     };
 

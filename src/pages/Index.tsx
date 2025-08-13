@@ -11,20 +11,67 @@ import { useAuth } from "@/components/auth/AuthProvider";
 const Index = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'login' | 'dev'>('login');
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  const handleDirectAccess = () => {
+  const { authMode, isDevMode } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (authMode === 'supabase' || authMode === 'dev') {
+      navigate('/dashboard');
+    }
+  }, [authMode, navigate]);
+
+  const handleSupabaseLogin = async () => {
+    if (!email) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Check your email",
+        description: "We've sent you a login link.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDevAccess = () => {
+    if (!isDevMode) {
+      toast({
+        title: "Dev mode not available",
+        description: "Development access is only available in dev mode.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     
-    // Set up direct access to your account
-    localStorage.setItem('user_email', email);
+    // Set up dev access
+    localStorage.setItem('user_email', email || 'fitzeric97@gmail.com');
     localStorage.setItem('user_id', 'eec9fa4a-8e91-4ef7-9469-099426cbbad6');
     localStorage.setItem('direct_access', 'true');
     
     toast({
-      title: "Connected!",
-      description: "Accessing your account data.",
+      title: "Dev Access Enabled",
+      description: "Accessing development account.",
     });
     
     navigate('/dashboard');
@@ -37,31 +84,80 @@ const Index = () => {
       </div>
       
       <div className="max-w-sm w-full space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-lg">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="h-12 text-lg"
-            required
-          />
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-foreground mb-2">Welcome to Fits</h1>
+          <p className="text-muted-foreground">Please sign in to continue</p>
         </div>
 
-        <Button 
-          onClick={handleDirectAccess}
-          className="w-full h-12 text-lg"
-          disabled={loading || !email}
-        >
-          {loading ? "Connecting..." : "Access My Account"}
-        </Button>
+        {mode === 'login' && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-lg">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-12 text-lg"
+                required
+              />
+            </div>
+
+            <Button 
+              onClick={handleSupabaseLogin}
+              className="w-full h-12 text-lg"
+              disabled={loading || !email}
+            >
+              {loading ? "Sending link..." : "Send Login Link"}
+            </Button>
+
+            {isDevMode && (
+              <Button 
+                onClick={() => setMode('dev')}
+                variant="outline"
+                className="w-full h-12 text-lg"
+              >
+                Developer Access
+              </Button>
+            )}
+          </>
+        )}
+
+        {mode === 'dev' && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="dev-email" className="text-lg">Dev Email (Optional)</Label>
+              <Input
+                id="dev-email"
+                type="email"
+                placeholder="fitzeric97@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-12 text-lg"
+              />
+            </div>
+
+            <Button 
+              onClick={handleDevAccess}
+              className="w-full h-12 text-lg"
+              disabled={loading}
+            >
+              {loading ? "Connecting..." : "Access Dev Account"}
+            </Button>
+
+            <Button 
+              onClick={() => setMode('login')}
+              variant="outline"
+              className="w-full h-12 text-lg"
+            >
+              Back to Login
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
-
-  return null;
 };
 
 export default Index;
