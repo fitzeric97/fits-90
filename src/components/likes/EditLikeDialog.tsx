@@ -200,8 +200,8 @@ export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-3 left-12 opacity-0 group-hover:opacity-100 transition-opacity bg-background/90 hover:bg-background"
           onClick={(e) => e.stopPropagation()}
+          className="h-8 w-8 p-0 bg-background/90 hover:bg-background"
         >
           <Edit className="h-4 w-4" />
         </Button>

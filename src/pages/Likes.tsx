@@ -414,6 +414,34 @@ export default function Likes() {
                         fallbackIcon={<Heart className="h-12 w-12 text-muted-foreground" />}
                       />
                     </div>
+                    
+                    {/* Action buttons that appear on hover */}
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1">
+                      <EditLikeDialog 
+                        like={{
+                          id: like.id,
+                          title: like.title,
+                          brand_name: like.brand_name,
+                          price: like.price,
+                          category: like.category,
+                          description: like.description,
+                          image_url: like.image_url,
+                          uploaded_image_url: like.uploaded_image_url
+                        }}
+                        onItemUpdated={fetchLikes}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeLike(like.id);
+                        }}
+                        className="h-8 w-8 p-0 bg-background/90 hover:bg-background text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -486,14 +514,20 @@ export default function Likes() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => window.open(like.url, '_blank')}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(like.url, '_blank');
+                                }}
                               >
                                 <ExternalLink className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => removeLike(like.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeLike(like.id);
+                                }}
                                 className="text-destructive hover:text-destructive"
                               >
                                 <Trash2 className="h-4 w-4" />
