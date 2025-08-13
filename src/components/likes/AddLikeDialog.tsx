@@ -5,6 +5,18 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ItemForm } from "@/components/shared/ItemForm";
+
+interface ItemFormData {
+  title?: string;
+  brandName?: string;
+  price?: string;
+  size?: string;
+  color?: string;
+  category?: string;
+  description?: string;
+  purchaseDate?: string;
+}
 
 interface AddLikeDialogProps {
   open: boolean;
@@ -14,11 +26,12 @@ interface AddLikeDialogProps {
 
 export function AddLikeDialog({ open, onOpenChange, onLikeAdded }: AddLikeDialogProps) {
   const { toast } = useToast();
-  const [newLike, setNewLike] = useState({ url: '', title: '' });
+  const [url, setUrl] = useState('');
+  const [formData, setFormData] = useState<ItemFormData>({});
   const [loading, setLoading] = useState(false);
 
   const addManualLike = async () => {
-    if (!newLike.url) {
+    if (!url) {
       toast({
         title: "Missing Information",
         description: "Please enter a URL",
@@ -32,8 +45,8 @@ export function AddLikeDialog({ open, onOpenChange, onLikeAdded }: AddLikeDialog
       // Use the edge function to extract product data and add to likes
       const { data, error } = await supabase.functions.invoke('add-url-to-likes', {
         body: {
-          url: newLike.url,
-          title: newLike.title || undefined
+          url: url,
+          title: formData.title || undefined
         }
       });
 
@@ -44,7 +57,8 @@ export function AddLikeDialog({ open, onOpenChange, onLikeAdded }: AddLikeDialog
         description: `${data.like.brand_name || 'Product'} saved to your likes`,
       });
 
-      setNewLike({ url: '', title: '' });
+      setUrl('');
+      setFormData({});
       onOpenChange(false);
       onLikeAdded?.();
     } catch (error) {
@@ -60,7 +74,8 @@ export function AddLikeDialog({ open, onOpenChange, onLikeAdded }: AddLikeDialog
   };
 
   const handleClose = () => {
-    setNewLike({ url: '', title: '' });
+    setUrl('');
+    setFormData({});
     onOpenChange(false);
   };
 
@@ -70,30 +85,32 @@ export function AddLikeDialog({ open, onOpenChange, onLikeAdded }: AddLikeDialog
         <DialogHeader>
           <DialogTitle>Add a Liked Item</DialogTitle>
           <DialogDescription>
-            Save a product URL and title to your likes
+            Save a product URL and additional details to your likes
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="url">Product URL</Label>
+            <Label htmlFor="url">Product URL *</Label>
             <Input
               id="url"
               type="url"
               placeholder="https://example.com/product"
-              value={newLike.url}
-              onChange={(e) => setNewLike({ ...newLike, url: e.target.value })}
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              required
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="title">Product Title (Optional)</Label>
-            <Input
-              id="title"
-              placeholder="Product name or description"
-              value={newLike.title}
-              onChange={(e) => setNewLike({ ...newLike, title: e.target.value })}
-            />
-          </div>
-          <div className="flex justify-end space-x-2">
+          
+          <ItemForm
+            initialData={formData}
+            onDataChange={setFormData}
+            showSizeColor={false}
+            showPurchaseDate={false}
+            brandRequired={false}
+            showImageUpload={false}
+          />
+          
+          <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={handleClose} disabled={loading}>
               Cancel
             </Button>
