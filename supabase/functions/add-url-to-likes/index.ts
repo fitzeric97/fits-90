@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-dev-user-id',
 };
 
 interface AddLikeRequest {
@@ -45,7 +45,9 @@ serve(async (req: Request) => {
     console.log('=== Starting add-url-to-likes function ===');
     
     const authHeader = req.headers.get('authorization');
+    const devUserId = req.headers.get('x-dev-user-id'); // Custom header for dev mode
     console.log('Auth header received:', !!authHeader);
+    console.log('Dev user ID received:', devUserId);
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return new Response(
@@ -71,19 +73,29 @@ serve(async (req: Request) => {
       }
     );
 
-    // Get the current user using the passed JWT token
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    console.log('User auth result:', { user: !!user, userId: user?.id, error: userError?.message });
-    
-    if (userError || !user) {
-      console.error('Authentication failed:', userError);
-      return new Response(
-        JSON.stringify({ 
-          error: 'Authentication failed',
-          details: userError?.message || 'Invalid or expired token'
-        }),
-        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+    let userId: string;
+
+    // Check if this is dev mode (has dev user ID header)
+    if (devUserId) {
+      console.log('Using dev mode authentication with user ID:', devUserId);
+      userId = devUserId;
+    } else {
+      // Get the current user using the passed JWT token
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('User auth result:', { user: !!user, userId: user?.id, error: userError?.message });
+      
+      if (userError || !user) {
+        console.error('Authentication failed:', userError);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Authentication failed',
+            details: userError?.message || 'Invalid or expired token'
+          }),
+          { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+      
+      userId = user.id;
     }
 
     const requestData: AddLikeRequest = await req.json();
@@ -219,7 +231,7 @@ serve(async (req: Request) => {
     const { data: like, error: insertError } = await supabase
       .from('user_likes')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         url: productData.url,
         title: productData.title || 'Product',
         description: productData.description,

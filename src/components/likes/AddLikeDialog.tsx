@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 interface AddLikeDialogProps {
   open: boolean;
@@ -14,6 +15,7 @@ interface AddLikeDialogProps {
 
 export function AddLikeDialog({ open, onOpenChange, onLikeAdded }: AddLikeDialogProps) {
   const { toast } = useToast();
+  const { authMode } = useAuth();
   const [newLike, setNewLike] = useState({ url: '', title: '' });
   const [loading, setLoading] = useState(false);
 
@@ -29,12 +31,23 @@ export function AddLikeDialog({ open, onOpenChange, onLikeAdded }: AddLikeDialog
 
     setLoading(true);
     try {
+      // Prepare headers for dev mode
+      const headers: { [key: string]: string } = {};
+      
+      if (authMode === 'dev') {
+        const devUserId = localStorage.getItem('user_id');
+        if (devUserId) {
+          headers['x-dev-user-id'] = devUserId;
+        }
+      }
+      
       // Use the edge function to extract product data and add to likes
       const { data, error } = await supabase.functions.invoke('add-url-to-likes', {
         body: {
           url: newLike.url,
           title: newLike.title || undefined
-        }
+        },
+        headers
       });
 
       if (error) throw error;
