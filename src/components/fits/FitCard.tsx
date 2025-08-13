@@ -178,7 +178,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
         .getPublicUrl(uploadData.path);
 
       // Update the fit with the new image URL
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from('fits')
         .update({ image_url: urlData.publicUrl })
         .eq('id', fit.id);
@@ -227,7 +227,7 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
         }));
 
         for (const update of updates) {
-          await supabase
+          await (supabase as any)
             .from('fit_tags')
             .update({ item_order: update.item_order })
             .eq('id', update.id);

@@ -41,21 +41,21 @@ export default function Home() {
 
     try {
       // Fetch recent likes
-      const { data: likes, error: likesError } = await supabase
+      const { data: likes, error: likesError } = await (supabase as any)
         .from('user_likes')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
 
       // Fetch recent closet items
-      const { data: closetItems, error: closetError } = await supabase
+      const { data: closetItems, error: closetError } = await (supabase as any)
         .from('closet_items')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
 
       // Fetch recent fits
-      const { data: fits, error: fitsError } = await supabase
+      const { data: fits, error: fitsError } = await (supabase as any)
         .from('fits')
         .select('*')
         .order('created_at', { ascending: false })

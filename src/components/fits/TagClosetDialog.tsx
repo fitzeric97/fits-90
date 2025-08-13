@@ -178,7 +178,7 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
   const handleUntagItem = async (item: TaggedItem) => {
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('fit_tags')
         .delete()
         .eq('id', item.tagId);
@@ -227,7 +227,7 @@ export function TagClosetDialog({ open, onOpenChange, fitId }: TagClosetDialogPr
         }));
 
         for (const update of updates) {
-          await supabase
+          await (supabase as any)
             .from('fit_tags')
             .update({ item_order: update.item_order })
             .eq('id', update.id);

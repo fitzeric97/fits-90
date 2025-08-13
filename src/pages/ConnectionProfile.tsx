@@ -154,7 +154,7 @@ const ConnectionProfile = () => {
       }
 
       // Fetch fits
-      const { data: fitsData, error: fitsError } = await supabase
+      const { data: fitsData, error: fitsError } = await (supabase as any)
         .from("fits")
         .select("*")
         .eq("user_id", userId)
@@ -163,7 +163,7 @@ const ConnectionProfile = () => {
       if (fitsError) {
         console.error("Fits fetch error:", fitsError);
       } else {
-        setFits(fitsData || []);
+        setFits((fitsData as unknown as Fit[]) || []);
       }
 
       // Calculate brands from closet items and likes
