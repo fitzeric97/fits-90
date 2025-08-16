@@ -334,12 +334,15 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
       {/* Hidden Story Template - This gets converted to image */}
       <div 
         ref={storyRef}
-        className="fixed top-0 left-[-2000px] opacity-0 pointer-events-none bg-gradient-to-br from-background to-card"
+        className="fixed top-0 left-0 pointer-events-none bg-gradient-to-br from-white to-gray-50"
         style={{ 
           width: '1080px', 
           height: '1920px',
           position: 'fixed',
-          zIndex: -1
+          zIndex: -9999,
+          opacity: generating ? 1 : 0,
+          visibility: generating ? 'visible' : 'hidden',
+          transform: 'translateX(-200vw)'
         }}
       >
         <div className="relative w-full h-full p-12 flex flex-col">
@@ -352,8 +355,8 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
                 className="h-16 w-16"
               />
               <div>
-                <h2 className="text-3xl font-bold text-foreground">Fits</h2>
-                <p className="text-muted-foreground text-lg">@{username || 'user'}</p>
+                <h2 className="text-3xl font-bold text-gray-900">Fits</h2>
+                <p className="text-gray-600 text-lg">@{username || 'user'}</p>
               </div>
             </div>
           </div>
@@ -372,7 +375,7 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
           {/* Caption */}
           {fit.caption && (
             <div className="mb-8">
-              <p className="text-foreground text-xl text-center font-medium">
+              <p className="text-gray-900 text-xl text-center font-medium">
                 "{fit.caption}"
               </p>
             </div>
@@ -381,7 +384,7 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
           {/* Tagged Items */}
           {taggedItems.length > 0 && (
             <div className="bg-white/90 rounded-2xl p-8 backdrop-blur-sm">
-              <h3 className="text-foreground text-2xl font-bold mb-6 text-center">Tagged Items</h3>
+              <h3 className="text-gray-900 text-2xl font-bold mb-6 text-center">Tagged Items</h3>
               <div className="grid grid-cols-2 gap-6">
                 {taggedItems.slice(0, 4).map((item) => (
                   <div key={item.id} className="flex items-center gap-4 bg-white rounded-xl p-4 shadow-lg">
@@ -393,14 +396,14 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-foreground text-lg truncate">
+                      <p className="font-semibold text-gray-900 text-lg truncate">
                         {item.brand_name}
                       </p>
-                      <p className="text-muted-foreground text-base truncate">
+                      <p className="text-gray-600 text-base truncate">
                         {item.product_name}
                       </p>
                       {item.price && (
-                        <p className="text-foreground font-bold text-lg">
+                        <p className="text-gray-900 font-bold text-lg">
                           {item.price}
                         </p>
                       )}
@@ -409,7 +412,7 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
                 ))}
               </div>
               {taggedItems.length > 4 && (
-                <p className="text-center text-muted-foreground text-lg mt-4">
+                <p className="text-center text-gray-600 text-lg mt-4">
                   +{taggedItems.length - 4} more items
                 </p>
               )}
@@ -418,7 +421,7 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
 
           {/* Footer */}
           <div className="mt-8 text-center">
-            <p className="text-muted-foreground text-lg">
+            <p className="text-gray-600 text-lg">
               View full details at fits.app
             </p>
           </div>
