@@ -38,54 +38,51 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
   // Generate the shareable link
   const shareLink = `${window.location.origin}/fits/${fit.id}`;
 
-  // Helper function to convert image to data URL with CORS handling and fallbacks
-  const getImageAsDataUrl = async (imgSrc: string): Promise<string> => {
-    return new Promise((resolve) => {
+  // Enhanced image preloading with better error handling
+  const preloadImage = (src: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       
-      // Longer timeout for slow loading images
       const timeout = setTimeout(() => {
-        console.warn('⏰ Image load timeout, using original:', imgSrc);
-        resolve(imgSrc); // Fallback to original src
-      }, 15000); // Increased to 15 seconds
+        console.warn('⏰ Image preload timeout:', src);
+        reject(new Error(`Image preload timeout: ${src}`));
+      }, 20000); // 20 second timeout
       
       img.onload = () => {
         clearTimeout(timeout);
-        console.log('✅ Image loaded, converting to data URL:', imgSrc);
-        
-        try {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            console.warn('❌ No canvas context, using original');
-            resolve(imgSrc);
-            return;
-          }
-          
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          ctx.drawImage(img, 0, 0);
-          
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-          console.log('✅ Successfully converted to data URL');
-          resolve(dataUrl);
-        } catch (error) {
-          console.warn('❌ CORS conversion failed, using original:', error);
-          resolve(imgSrc); // Fallback to original src
-        }
+        console.log('✅ Image preloaded successfully:', src);
+        resolve(img);
       };
       
       img.onerror = (e) => {
         clearTimeout(timeout);
-        console.warn('❌ Image failed to load, using original:', imgSrc, e);
-        resolve(imgSrc); // Fallback to original src
+        console.error('❌ Image preload failed:', src, e);
+        reject(new Error(`Image preload failed: ${src}`));
       };
       
-      // Try loading with cache busting
-      const cacheBustSrc = imgSrc.includes('?') ? `${imgSrc}&t=${Date.now()}` : `${imgSrc}?t=${Date.now()}`;
+      // Cache busting for reliable loading
+      const cacheBustSrc = src.includes('?') ? `${src}&cb=${Date.now()}` : `${src}?cb=${Date.now()}`;
       img.src = cacheBustSrc;
     });
+  };
+
+  // Convert loaded image to data URL for CORS-safe embedding
+  const imageToDataUrl = (img: HTMLImageElement): string => {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('No canvas context');
+      
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.drawImage(img, 0, 0);
+      
+      return canvas.toDataURL('image/jpeg', 0.9);
+    } catch (error) {
+      console.warn('Failed to convert image to data URL:', error);
+      return img.src; // Fallback to original
+    }
   };
 
   const generateAndShare = async () => {
@@ -115,29 +112,55 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
         scrollHeight: storyRef.current.scrollHeight
       });
 
-      // Convert images to data URLs to avoid CORS issues
-      const images = storyRef.current.querySelectorAll('img');
-      console.log('🖼️ Found images:', images.length);
+      // Pre-load ALL images before story generation to ensure they display
+      console.log('🖼️ Pre-loading all images for story...');
       
-      const imageConversionPromises = Array.from(images).map(async (img, index) => {
-        console.log(`📸 Processing Image ${index}:`, {
-          src: img.src,
-          complete: img.complete,
-          naturalWidth: img.naturalWidth,
-          naturalHeight: img.naturalHeight
-        });
-        
+      // Collect all image URLs that need to be loaded
+      const imageUrls: string[] = [];
+      
+      // Add main outfit image
+      if (fit.image_url) {
+        imageUrls.push(fit.image_url);
+      }
+      
+      // Add tagged item thumbnails
+      taggedItems.forEach(item => {
+        if (item.product_image_url) {
+          imageUrls.push(item.product_image_url);
+        }
+      });
+      
+      console.log(`📸 Pre-loading ${imageUrls.length} images:`, imageUrls);
+
+      // Pre-load all images with robust error handling
+      const preloadPromises = imageUrls.map(async (url, index) => {
         try {
-          const dataUrl = await getImageAsDataUrl(img.src);
-          img.src = dataUrl;
-          console.log(`✅ Image ${index} converted to data URL`);
+          console.log(`🔄 Pre-loading image ${index + 1}/${imageUrls.length}:`, url);
+          const loadedImg = await preloadImage(url);
+          const dataUrl = imageToDataUrl(loadedImg);
+          console.log(`✅ Image ${index + 1} pre-loaded and converted`);
+          return { url, dataUrl, success: true };
         } catch (error) {
-          console.warn(`⚠️ Image ${index} conversion failed, keeping original:`, error);
+          console.warn(`⚠️ Image ${index + 1} failed to pre-load:`, url, error);
+          return { url, dataUrl: url, success: false }; // Use original URL as fallback
         }
       });
 
-      await Promise.all(imageConversionPromises);
-      console.log('✅ All images processed');
+      const preloadResults = await Promise.all(preloadPromises);
+      console.log('✅ Pre-loading completed, updating DOM images...');
+
+      // Update all images in the DOM with pre-loaded data URLs
+      const images = storyRef.current.querySelectorAll('img');
+      Array.from(images).forEach((img) => {
+        const originalSrc = img.getAttribute('data-original-src') || img.src;
+        const result = preloadResults.find(r => r.url === originalSrc);
+        if (result) {
+          img.src = result.dataUrl;
+          console.log(`🔄 Updated DOM image:`, originalSrc.substring(0, 50));
+        }
+      });
+      
+      console.log('✅ All DOM images updated with pre-loaded data');
 
       // Wait longer for DOM to fully update and render images
       console.log('⏳ Waiting for DOM to stabilize...');
