@@ -90,7 +90,8 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
           img.onerror = (e) => {
             console.error(`❌ Image ${index} failed to load:`, e);
             clearTimeout(timeout);
-            reject(new Error(`Image ${index} failed to load: ${img.src}`));
+            const errorType = typeof e === 'object' && e !== null && 'type' in e ? e.type : 'Unknown error';
+            reject(new Error(`Image failed to load: ${img.src} - ${errorType}`));
           };
         });
       });
