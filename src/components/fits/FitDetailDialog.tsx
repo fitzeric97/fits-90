@@ -214,7 +214,7 @@ export function FitDetailDialog({
             
             {/* Actions - At the top */}
             <div className="flex gap-2">
-              <div className="flex-1">
+              <div className="shrink-0">
                 <StoryImageGenerator
                   fit={{
                     id: fit.id,
@@ -244,9 +244,9 @@ export function FitDetailDialog({
                 <Button 
                   variant="destructive" 
                   onClick={handleDelete}
+                  size="sm"
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               )}
             </div>

@@ -194,32 +194,15 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
       </div>
 
       {/* Visible UI */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         <Button
           onClick={generateAndShare}
           disabled={generating}
-          className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white"
+          size="sm"
+          className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-3 py-1 h-8 text-xs"
         >
-          <Instagram className="w-4 h-4 mr-2" />
-          {generating ? 'Generating...' : 'Share to Instagram Story'}
-        </Button>
-        
-        <Button
-          onClick={copyLink}
-          variant="outline"
-          className="w-full"
-        >
-          {linkCopied ? (
-            <>
-              <Check className="w-4 h-4 mr-2 text-green-600" />
-              Link Copied!
-            </>
-          ) : (
-            <>
-              <Copy className="w-4 h-4 mr-2" />
-              Copy Link
-            </>
-          )}
+          <Instagram className="w-3 h-3 mr-1" />
+          {generating ? 'Generating...' : 'Story'}
         </Button>
       </div>
     </>
