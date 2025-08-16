@@ -78,35 +78,10 @@ const headToToeOrder = [
 export default function Closet() {
   const isMobile = useIsMobile();
   
-  console.log("Closet component - isMobile:", isMobile, "window width:", window.innerWidth);
-  
-  // Temporary visual debug for mobile detection
-  if (typeof window !== 'undefined' && window.innerWidth < 768) {
-    return (
-      <div className="fixed inset-0 bg-red-100 p-4 z-50 text-black">
-        <h1>Debug Info</h1>
-        <p>isMobile: {String(isMobile)}</p>
-        <p>Window width: {window.innerWidth}px</p>
-        <p>Should show mobile: {window.innerWidth < 768 ? 'Yes' : 'No'}</p>
-        {isMobile ? (
-          <div>
-            <p>Rendering MobileCloset...</p>
-            <MobileCloset />
-          </div>
-        ) : (
-          <p>isMobile is false, not rendering MobileCloset</p>
-        )}
-      </div>
-    );
-  }
-  
   // Use mobile version on mobile devices
   if (isMobile) {
-    console.log("Rendering MobileCloset component");
     return <MobileCloset />;
   }
-  
-  console.log("Rendering desktop closet");
 
   const [closetItems, setClosetItems] = useState<ClosetItem[]>([]);
   const [loading, setLoading] = useState(true);
