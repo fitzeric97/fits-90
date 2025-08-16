@@ -8,8 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export default function MobileCloset() {
+  console.log("MobileCloset component mounted");
+  
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
 
@@ -18,14 +21,28 @@ export default function MobileCloset() {
   }, [user]);
 
   const fetchItems = async () => {
-    const { data } = await supabase
-      .from('closet_items')
-      .select('*')
-      .eq('user_id', user?.id)
-      .order('created_at', { ascending: false });
-    
-    setItems(data || []);
-    setLoading(false);
+    try {
+      console.log("Fetching closet items...");
+      const { data, error: fetchError } = await supabase
+        .from('closet_items')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+      
+      if (fetchError) {
+        console.error("Supabase error:", fetchError);
+        setError(fetchError.message);
+        return;
+      }
+      
+      console.log("Fetched items:", data);
+      setItems(data || []);
+    } catch (err) {
+      console.error("Catch error:", err);
+      setError("Failed to load closet items");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderClosetItem = (item: any, viewMode: 'grid' | 'list') => {
@@ -95,6 +112,29 @@ export default function MobileCloset() {
       <MobileLayout>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </MobileLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <MobileLayout>
+        <div className="flex items-center justify-center h-64 p-4">
+          <div className="text-center">
+            <p className="text-red-500 mb-2">Error loading closet</p>
+            <p className="text-sm text-muted-foreground">{error}</p>
+            <button 
+              onClick={() => {
+                setError(null);
+                setLoading(true);
+                fetchItems();
+              }}
+              className="mt-2 px-4 py-2 bg-primary text-white rounded"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </MobileLayout>
     );
