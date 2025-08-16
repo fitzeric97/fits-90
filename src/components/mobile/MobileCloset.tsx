@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
-import { AddClosetItemDialog } from "@/components/closet/AddClosetItemDialog";
+import { QuickAddFlow } from "@/components/shared/QuickAddFlow";
 import { Card } from "@/components/ui/card";
-import { Package } from "lucide-react";
+import { Package, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useToast } from "@/hooks/use-toast";
 
 export default function MobileCloset() {
   console.log("MobileCloset component mounted");
@@ -14,7 +16,9 @@ export default function MobileCloset() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) fetchItems();
@@ -42,6 +46,44 @@ export default function MobileCloset() {
       setError("Failed to load closet items");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleQuickAddComplete = async (data: any) => {
+    try {
+      const { error } = await supabase.functions.invoke('add-item-to-closet', {
+        body: {
+          url: data.url,
+          product_name: data.title,
+          brand_name: data.brand_name,
+          price: data.price,
+          product_image_url: data.image_url,
+          product_description: data.description
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to add item to closet",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Success!",
+        description: "Item added to your closet",
+      });
+
+      fetchItems();
+    } catch (error) {
+      console.error('Error adding to closet:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to closet",
+        variant: "destructive"
+      });
     }
   };
 
@@ -149,12 +191,24 @@ export default function MobileCloset() {
         emptyMessage="Your closet is empty. Start adding your favorite items!"
       />
       
+      {/* Floating Action Button */}
       <div className="fixed bottom-20 right-4 z-50">
-        <AddClosetItemDialog onItemAdded={() => {
-          fetchItems();
-          setRefreshTrigger(prev => prev + 1);
-        }} />
+        <Button
+          size="lg"
+          className="h-14 w-14 rounded-full shadow-lg"
+          onClick={() => setShowQuickAdd(true)}
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
       </div>
+
+      {/* Quick Add Flow */}
+      <QuickAddFlow
+        open={showQuickAdd}
+        onOpenChange={setShowQuickAdd}
+        onComplete={handleQuickAddComplete}
+        type="closet"
+      />
     </MobileLayout>
   );
 }
