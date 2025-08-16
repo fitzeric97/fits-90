@@ -78,6 +78,15 @@ const headToToeOrder = [
 export default function Closet() {
   const isMobile = useIsMobile();
   
+  // Handle initial loading state for mobile detection
+  if (isMobile === undefined) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
   // Use mobile version on mobile devices
   if (isMobile) {
     return <MobileCloset />;
