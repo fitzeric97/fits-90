@@ -36,13 +36,36 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
     setGenerating(true);
     
     try {
-      // Generate high-quality image
+      // Wait for images to load before generating
+      const images = storyRef.current.querySelectorAll('img');
+      await Promise.all(
+        Array.from(images).map((img) => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            // Timeout after 10 seconds
+            setTimeout(() => reject(new Error('Image load timeout')), 10000);
+          });
+        })
+      );
+
+      console.log('Generating story image...', { width: 1080, height: 1920 });
+      
+      // Generate high-quality image with better options
       const dataUrl = await htmlToImage.toJpeg(storyRef.current, {
         quality: 0.95,
         width: 1080,
         height: 1920,
         pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top left',
+        }
       });
+
+      console.log('Story image generated successfully');
 
       // Convert to blob for sharing
       const response = await fetch(dataUrl);
@@ -52,6 +75,8 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
       // Copy link to clipboard first
       await navigator.clipboard.writeText(shareLink);
       setLinkCopied(true);
+      
+      console.log('Attempting to share...', { canShare: !!navigator.share });
       
       // Check if we can share (mobile only)
       if (navigator.share && navigator.canShare({ files: [file] })) {
@@ -80,10 +105,23 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
         });
       }
     } catch (error) {
-      console.error('Error sharing:', error);
+      console.error('Error generating/sharing story:', error);
+      
+      // More specific error messages
+      let errorMessage = "Could not generate story. Please try again.";
+      if (error instanceof Error) {
+        if (error.message.includes('Image load timeout')) {
+          errorMessage = "Images are taking too long to load. Please try again.";
+        } else if (error.message.includes('tainted')) {
+          errorMessage = "Image security error. Try with different images.";
+        } else if (error.message.includes('Network')) {
+          errorMessage = "Network error. Check your connection and try again.";
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Could not generate story. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -107,8 +145,13 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
       {/* Hidden Story Template - This gets converted to image */}
       <div 
         ref={storyRef}
-        className="fixed -left-[9999px] bg-gradient-to-br from-background to-card"
-        style={{ width: 1080, height: 1920 }}
+        className="fixed top-0 left-[-2000px] opacity-0 pointer-events-none bg-gradient-to-br from-background to-card"
+        style={{ 
+          width: '1080px', 
+          height: '1920px',
+          position: 'fixed',
+          zIndex: -1
+        }}
       >
         <div className="relative w-full h-full p-12 flex flex-col">
           {/* App Logo/Branding */}
