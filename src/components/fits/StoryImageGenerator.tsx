@@ -3,6 +3,7 @@ import * as htmlToImage from 'html-to-image';
 import { Share2, Instagram, Check, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface StoryImageGeneratorProps {
   fit: {
@@ -27,6 +28,12 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
   const [linkCopied, setLinkCopied] = useState(false);
   const [debugError, setDebugError] = useState<string | null>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+
+  // Only show on mobile devices - Instagram Stories are mobile-only
+  if (!isMobile) {
+    return null;
+  }
 
   // Generate the shareable link
   const shareLink = `${window.location.origin}/fits/${fit.id}`;
