@@ -82,6 +82,28 @@ export function ClosetItemDetailDialog({
               />
             </div>
             
+            {/* Actions - Moved to top */}
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleEdit}
+                className="flex-1"
+                variant="default"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+              {onDelete && (
+                <Button 
+                  variant="destructive" 
+                  onClick={handleDelete}
+                  className="flex-1"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              )}
+            </div>
+            
             {/* Content */}
             <div className="space-y-4">
               <div>
@@ -167,33 +189,14 @@ export function ClosetItemDetailDialog({
                 </div>
               </div>
               
-              {/* Actions */}
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  onClick={handleEdit}
-                  className="flex-1"
-                  variant="default"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-                {onDelete && (
-                  <Button 
-                    variant="destructive" 
-                    onClick={handleDelete}
-                    className="flex-1"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                )}
-                <Button 
-                  variant="outline" 
-                  onClick={() => onOpenChange(false)}
-                >
-                  Close
-                </Button>
-              </div>
+              {/* Close Button */}
+              <Button 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                className="w-full"
+              >
+                Close
+              </Button>
             </div>
           </div>
         </DialogContent>

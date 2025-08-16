@@ -78,6 +78,35 @@ export function LikeDetailDialog({
               />
             </div>
             
+            {/* Actions - Moved to top */}
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => window.open(like.url, '_blank')} 
+                className="flex-1"
+                variant="default"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Visit Store
+              </Button>
+              <Button 
+                onClick={handleEdit}
+                className="flex-1"
+                variant="outline"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+              {onDelete && (
+                <Button 
+                  variant="destructive" 
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              )}
+            </div>
+            
             {/* Content */}
             <div className="space-y-4">
               {like.brand_name && (
@@ -139,35 +168,7 @@ export function LikeDetailDialog({
                 )}
               </div>
               
-              {/* Actions */}
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  onClick={() => window.open(like.url, '_blank')} 
-                  className="flex-1"
-                  variant="default"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Visit Store
-                </Button>
-                <Button 
-                  onClick={handleEdit}
-                  className="flex-1"
-                  variant="outline"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-                {onDelete && (
-                  <Button 
-                    variant="destructive" 
-                    onClick={handleDelete}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                )}
-              </div>
-              
+              {/* Close Button */}
               <Button 
                 variant="ghost" 
                 onClick={() => onOpenChange(false)}
