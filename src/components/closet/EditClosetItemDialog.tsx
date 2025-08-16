@@ -201,9 +201,11 @@ export function EditClosetItemDialog({ item, onItemUpdated, open: externalOpen, 
         <DialogHeader>
           <DialogTitle>Edit Closet Item</DialogTitle>
           {hasChanges && (
-            <Button type="submit" form="edit-form" disabled={loading} size="sm" className="mt-2 w-fit">
-              {loading ? "Saving..." : "Save"}
-            </Button>
+            <div className="flex justify-center mt-2">
+              <Button type="submit" form="edit-form" disabled={loading} size="sm">
+                {loading ? "Saving..." : "Save"}
+              </Button>
+            </div>
           )}
         </DialogHeader>
 

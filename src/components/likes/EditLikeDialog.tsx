@@ -327,12 +327,14 @@ export function EditLikeDialog({ like, onItemUpdated, open: externalOpen, onOpen
         <DialogHeader>
           <DialogTitle>{isMovingToCloset ? "Move to Closet" : "Edit Liked Item"}</DialogTitle>
           {hasChanges && (
-            <Button type="submit" form="edit-form" disabled={loading} size="sm" className="mt-2 w-fit">
-              {loading 
-                ? (isMovingToCloset ? "Moving..." : "Saving...") 
-                : (isMovingToCloset ? "Move to Closet" : "Save")
-              }
-            </Button>
+            <div className="flex justify-center mt-2">
+              <Button type="submit" form="edit-form" disabled={loading} size="sm">
+                {loading 
+                  ? (isMovingToCloset ? "Moving..." : "Saving...") 
+                  : (isMovingToCloset ? "Move to Closet" : "Save")
+                }
+              </Button>
+            </div>
           )}
         </DialogHeader>
 
