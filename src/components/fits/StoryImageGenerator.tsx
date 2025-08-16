@@ -345,86 +345,68 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
           transform: 'translateX(-200vw)'
         }}
       >
-        <div className="relative w-full h-full p-12 flex flex-col">
-          {/* App Logo/Branding */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
+        <div className="relative w-full h-full flex flex-col bg-white">
+          {/* Top - Fits Logo */}
+          <div className="flex items-center justify-center pt-16 pb-8">
+            <div className="flex items-center gap-3">
               <img 
                 src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
                 alt="Fits" 
-                className="h-16 w-16"
+                className="h-12 w-12"
               />
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900">Fits</h2>
-                <p className="text-gray-600 text-lg">@{username || 'user'}</p>
-              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Fits</h2>
             </div>
           </div>
 
-          {/* Main Fit Image */}
-          <div className="flex-1 flex items-center justify-center mb-8">
-            <div className="relative">
+          {/* Main Outfit Image - Takes most of the space */}
+          <div className="flex-1 flex items-center justify-center px-8 pb-8">
+            <div className="relative max-w-full max-h-full">
               <img 
                 src={fit.image_url} 
-                alt="Fit"
-                className="max-w-full max-h-[800px] object-contain rounded-2xl shadow-2xl"
+                alt="Outfit"
+                className="max-w-full max-h-full object-contain rounded-3xl shadow-lg"
+                style={{ maxHeight: '900px', maxWidth: '600px' }}
               />
             </div>
           </div>
 
-          {/* Caption */}
-          {fit.caption && (
-            <div className="mb-8">
-              <p className="text-gray-900 text-xl text-center font-medium">
-                "{fit.caption}"
-              </p>
-            </div>
-          )}
-
-          {/* Tagged Items */}
+          {/* Bottom - Tagged Items Thumbnails */}
           {taggedItems.length > 0 && (
-            <div className="bg-white/90 rounded-2xl p-8 backdrop-blur-sm">
-              <h3 className="text-gray-900 text-2xl font-bold mb-6 text-center">Tagged Items</h3>
-              <div className="grid grid-cols-2 gap-6">
-                {taggedItems.slice(0, 4).map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 bg-white rounded-xl p-4 shadow-lg">
+            <div className="bg-gray-50 px-8 py-6 rounded-t-3xl">
+              <div className="flex items-center justify-center gap-4 mb-4">
+                {taggedItems.slice(0, 3).map((item) => (
+                  <div key={item.id} className="flex flex-col items-center">
                     {item.product_image_url && (
-                      <img 
-                        src={item.product_image_url} 
-                        alt={item.product_name}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
+                      <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center p-2">
+                        <img 
+                          src={item.product_image_url} 
+                          alt={item.product_name}
+                          className="w-full h-full object-cover rounded-xl"
+                        />
+                      </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 text-lg truncate">
-                        {item.brand_name}
-                      </p>
-                      <p className="text-gray-600 text-base truncate">
-                        {item.product_name}
-                      </p>
-                      {item.price && (
-                        <p className="text-gray-900 font-bold text-lg">
-                          {item.price}
-                        </p>
-                      )}
-                    </div>
+                    <p className="text-xs font-medium text-gray-900 mt-2 text-center max-w-16 truncate">
+                      {item.brand_name}
+                    </p>
                   </div>
                 ))}
+                {taggedItems.length > 3 && (
+                  <div className="flex flex-col items-center">
+                    <div className="w-16 h-16 bg-gray-200 rounded-2xl shadow-md flex items-center justify-center">
+                      <span className="text-gray-600 font-bold text-sm">+{taggedItems.length - 3}</span>
+                    </div>
+                    <p className="text-xs font-medium text-gray-600 mt-2">more</p>
+                  </div>
+                )}
               </div>
-              {taggedItems.length > 4 && (
-                <p className="text-center text-gray-600 text-lg mt-4">
-                  +{taggedItems.length - 4} more items
+              
+              <div className="text-center">
+                <p className="text-gray-600 text-sm font-medium">
+                  Tap link to shop these items
                 </p>
-              )}
+              </div>
             </div>
           )}
-
-          {/* Footer */}
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 text-lg">
-              View full details at fits.app
-            </p>
-          </div>
         </div>
       </div>
 
