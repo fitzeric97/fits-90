@@ -9,6 +9,7 @@ interface MobileItemGridProps {
   onAddNew?: () => void;
   addButtonText?: string;
   emptyMessage?: string;
+  extraControls?: React.ReactNode;
 }
 
 export function MobileItemGrid({ 
@@ -16,7 +17,8 @@ export function MobileItemGrid({
   renderItem, 
   onAddNew,
   addButtonText = "Add Item",
-  emptyMessage = "No items yet"
+  emptyMessage = "No items yet",
+  extraControls
 }: MobileItemGridProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -24,7 +26,7 @@ export function MobileItemGrid({
     <div className="flex flex-col h-full">
       {/* Controls */}
       <div className="sticky top-0 bg-background z-30 p-4 border-b">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold">{items.length} items</h2>
           <div className="flex items-center gap-2">
             <div className="flex bg-muted rounded-lg p-1">
@@ -54,6 +56,11 @@ export function MobileItemGrid({
             )}
           </div>
         </div>
+        {extraControls && (
+          <div className="flex justify-start">
+            {extraControls}
+          </div>
+        )}
       </div>
 
       {/* Content */}

@@ -3,14 +3,38 @@ import { MobileLayout } from "@/components/layout/MobileLayout";
 import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
 import { AddLikeDialog } from "@/components/likes/AddLikeDialog";
 import { Card } from "@/components/ui/card";
-import { Heart, ExternalLink } from "lucide-react";
+import { Heart, ExternalLink, ArrowUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
+
+// Head to Toe ordering - from top of body to bottom
+const headToToeOrder = [
+  'hats',
+  'necklaces', 
+  'fragrances',
+  'shirts',
+  't-shirts', 
+  'polo-shirts',
+  'hoodies',
+  'sweatshirts',
+  'blazers',
+  'jackets',
+  'coats',
+  'dresses',
+  'skirts',
+  'pants',
+  'jeans',
+  'shorts',
+  'shoes',
+  'boots'
+];
 
 export default function MobileLikes() {
   const [likes, setLikes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [sortByHeadToToe, setSortByHeadToToe] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -109,14 +133,34 @@ export default function MobileLikes() {
     );
   }
 
+  // Sort by Head to Toe order if enabled
+  const sortedLikes = sortByHeadToToe 
+    ? [...likes].sort((a, b) => {
+        const aIndex = a.category ? headToToeOrder.indexOf(a.category) : 999;
+        const bIndex = b.category ? headToToeOrder.indexOf(b.category) : 999;
+        return aIndex - bIndex;
+      })
+    : likes;
+
   return (
     <MobileLayout>
       <MobileItemGrid
-        items={likes}
+        items={sortedLikes}
         renderItem={renderLikeItem}
         onAddNew={() => setShowAddDialog(true)}
         addButtonText="Add Like"
         emptyMessage="No liked items yet. Start adding things you love!"
+        extraControls={
+          <Button
+            variant={sortByHeadToToe ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
+            className="flex items-center gap-1"
+          >
+            <ArrowUpDown className="h-3 w-3" />
+            Head to Toe
+          </Button>
+        }
       />
       
       <AddLikeDialog
