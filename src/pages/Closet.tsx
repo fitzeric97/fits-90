@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive, Square, Footprints, Eye, Trash2, Sparkles, ArrowUpDown, Gem } from "lucide-react";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileCloset from "@/components/mobile/MobileCloset";
 import { AddClosetItemDialog } from "@/components/closet/AddClosetItemDialog";
 import { EditClosetItemDialog } from "@/components/closet/EditClosetItemDialog";
 import { Input } from "@/components/ui/input";
@@ -11,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
 import { useBrandPromotions } from "@/hooks/useBrandPromotions";
 
@@ -74,6 +76,13 @@ const headToToeOrder = [
 ];
 
 export default function Closet() {
+  const isMobile = useIsMobile();
+  
+  // Use mobile version on mobile devices
+  if (isMobile) {
+    return <MobileCloset />;
+  }
+
   const [closetItems, setClosetItems] = useState<ClosetItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
