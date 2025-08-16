@@ -25,32 +25,80 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
   const storyRef = useRef<HTMLDivElement>(null);
   const [generating, setGenerating] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [debugError, setDebugError] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Generate the shareable link
   const shareLink = `${window.location.origin}/fits/${fit.id}`;
 
   const generateAndShare = async () => {
-    if (!storyRef.current) return;
+    console.log('🎬 Starting story generation...', { 
+      fitId: fit.id, 
+      hasTaggedItems: taggedItems.length > 0,
+      username,
+      storyRefExists: !!storyRef.current 
+    });
+    
+    setDebugError(null);
+    
+    if (!storyRef.current) {
+      const error = 'Story ref is null - DOM element not found';
+      console.error('❌', error);
+      setDebugError(error);
+      return;
+    }
     
     setGenerating(true);
     
     try {
+      console.log('📐 Story element dimensions:', {
+        width: storyRef.current.offsetWidth,
+        height: storyRef.current.offsetHeight,
+        scrollWidth: storyRef.current.scrollWidth,
+        scrollHeight: storyRef.current.scrollHeight
+      });
+
       // Wait for images to load before generating
       const images = storyRef.current.querySelectorAll('img');
-      await Promise.all(
-        Array.from(images).map((img) => {
-          if (img.complete) return Promise.resolve();
-          return new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            // Timeout after 10 seconds
-            setTimeout(() => reject(new Error('Image load timeout')), 10000);
-          });
-        })
-      );
+      console.log('🖼️ Found images:', images.length);
+      
+      const imagePromises = Array.from(images).map((img, index) => {
+        console.log(`📸 Image ${index}:`, {
+          src: img.src,
+          complete: img.complete,
+          naturalWidth: img.naturalWidth,
+          naturalHeight: img.naturalHeight
+        });
+        
+        if (img.complete && img.naturalWidth > 0) {
+          console.log(`✅ Image ${index} already loaded`);
+          return Promise.resolve();
+        }
+        
+        return new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            console.warn(`⏰ Image ${index} load timeout`);
+            reject(new Error(`Image ${index} load timeout: ${img.src}`));
+          }, 10000);
+          
+          img.onload = () => {
+            console.log(`✅ Image ${index} loaded successfully`);
+            clearTimeout(timeout);
+            resolve(void 0);
+          };
+          
+          img.onerror = (e) => {
+            console.error(`❌ Image ${index} failed to load:`, e);
+            clearTimeout(timeout);
+            reject(new Error(`Image ${index} failed to load: ${img.src}`));
+          };
+        });
+      });
 
-      console.log('Generating story image...', { width: 1080, height: 1920 });
+      await Promise.all(imagePromises);
+      console.log('✅ All images loaded successfully');
+
+      console.log('🎨 Generating story image...', { width: 1080, height: 1920 });
       
       // Generate high-quality image with better options
       const dataUrl = await htmlToImage.toJpeg(storyRef.current, {
@@ -65,21 +113,29 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
         }
       });
 
-      console.log('Story image generated successfully');
+      console.log('✅ Story image generated successfully, size:', dataUrl.length);
 
       // Convert to blob for sharing
+      console.log('🔄 Converting to blob...');
       const response = await fetch(dataUrl);
       const blob = await response.blob();
       const file = new File([blob], 'fit-story.jpg', { type: 'image/jpeg' });
+      console.log('✅ Blob created:', { size: blob.size, type: blob.type });
 
       // Copy link to clipboard first
+      console.log('📋 Copying link to clipboard...');
       await navigator.clipboard.writeText(shareLink);
       setLinkCopied(true);
+      console.log('✅ Link copied successfully');
       
-      console.log('Attempting to share...', { canShare: !!navigator.share });
+      console.log('📱 Checking share capabilities...', { 
+        hasNavigatorShare: !!navigator.share,
+        canShareFiles: navigator.share ? navigator.canShare({ files: [file] }) : false
+      });
       
       // Check if we can share (mobile only)
       if (navigator.share && navigator.canShare({ files: [file] })) {
+        console.log('📤 Using native share...');
         await navigator.share({
           files: [file],
           title: 'Share to Instagram Story',
@@ -90,6 +146,7 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
           description: "Paste it as a link sticker in your story",
         });
       } else {
+        console.log('💾 Using fallback download...');
         // Fallback: Download image and open Instagram
         const link = document.createElement('a');
         link.download = 'fit-story.jpg';
@@ -104,18 +161,33 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
           description: "Open Instagram, select the image from gallery, and add link sticker",
         });
       }
+      
+      console.log('🎉 Story generation completed successfully!');
+      
     } catch (error) {
-      console.error('Error generating/sharing story:', error);
+      console.error('💥 Story generation failed:', error);
+      
+      const errorDetails = {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        toString: String(error)
+      };
+      
+      console.error('🔍 Error details:', errorDetails);
+      setDebugError(JSON.stringify(errorDetails, null, 2));
       
       // More specific error messages
       let errorMessage = "Could not generate story. Please try again.";
       if (error instanceof Error) {
-        if (error.message.includes('Image load timeout')) {
+        if (error.message.includes('Image') && error.message.includes('timeout')) {
           errorMessage = "Images are taking too long to load. Please try again.";
         } else if (error.message.includes('tainted')) {
           errorMessage = "Image security error. Try with different images.";
         } else if (error.message.includes('Network')) {
           errorMessage = "Network error. Check your connection and try again.";
+        } else if (error.message.includes('quota')) {
+          errorMessage = "Storage quota exceeded. Try clearing browser data.";
         }
       }
       
@@ -142,6 +214,20 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
 
   return (
     <>
+      {/* Debug Error Display */}
+      {debugError && (
+        <div className="fixed top-4 left-4 right-4 z-50 bg-red-500 text-white p-4 rounded-lg max-h-64 overflow-auto">
+          <h3 className="font-bold mb-2">🐛 Debug Error:</h3>
+          <pre className="text-xs whitespace-pre-wrap font-mono">{debugError}</pre>
+          <button 
+            onClick={() => setDebugError(null)}
+            className="mt-2 px-2 py-1 bg-red-700 rounded text-xs"
+          >
+            Close
+          </button>
+        </div>
+      )}
+
       {/* Hidden Story Template - This gets converted to image */}
       <div 
         ref={storyRef}
