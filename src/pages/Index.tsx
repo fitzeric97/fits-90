@@ -15,7 +15,6 @@ const Index = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Handle auth tokens in URL fragment and redirect if already authenticated
   useEffect(() => {
     // Check if there are auth tokens in the URL fragment (from magic link)
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -30,7 +29,15 @@ const Index = () => {
     }
     
     if (user) {
-      navigate('/dashboard');
+      // For authenticated users, check if mobile and redirect appropriately
+      const checkMobile = () => {
+        if (window.innerWidth < 768) {
+          navigate('/closet');
+        } else {
+          navigate('/dashboard');
+        }
+      };
+      checkMobile();
     }
   }, [user, navigate]);
 
