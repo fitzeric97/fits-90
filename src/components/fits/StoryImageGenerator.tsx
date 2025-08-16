@@ -27,6 +27,7 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
   const [generating, setGenerating] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [debugError, setDebugError] = useState<string | null>(null);
+  const [debugMode, setDebugMode] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -164,18 +165,33 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
 
       // Wait longer for DOM to fully update and render images
       console.log('⏳ Waiting for DOM to stabilize...');
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Increased to 2 seconds
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Increased to 3 seconds
+
+      // Debug: Log what's actually in the template
+      console.log('🔍 Template debugging info:', {
+        width: storyRef.current.offsetWidth,
+        height: storyRef.current.offsetHeight,
+        isVisible: storyRef.current.offsetParent !== null,
+        hasContent: storyRef.current.innerHTML.length > 0,
+        childrenCount: storyRef.current.children.length,
+        textContent: storyRef.current.textContent?.substring(0, 100)
+      });
 
       // Final check - ensure all images are actually loaded
       const finalImages = storyRef.current.querySelectorAll('img');
       let imagesReady = true;
       Array.from(finalImages).forEach((img, index) => {
+        console.log(`🖼️ Final image ${index} check:`, {
+          src: img.src.substring(0, 50) + '...',
+          complete: img.complete,
+          naturalWidth: img.naturalWidth,
+          naturalHeight: img.naturalHeight,
+          offsetWidth: img.offsetWidth,
+          offsetHeight: img.offsetHeight
+        });
+        
         if (!img.complete || img.naturalWidth === 0) {
-          console.warn(`⚠️ Image ${index} not ready:`, {
-            complete: img.complete,
-            naturalWidth: img.naturalWidth,
-            src: img.src.substring(0, 100)
-          });
+          console.warn(`⚠️ Image ${index} not ready`);
           imagesReady = false;
         } else {
           console.log(`✅ Image ${index} confirmed ready`);
@@ -183,6 +199,10 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
       });
       
       console.log('📊 Final images status:', { total: finalImages.length, ready: imagesReady });
+
+      // Force a repaint
+      storyRef.current.style.transform = 'translateZ(0)';
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Try multiple generation methods
       let dataUrl: string;
@@ -397,15 +417,15 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
       {/* Hidden Story Template - This gets converted to image */}
       <div 
         ref={storyRef}
-        className="fixed top-0 left-0 pointer-events-none bg-gradient-to-br from-white to-gray-50"
+        className="fixed top-0 left-0 pointer-events-none bg-white"
         style={{ 
           width: '1080px', 
           height: '1920px',
           position: 'fixed',
-          zIndex: -9999,
+          zIndex: generating ? 9999 : -9999,
           opacity: generating ? 1 : 0,
           visibility: generating ? 'visible' : 'hidden',
-          transform: 'translateX(-200vw)'
+          transform: generating ? 'translateX(0)' : 'translateX(-100vw)'
         }}
       >
         <div className="relative w-full h-full flex flex-col bg-white">
@@ -488,7 +508,78 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
           <Instagram className="w-3 h-3 mr-1" />
           {generating ? 'Generating...' : 'Story'}
         </Button>
+        
+        {/* Debug button to preview template */}
+        <Button
+          onClick={() => setDebugMode(!debugMode)}
+          size="sm"
+          variant="outline"
+          className="text-xs px-2 py-1 h-6"
+        >
+          {debugMode ? 'Hide Preview' : 'Preview Template'}
+        </Button>
       </div>
+
+      {/* Debug Template Preview - Shows actual template when debug mode is on */}
+      {debugMode && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-4 max-w-sm w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold">Story Template Preview</h3>
+              <Button onClick={() => setDebugMode(false)} size="sm" variant="ghost">✕</Button>
+            </div>
+            
+            <div 
+              className="w-full bg-white border rounded-lg overflow-hidden"
+              style={{ 
+                aspectRatio: '9/16',
+                maxHeight: '400px'
+              }}
+            >
+              <div className="relative w-full h-full flex flex-col bg-white text-black" style={{ fontSize: '3px' }}>
+                {/* Scaled down version for preview */}
+                <div className="flex items-center justify-center pt-4 pb-2">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                    <span className="text-black font-bold" style={{ fontSize: '6px' }}>Fits</span>
+                  </div>
+                </div>
+
+                <div className="flex-1 flex items-center justify-center px-2 pb-2">
+                  <div className="w-16 h-20 bg-gray-200 rounded border flex items-center justify-center">
+                    <span style={{ fontSize: '4px' }}>Outfit Image</span>
+                  </div>
+                </div>
+
+                {taggedItems.length > 0 && (
+                  <div className="bg-gray-50 px-2 py-1 rounded-t-lg">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      {taggedItems.slice(0, 3).map((item, idx) => (
+                        <div key={idx} className="flex flex-col items-center">
+                          <div className="w-3 h-3 bg-white rounded border"></div>
+                          <span style={{ fontSize: '2px' }}>{item.brand_name.substring(0, 4)}</span>
+                        </div>
+                      ))}
+                      {taggedItems.length > 3 && (
+                        <div className="w-3 h-3 bg-gray-200 rounded flex items-center justify-center">
+                          <span style={{ fontSize: '2px' }}>+{taggedItems.length - 3}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-center">
+                      <span style={{ fontSize: '3px' }}>Tap link to shop these items</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <p className="text-xs text-gray-600 mt-2">
+              This is what your story template should look like. If this looks correct but the generated image is still white, there may be a rendering issue.
+            </p>
+          </div>
+        </div>
+      )}
     </>
   );
 }
