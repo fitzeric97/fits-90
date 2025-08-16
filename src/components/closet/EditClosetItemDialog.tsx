@@ -27,12 +27,18 @@ interface ClosetItem {
 interface EditClosetItemDialogProps {
   item: ClosetItem;
   onItemUpdated: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function EditClosetItemDialog({ item, onItemUpdated }: EditClosetItemDialogProps) {
-  const [open, setOpen] = useState(false);
+export function EditClosetItemDialog({ item, onItemUpdated, open: externalOpen, onOpenChange: externalOnOpenChange }: EditClosetItemDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  
+  // Use external open state if provided, otherwise use internal
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = externalOnOpenChange || setInternalOpen;
   
   // Form data
   const [productName, setProductName] = useState(item.product_name || "");

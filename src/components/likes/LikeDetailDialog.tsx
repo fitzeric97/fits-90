@@ -186,6 +186,8 @@ export function LikeDetailDialog({
         <EditLikeDialog
           like={like}
           onItemUpdated={handleLikeUpdated}
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
         />
       )}
     </>

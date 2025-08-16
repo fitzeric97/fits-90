@@ -207,6 +207,8 @@ export function ClosetItemDetailDialog({
         <EditClosetItemDialog
           item={item}
           onItemUpdated={handleItemUpdated}
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
         />
       )}
     </>

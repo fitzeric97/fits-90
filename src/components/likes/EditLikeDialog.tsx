@@ -73,12 +73,18 @@ const orderedCategories = headToToeOrder.map(key => ({
 interface EditLikeDialogProps {
   like: Like;
   onItemUpdated: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function EditLikeDialog({ like, onItemUpdated }: EditLikeDialogProps) {
-  const [open, setOpen] = useState(false);
+export function EditLikeDialog({ like, onItemUpdated, open: externalOpen, onOpenChange: externalOnOpenChange }: EditLikeDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isMovingToCloset, setIsMovingToCloset] = useState(false);
+  
+  // Use external open state if provided, otherwise use internal
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = externalOnOpenChange || setInternalOpen;
   
   // Form data - existing fields
   const [title, setTitle] = useState(like.title);
