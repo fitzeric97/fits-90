@@ -87,9 +87,7 @@ const App = () => {
             } />
             <Route path="/fits" element={
               <ProtectedRoute>
-                <MobileRouteWrapper>
-                  <Fits />
-                </MobileRouteWrapper>
+                <Fits />
               </ProtectedRoute>
             } />
             <Route path="/likes" element={
