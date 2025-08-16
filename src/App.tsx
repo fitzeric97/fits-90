@@ -1,3 +1,4 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { MobileLayout } from "@/components/layout/MobileLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import ConnectPage from "./pages/ConnectPage";
@@ -25,10 +28,21 @@ import Notifications from "./pages/Notifications";
 import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
 import ConnectionProfile from "./pages/ConnectionProfile";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
 console.log('App.tsx component loading...');
+
+const MobileRouteWrapper = ({ children }: { children: React.ReactNode }) => {
+  const isMobile = useIsMobile();
+  
+  if (isMobile) {
+    return <MobileLayout>{children}</MobileLayout>;
+  }
+  
+  return <>{children}</>;
+};
 
 const App = () => {
   console.log('App component rendering...');
@@ -61,7 +75,9 @@ const App = () => {
             } />
             <Route path="/closet" element={
               <ProtectedRoute>
-                <Closet />
+                <MobileRouteWrapper>
+                  <Closet />
+                </MobileRouteWrapper>
               </ProtectedRoute>
             } />
             <Route path="/closet/:id" element={
@@ -71,12 +87,23 @@ const App = () => {
             } />
             <Route path="/fits" element={
               <ProtectedRoute>
-                <Fits />
+                <MobileRouteWrapper>
+                  <Fits />
+                </MobileRouteWrapper>
               </ProtectedRoute>
             } />
             <Route path="/likes" element={
               <ProtectedRoute>
-                <Likes />
+                <MobileRouteWrapper>
+                  <Likes />
+                </MobileRouteWrapper>
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <MobileRouteWrapper>
+                  <Profile />
+                </MobileRouteWrapper>
               </ProtectedRoute>
             } />
             <Route path="/connect" element={
