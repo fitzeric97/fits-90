@@ -315,16 +315,26 @@ export function EditLikeDialog({ like, onItemUpdated, open: externalOpen, onOpen
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
-          <DialogTitle>{isMovingToCloset ? "Move to Closet" : "Edit Liked Item"}</DialogTitle>
-          <DialogDescription>
-            {isMovingToCloset 
-              ? "Add ownership details and move this item to your closet"
-              : "Update the details of your liked item"
-            }
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle>{isMovingToCloset ? "Move to Closet" : "Edit Liked Item"}</DialogTitle>
+              <DialogDescription>
+                {isMovingToCloset 
+                  ? "Add ownership details and move this item to your closet"
+                  : "Update the details of your liked item"
+                }
+              </DialogDescription>
+            </div>
+            <Button type="submit" form="edit-form" disabled={loading} size="sm">
+              {loading 
+                ? (isMovingToCloset ? "Moving..." : "Saving...") 
+                : (isMovingToCloset ? "Move to Closet" : "Save")
+              }
+            </Button>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
+        <form id="edit-form" onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
           {/* Common fields matching AddClosetItemDialog structure */}
           <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="space-y-2">
@@ -538,13 +548,6 @@ export function EditLikeDialog({ like, onItemUpdated, open: externalOpen, onOpen
                 Move to Closet
               </Button>
             )}
-            
-            <Button type="submit" disabled={loading}>
-              {loading 
-                ? (isMovingToCloset ? "Moving..." : "Updating...") 
-                : (isMovingToCloset ? "Move to Closet" : "Update Like")
-              }
-            </Button>
             
             {isMovingToCloset && (
               <Button
