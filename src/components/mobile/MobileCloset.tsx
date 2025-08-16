@@ -10,23 +10,28 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/hooks/use-toast";
 
 export default function MobileCloset() {
-  console.log("MobileCloset component mounted");
+  console.log("MobileCloset component rendering"); // Debug log
   
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user) fetchItems();
+    console.log("MobileCloset useEffect, user:", user?.id); // Debug log
+    if (user) {
+      fetchItems();
+    } else {
+      setLoading(false);
+    }
   }, [user]);
 
   const fetchItems = async () => {
     try {
-      console.log("Fetching closet items...");
+      console.log("Fetching closet items for user:", user?.id); // Debug log
+      
       const { data, error: fetchError } = await supabase
         .from('closet_items')
         .select('*')
@@ -36,13 +41,12 @@ export default function MobileCloset() {
       if (fetchError) {
         console.error("Supabase error:", fetchError);
         setError(fetchError.message);
-        return;
+      } else {
+        console.log("Fetched closet items:", data?.length || 0); // Debug log
+        setItems(data || []);
       }
-      
-      console.log("Fetched items:", data);
-      setItems(data || []);
     } catch (err) {
-      console.error("Catch error:", err);
+      console.error("Catch block error:", err);
       setError("Failed to load closet items");
     } finally {
       setLoading(false);
@@ -149,34 +153,36 @@ export default function MobileCloset() {
     );
   };
 
-  if (loading) {
+  // Error state
+  if (error) {
     return (
       <MobileLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center justify-center h-64 p-4">
+          <Package className="h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-center text-muted-foreground mb-4">
+            Error loading closet: {error}
+          </p>
+          <button 
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              fetchItems();
+            }}
+            className="text-primary underline"
+          >
+            Try Again
+          </button>
         </div>
       </MobileLayout>
     );
   }
 
-  if (error) {
+  // Loading state
+  if (loading) {
     return (
       <MobileLayout>
-        <div className="flex items-center justify-center h-64 p-4">
-          <div className="text-center">
-            <p className="text-red-500 mb-2">Error loading closet</p>
-            <p className="text-sm text-muted-foreground">{error}</p>
-            <button 
-              onClick={() => {
-                setError(null);
-                setLoading(true);
-                fetchItems();
-              }}
-              className="mt-2 px-4 py-2 bg-primary text-white rounded"
-            >
-              Retry
-            </button>
-          </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </MobileLayout>
     );
