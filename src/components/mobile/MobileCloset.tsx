@@ -10,7 +10,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 export default function MobileCloset() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -105,17 +105,16 @@ export default function MobileCloset() {
       <MobileItemGrid
         items={items}
         renderItem={renderClosetItem}
-        onAddNew={() => setShowAddDialog(true)}
         addButtonText="Add Item"
         emptyMessage="Your closet is empty. Start adding your favorite items!"
       />
       
-      {showAddDialog && (
+      <div className="fixed bottom-20 right-4 z-50">
         <AddClosetItemDialog onItemAdded={() => {
           fetchItems();
-          setShowAddDialog(false);
+          setRefreshTrigger(prev => prev + 1);
         }} />
-      )}
+      </div>
     </MobileLayout>
   );
 }
