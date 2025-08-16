@@ -31,6 +31,42 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
   // Generate the shareable link
   const shareLink = `${window.location.origin}/fits/${fit.id}`;
 
+  // Helper function to convert image to data URL with CORS handling
+  const getImageAsDataUrl = async (imgSrc: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Could not get canvas context'));
+            return;
+          }
+          
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          ctx.drawImage(img, 0, 0);
+          
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          resolve(dataUrl);
+        } catch (error) {
+          console.warn('CORS image conversion failed, using original:', error);
+          resolve(imgSrc); // Fallback to original src
+        }
+      };
+      
+      img.onerror = () => {
+        console.warn('Image load failed, using original src');
+        resolve(imgSrc); // Fallback to original src
+      };
+      
+      img.src = imgSrc;
+    });
+  };
+
   const generateAndShare = async () => {
     console.log('🎬 Starting story generation...', { 
       fitId: fit.id, 
@@ -58,63 +94,98 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
         scrollHeight: storyRef.current.scrollHeight
       });
 
-      // Wait for images to load before generating
+      // Convert images to data URLs to avoid CORS issues
       const images = storyRef.current.querySelectorAll('img');
       console.log('🖼️ Found images:', images.length);
       
-      const imagePromises = Array.from(images).map((img, index) => {
-        console.log(`📸 Image ${index}:`, {
+      const imageConversionPromises = Array.from(images).map(async (img, index) => {
+        console.log(`📸 Processing Image ${index}:`, {
           src: img.src,
           complete: img.complete,
           naturalWidth: img.naturalWidth,
           naturalHeight: img.naturalHeight
         });
         
-        if (img.complete && img.naturalWidth > 0) {
-          console.log(`✅ Image ${index} already loaded`);
-          return Promise.resolve();
+        try {
+          const dataUrl = await getImageAsDataUrl(img.src);
+          img.src = dataUrl;
+          console.log(`✅ Image ${index} converted to data URL`);
+        } catch (error) {
+          console.warn(`⚠️ Image ${index} conversion failed, keeping original:`, error);
         }
-        
-        return new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            console.warn(`⏰ Image ${index} load timeout`);
-            reject(new Error(`Image ${index} load timeout: ${img.src}`));
-          }, 10000);
-          
-          img.onload = () => {
-            console.log(`✅ Image ${index} loaded successfully`);
-            clearTimeout(timeout);
-            resolve(void 0);
-          };
-          
-          img.onerror = (e) => {
-            console.error(`❌ Image ${index} failed to load:`, e);
-            clearTimeout(timeout);
-            const errorType = typeof e === 'object' && e !== null && 'type' in e ? e.type : 'Unknown error';
-            reject(new Error(`Image failed to load: ${img.src} - ${errorType}`));
-          };
-        });
       });
 
-      await Promise.all(imagePromises);
-      console.log('✅ All images loaded successfully');
+      await Promise.all(imageConversionPromises);
+      console.log('✅ All images processed');
 
-      console.log('🎨 Generating story image...', { width: 1080, height: 1920 });
+      // Wait a bit for DOM to update
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Try multiple generation methods
+      let dataUrl: string;
+      let generationMethod = '';
       
-      // Generate high-quality image with better options
-      const dataUrl = await htmlToImage.toJpeg(storyRef.current, {
-        quality: 0.95,
-        width: 1080,
-        height: 1920,
-        pixelRatio: 2,
-        backgroundColor: '#ffffff',
-        style: {
-          transform: 'scale(1)',
-          transformOrigin: 'top left',
+      try {
+        console.log('🎨 Attempting PNG generation...');
+        dataUrl = await htmlToImage.toPng(storyRef.current, {
+          width: 1080,
+          height: 1920,
+          pixelRatio: 1,
+          backgroundColor: '#ffffff',
+          style: {
+            transform: 'scale(1)',
+            transformOrigin: 'top left',
+          }
+        });
+        generationMethod = 'PNG';
+        console.log('✅ PNG generation successful');
+      } catch (pngError) {
+        console.warn('PNG generation failed, trying JPEG:', pngError);
+        
+        try {
+          dataUrl = await htmlToImage.toJpeg(storyRef.current, {
+            quality: 0.95,
+            width: 1080,
+            height: 1920,
+            pixelRatio: 1,
+            backgroundColor: '#ffffff',
+            style: {
+              transform: 'scale(1)',
+              transformOrigin: 'top left',
+            }
+          });
+          generationMethod = 'JPEG';
+          console.log('✅ JPEG generation successful');
+        } catch (jpegError) {
+          console.warn('JPEG generation failed, trying SVG:', jpegError);
+          
+          const svgDataUrl = await htmlToImage.toSvg(storyRef.current, {
+            width: 1080,
+            height: 1920,
+            backgroundColor: '#ffffff',
+          });
+          
+          // Convert SVG to canvas for final image
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = 1080;
+          canvas.height = 1920;
+          
+          const svgImg = new Image();
+          await new Promise((resolve, reject) => {
+            svgImg.onload = resolve;
+            svgImg.onerror = reject;
+            svgImg.src = svgDataUrl;
+          });
+          
+          ctx?.drawImage(svgImg, 0, 0);
+          dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          generationMethod = 'SVG->Canvas';
+          console.log('✅ SVG conversion successful');
         }
-      });
+      }
 
-      console.log('✅ Story image generated successfully, size:', dataUrl.length);
+      console.log(`✅ Story image generated successfully using ${generationMethod}, size:`, dataUrl.length);
 
       // Convert to blob for sharing
       console.log('🔄 Converting to blob...');
@@ -125,42 +196,39 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
 
       // Copy link to clipboard first
       console.log('📋 Copying link to clipboard...');
-      await navigator.clipboard.writeText(shareLink);
-      setLinkCopied(true);
-      console.log('✅ Link copied successfully');
+      try {
+        await navigator.clipboard.writeText(shareLink);
+        setLinkCopied(true);
+        console.log('✅ Link copied successfully');
+      } catch (clipboardError) {
+        console.warn('Clipboard copy failed:', clipboardError);
+      }
       
       console.log('📱 Checking share capabilities...', { 
         hasNavigatorShare: !!navigator.share,
         canShareFiles: navigator.share ? navigator.canShare({ files: [file] }) : false
       });
       
-      // Check if we can share (mobile only)
+      // Progressive fallback for sharing
       if (navigator.share && navigator.canShare({ files: [file] })) {
         console.log('📤 Using native share...');
-        await navigator.share({
-          files: [file],
-          title: 'Share to Instagram Story',
-        });
-        
-        toast({
-          title: "Link copied!",
-          description: "Paste it as a link sticker in your story",
-        });
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'Share to Instagram Story',
+          });
+          
+          toast({
+            title: "Shared successfully!",
+            description: "Link copied - add it as a link sticker in your story",
+          });
+        } catch (shareError) {
+          console.warn('Native share failed, using download fallback:', shareError);
+          downloadFallback(dataUrl);
+        }
       } else {
         console.log('💾 Using fallback download...');
-        // Fallback: Download image and open Instagram
-        const link = document.createElement('a');
-        link.download = 'fit-story.jpg';
-        link.href = dataUrl;
-        link.click();
-        
-        // Try to open Instagram app
-        window.open('instagram://story-camera', '_blank');
-        
-        toast({
-          title: "Image downloaded & link copied!",
-          description: "Open Instagram, select the image from gallery, and add link sticker",
-        });
+        downloadFallback(dataUrl);
       }
       
       console.log('🎉 Story generation completed successfully!');
@@ -171,36 +239,70 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
       const errorDetails = {
         name: error instanceof Error ? error.name : 'Unknown',
         message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        toString: String(error)
+        stack: error instanceof Error ? error.stack?.substring(0, 500) : undefined,
+        toString: String(error).substring(0, 200)
       };
       
       console.error('🔍 Error details:', errorDetails);
       setDebugError(JSON.stringify(errorDetails, null, 2));
       
-      // More specific error messages
-      let errorMessage = "Could not generate story. Please try again.";
+      // Provide helpful error messages and recovery options
+      let errorMessage = "Story generation failed. ";
+      let recoveryAction = "Please try again or contact support.";
+      
       if (error instanceof Error) {
-        if (error.message.includes('Image') && error.message.includes('timeout')) {
-          errorMessage = "Images are taking too long to load. Please try again.";
-        } else if (error.message.includes('tainted')) {
-          errorMessage = "Image security error. Try with different images.";
-        } else if (error.message.includes('Network')) {
-          errorMessage = "Network error. Check your connection and try again.";
-        } else if (error.message.includes('quota')) {
-          errorMessage = "Storage quota exceeded. Try clearing browser data.";
+        if (error.message.includes('tainted') || error.message.includes('CORS')) {
+          errorMessage = "Image security restrictions detected. ";
+          recoveryAction = "Try refreshing the page or using different images.";
+        } else if (error.message.includes('timeout') || error.message.includes('load')) {
+          errorMessage = "Images failed to load properly. ";
+          recoveryAction = "Check your internet connection and try again.";
+        } else if (error.message.includes('canvas') || error.message.includes('context')) {
+          errorMessage = "Browser canvas error. ";
+          recoveryAction = "Try using a different browser or clear browser cache.";
+        } else if (error.message.includes('memory') || error.message.includes('quota')) {
+          errorMessage = "Browser memory issue. ";
+          recoveryAction = "Close other tabs and try again.";
         }
       }
       
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      // Offer simple link sharing as ultimate fallback
+      try {
+        await navigator.clipboard.writeText(shareLink);
+        toast({
+          title: "Fallback: Link Copied",
+          description: "Image generation failed, but link is copied. Share this link instead!",
+          variant: "destructive"
+        });
+      } catch (clipboardError) {
+        toast({
+          title: "Error",
+          description: errorMessage + recoveryAction,
+          variant: "destructive"
+        });
+      }
     } finally {
       setGenerating(false);
       setTimeout(() => setLinkCopied(false), 3000);
     }
+  };
+
+  const downloadFallback = (dataUrl: string) => {
+    // Fallback: Download image and provide instructions
+    const link = document.createElement('a');
+    link.download = 'fit-story.jpg';
+    link.href = dataUrl;
+    link.click();
+    
+    // Try to open Instagram app
+    setTimeout(() => {
+      window.open('instagram://story-camera', '_blank');
+    }, 1000);
+    
+    toast({
+      title: "Image downloaded & link copied!",
+      description: "Open Instagram, select the image, and add the link as a sticker",
+    });
   };
 
   const copyLink = async () => {
