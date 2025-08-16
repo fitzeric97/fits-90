@@ -12,6 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 export default function MobileCloset() {
   console.log("MobileCloset component rendering"); // Debug log
   
+  // Visual debug state
+  const [debugInfo, setDebugInfo] = useState("Component mounted");
+  
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,16 +24,19 @@ export default function MobileCloset() {
 
   useEffect(() => {
     console.log("MobileCloset useEffect, user:", user?.id); // Debug log
+    setDebugInfo(`useEffect called, user: ${user?.id ? 'exists' : 'none'}`);
     if (user) {
       fetchItems();
     } else {
       setLoading(false);
+      setDebugInfo("No user found, loading stopped");
     }
   }, [user]);
 
   const fetchItems = async () => {
     try {
       console.log("Fetching closet items for user:", user?.id); // Debug log
+      setDebugInfo("Starting fetch...");
       
       const { data, error: fetchError } = await supabase
         .from('closet_items')
@@ -41,13 +47,16 @@ export default function MobileCloset() {
       if (fetchError) {
         console.error("Supabase error:", fetchError);
         setError(fetchError.message);
+        setDebugInfo(`Supabase error: ${fetchError.message}`);
       } else {
         console.log("Fetched closet items:", data?.length || 0); // Debug log
         setItems(data || []);
+        setDebugInfo(`Successfully loaded ${data?.length || 0} items`);
       }
     } catch (err) {
       console.error("Catch block error:", err);
       setError("Failed to load closet items");
+      setDebugInfo(`Catch error: ${err}`);
     } finally {
       setLoading(false);
     }
@@ -190,6 +199,15 @@ export default function MobileCloset() {
 
   return (
     <MobileLayout>
+      {/* Debug Panel - Remove after fixing */}
+      <div className="bg-yellow-100 border border-yellow-400 p-2 m-2 rounded text-xs">
+        <p><strong>Debug:</strong> {debugInfo}</p>
+        <p><strong>User:</strong> {user?.id ? 'Logged in' : 'Not logged in'}</p>
+        <p><strong>Loading:</strong> {loading ? 'Yes' : 'No'}</p>
+        <p><strong>Items:</strong> {items.length}</p>
+        <p><strong>Error:</strong> {error || 'None'}</p>
+      </div>
+      
       <MobileItemGrid
         items={items}
         renderItem={renderClosetItem}
