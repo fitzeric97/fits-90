@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileLikes from "@/components/mobile/MobileLikes";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,6 +77,7 @@ export default function Likes() {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { hasBrandPromotions, getBrandPromotionCount } = useBrandPromotions();
   const [likes, setLikes] = useState<Like[]>([]);
   const [loading, setLoading] = useState(true);
@@ -222,6 +225,11 @@ export default function Likes() {
     setSelectedLike(like);
     setShowDetailDialog(true);
   };
+
+  // Use mobile version on mobile devices
+  if (isMobile) {
+    return <MobileLikes />;
+  }
 
   if (loading) {
     return (

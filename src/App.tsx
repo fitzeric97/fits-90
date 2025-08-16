@@ -94,9 +94,7 @@ const App = () => {
             } />
             <Route path="/likes" element={
               <ProtectedRoute>
-                <MobileRouteWrapper>
-                  <Likes />
-                </MobileRouteWrapper>
+                <Likes />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
