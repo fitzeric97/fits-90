@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { TagClosetDialog } from "@/components/fits/TagClosetDialog";
+import { StoryImageGenerator } from "@/components/fits/StoryImageGenerator";
 import { Camera, Calendar, Tag, Trash2, Edit, Package } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 interface TaggedItem {
   id: string;
@@ -44,13 +46,35 @@ export function FitDetailDialog({
 }: FitDetailDialogProps) {
   const [showTagDialog, setShowTagDialog] = useState(false);
   const [taggedItems, setTaggedItems] = useState<TaggedItem[]>([]);
+  const [userProfile, setUserProfile] = useState<{ display_name: string | null }>({ display_name: null });
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (fit && open) {
       fetchTaggedItems();
+      fetchUserProfile();
     }
   }, [fit, open]);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setUserProfile(data);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const fetchTaggedItems = async () => {
     if (!fit) return;
@@ -190,6 +214,24 @@ export function FitDetailDialog({
             
             {/* Actions - At the top */}
             <div className="flex gap-2">
+              <div className="flex-1">
+                <StoryImageGenerator
+                  fit={{
+                    id: fit.id,
+                    image_url: fit.image_url,
+                    caption: fit.caption || undefined,
+                    created_at: fit.created_at,
+                  }}
+                  taggedItems={taggedItems.map(item => ({
+                    id: item.id,
+                    product_name: item.product_name || item.brand_name,
+                    brand_name: item.brand_name,
+                    product_image_url: item.uploaded_image_url || item.product_image_url || undefined,
+                    price: undefined, // Add price field if available in your schema
+                  }))}
+                  username={userProfile.display_name || user?.email?.split('@')[0] || undefined}
+                />
+              </div>
               <Button 
                 onClick={() => setShowTagDialog(true)}
                 className="flex-1"
