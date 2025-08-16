@@ -31,18 +31,28 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
   // Generate the shareable link
   const shareLink = `${window.location.origin}/fits/${fit.id}`;
 
-  // Helper function to convert image to data URL with CORS handling
+  // Helper function to convert image to data URL with CORS handling and fallbacks
   const getImageAsDataUrl = async (imgSrc: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       
+      // Longer timeout for slow loading images
+      const timeout = setTimeout(() => {
+        console.warn('⏰ Image load timeout, using original:', imgSrc);
+        resolve(imgSrc); // Fallback to original src
+      }, 15000); // Increased to 15 seconds
+      
       img.onload = () => {
+        clearTimeout(timeout);
+        console.log('✅ Image loaded, converting to data URL:', imgSrc);
+        
         try {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
           if (!ctx) {
-            reject(new Error('Could not get canvas context'));
+            console.warn('❌ No canvas context, using original');
+            resolve(imgSrc);
             return;
           }
           
@@ -51,19 +61,23 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
           ctx.drawImage(img, 0, 0);
           
           const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          console.log('✅ Successfully converted to data URL');
           resolve(dataUrl);
         } catch (error) {
-          console.warn('CORS image conversion failed, using original:', error);
+          console.warn('❌ CORS conversion failed, using original:', error);
           resolve(imgSrc); // Fallback to original src
         }
       };
       
-      img.onerror = () => {
-        console.warn('Image load failed, using original src');
+      img.onerror = (e) => {
+        clearTimeout(timeout);
+        console.warn('❌ Image failed to load, using original:', imgSrc, e);
         resolve(imgSrc); // Fallback to original src
       };
       
-      img.src = imgSrc;
+      // Try loading with cache busting
+      const cacheBustSrc = imgSrc.includes('?') ? `${imgSrc}&t=${Date.now()}` : `${imgSrc}?t=${Date.now()}`;
+      img.src = cacheBustSrc;
     });
   };
 
@@ -118,8 +132,27 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
       await Promise.all(imageConversionPromises);
       console.log('✅ All images processed');
 
-      // Wait a bit for DOM to update
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait longer for DOM to fully update and render images
+      console.log('⏳ Waiting for DOM to stabilize...');
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Increased to 2 seconds
+
+      // Final check - ensure all images are actually loaded
+      const finalImages = storyRef.current.querySelectorAll('img');
+      let imagesReady = true;
+      Array.from(finalImages).forEach((img, index) => {
+        if (!img.complete || img.naturalWidth === 0) {
+          console.warn(`⚠️ Image ${index} not ready:`, {
+            complete: img.complete,
+            naturalWidth: img.naturalWidth,
+            src: img.src.substring(0, 100)
+          });
+          imagesReady = false;
+        } else {
+          console.log(`✅ Image ${index} confirmed ready`);
+        }
+      });
+      
+      console.log('📊 Final images status:', { total: finalImages.length, ready: imagesReady });
 
       // Try multiple generation methods
       let dataUrl: string;
@@ -363,9 +396,11 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
             <div className="relative max-w-full max-h-full">
               <img 
                 src={fit.image_url} 
+                data-original-src={fit.image_url}
                 alt="Outfit"
                 className="max-w-full max-h-full object-contain rounded-3xl shadow-lg"
                 style={{ maxHeight: '900px', maxWidth: '600px' }}
+                crossOrigin="anonymous"
               />
             </div>
           </div>
@@ -380,8 +415,10 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
                       <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center p-2">
                         <img 
                           src={item.product_image_url} 
+                          data-original-src={item.product_image_url}
                           alt={item.product_name}
                           className="w-full h-full object-cover rounded-xl"
+                          crossOrigin="anonymous"
                         />
                       </div>
                     )}
