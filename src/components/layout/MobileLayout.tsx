@@ -20,9 +20,9 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col no-bounce">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background border-b">
+      <header className="sticky top-0 z-40 bg-background border-b safe-top">
         <div className="flex items-center justify-center h-14 px-4">
           <img 
             src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
@@ -33,14 +33,14 @@ export function MobileLayout({ children }: MobileLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 pb-16 overflow-y-auto">
-        <div className="max-w-lg mx-auto w-full">
+      <main className="flex-1 overflow-y-auto no-bounce">
+        <div className="max-w-lg mx-auto w-full pb-20">
           {children}
         </div>
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-background border-t z-40">
+      <nav className="fixed bottom-0 left-0 right-0 bg-background border-t z-40 safe-bottom">
         <div className="grid grid-cols-4 h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -51,7 +51,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 text-xs",
+                  "flex flex-col items-center justify-center gap-1 text-xs touch-target",
                   isActive 
                     ? "text-primary" 
                     : "text-muted-foreground"

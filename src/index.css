@@ -99,3 +99,54 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile-specific utilities */
+@layer utilities {
+  /* Safe area handling for mobile */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Touch-friendly tap targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent iOS bounce */
+  .no-bounce {
+    overscroll-behavior: none;
+  }
+}
+
+/* Mobile-specific overrides */
+@media (max-width: 768px) {
+  /* Larger touch targets */
+  button {
+    min-height: 44px;
+  }
+  
+  /* Prevent iOS zoom on inputs */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+  
+  /* Full-width dialogs on mobile */
+  [role="dialog"] {
+    max-width: 100vw !important;
+  }
+  
+  /* Hide scrollbar on mobile */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Better mobile performance */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
