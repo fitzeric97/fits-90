@@ -100,6 +100,16 @@ export function EditLikeDialog({ like, onItemUpdated, open: externalOpen, onOpen
   const [color, setColor] = useState("");
   const [purchaseDate, setPurchaseDate] = useState<Date | undefined>(undefined);
   const [orderNumber, setOrderNumber] = useState("");
+
+  // Check if there are changes
+  const hasChanges = 
+    title !== like.title ||
+    brandName !== (like.brand_name || "") ||
+    price !== (like.price || "") ||
+    category !== (like.category || "none") ||
+    description !== (like.description || "") ||
+    selectedImage !== null ||
+    (isMovingToCloset && (size !== "" || color !== "" || purchaseDate !== undefined || orderNumber !== ""));
   
   const { toast } = useToast();
 
@@ -315,23 +325,15 @@ export function EditLikeDialog({ like, onItemUpdated, open: externalOpen, onOpen
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle>{isMovingToCloset ? "Move to Closet" : "Edit Liked Item"}</DialogTitle>
-              <DialogDescription>
-                {isMovingToCloset 
-                  ? "Add ownership details and move this item to your closet"
-                  : "Update the details of your liked item"
-                }
-              </DialogDescription>
-            </div>
-            <Button type="submit" form="edit-form" disabled={loading} size="sm">
+          <DialogTitle>{isMovingToCloset ? "Move to Closet" : "Edit Liked Item"}</DialogTitle>
+          {hasChanges && (
+            <Button type="submit" form="edit-form" disabled={loading} size="sm" className="mt-2 w-fit">
               {loading 
                 ? (isMovingToCloset ? "Moving..." : "Saving...") 
                 : (isMovingToCloset ? "Move to Closet" : "Save")
               }
             </Button>
-          </div>
+          )}
         </DialogHeader>
 
         <form id="edit-form" onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>

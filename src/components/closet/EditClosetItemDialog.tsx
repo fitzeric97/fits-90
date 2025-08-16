@@ -53,6 +53,18 @@ export function EditClosetItemDialog({ item, onItemUpdated, open: externalOpen, 
   );
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Check if there are changes
+  const hasChanges = 
+    productName !== (item.product_name || "") ||
+    brandName !== item.brand_name ||
+    description !== (item.product_description || "") ||
+    price !== (item.price || "") ||
+    size !== (item.size || "") ||
+    color !== (item.color || "") ||
+    category !== (item.category || "") ||
+    purchaseDate !== (item.purchase_date ? new Date(item.purchase_date).toISOString().split('T')[0] : "") ||
+    selectedImage !== null;
   
   const { toast } = useToast();
 
@@ -188,12 +200,14 @@ export function EditClosetItemDialog({ item, onItemUpdated, open: externalOpen, 
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Closet Item</DialogTitle>
-          <DialogDescription>
-            Update the details of your closet item
-          </DialogDescription>
+          {hasChanges && (
+            <Button type="submit" form="edit-form" disabled={loading} size="sm" className="mt-2 w-fit">
+              {loading ? "Saving..." : "Save"}
+            </Button>
+          )}
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
+        <form id="edit-form" onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
           {/* Common fields matching AddClosetItemDialog structure */}
           <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="space-y-2">
@@ -359,13 +373,6 @@ export function EditClosetItemDialog({ item, onItemUpdated, open: externalOpen, 
               }}
             >
               Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={loading}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {loading ? "Updating..." : "Update Item"}
             </Button>
           </DialogFooter>
         </form>
