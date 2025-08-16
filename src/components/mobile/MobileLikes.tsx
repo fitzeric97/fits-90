@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
 import { AddLikeDialog } from "@/components/likes/AddLikeDialog";
+import { LikeDetailDialog } from "@/components/likes/LikeDetailDialog";
 import { Card } from "@/components/ui/card";
 import { Heart, ExternalLink, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useToast } from "@/hooks/use-toast";
 
 // Head to Toe ordering - from top of body to bottom
 const headToToeOrder = [
@@ -35,7 +37,10 @@ export default function MobileLikes() {
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [sortByHeadToToe, setSortByHeadToToe] = useState(false);
+  const [selectedLike, setSelectedLike] = useState(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) fetchLikes();
@@ -52,10 +57,40 @@ export default function MobileLikes() {
     setLoading(false);
   };
 
+  const handleLikeClick = (like: any) => {
+    setSelectedLike(like);
+    setShowDetailDialog(true);
+  };
+
+  const handleDeleteLike = async (likeId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_likes')
+        .delete()
+        .eq('id', likeId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Like removed successfully",
+      });
+
+      fetchLikes();
+    } catch (error) {
+      console.error('Error deleting like:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete like",
+        variant: "destructive"
+      });
+    }
+  };
+
   const renderLikeItem = (like: any, viewMode: 'grid' | 'list') => {
     if (viewMode === 'grid') {
       return (
-        <Card key={like.id} className="overflow-hidden">
+        <Card key={like.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleLikeClick(like)}>
           <div className="aspect-square relative">
             {like.image_url || like.uploaded_image_url ? (
               <img
@@ -70,7 +105,10 @@ export default function MobileLikes() {
             )}
             <div className="absolute top-2 right-2">
               <button 
-                onClick={() => window.open(like.url, '_blank')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(like.url, '_blank');
+                }}
                 className="bg-white/90 p-1.5 rounded-full"
               >
                 <ExternalLink className="h-3 w-3" />
@@ -90,7 +128,7 @@ export default function MobileLikes() {
 
     // List view
     return (
-      <Card key={like.id} className="p-3">
+      <Card key={like.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleLikeClick(like)}>
         <div className="flex gap-3">
           <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
             {like.image_url || like.uploaded_image_url ? (
@@ -113,7 +151,10 @@ export default function MobileLikes() {
             )}
           </div>
           <button 
-            onClick={() => window.open(like.url, '_blank')}
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(like.url, '_blank');
+            }}
             className="p-2"
           >
             <ExternalLink className="h-4 w-4" />
@@ -167,6 +208,15 @@ export default function MobileLikes() {
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         onLikeAdded={fetchLikes}
+      />
+      
+      {/* Like Detail Dialog */}
+      <LikeDetailDialog
+        like={selectedLike}
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
+        onDelete={handleDeleteLike}
+        onLikeUpdated={fetchLikes}
       />
     </MobileLayout>
   );

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
 import { QuickAddFlow } from "@/components/shared/QuickAddFlow";
+import { ClosetItemDetailDialog } from "@/components/closet/ClosetItemDetailDialog";
 import { Card } from "@/components/ui/card";
 import { Package, Plus, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,8 @@ export default function MobileCloset() {
   const [error, setError] = useState<string | null>(null);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [sortByHeadToToe, setSortByHeadToToe] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -106,12 +109,42 @@ export default function MobileCloset() {
     }
   };
 
+  const handleItemClick = (item: any) => {
+    setSelectedItem(item);
+    setShowDetailDialog(true);
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    try {
+      const { error } = await supabase
+        .from('closet_items')
+        .delete()
+        .eq('id', itemId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Item removed from your closet",
+      });
+
+      fetchItems();
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete item",
+        variant: "destructive"
+      });
+    }
+  };
+
   const renderClosetItem = (item: any, viewMode: 'grid' | 'list') => {
     const imageUrl = item.uploaded_image_url || item.product_image_url || item.stored_image_path;
     
     if (viewMode === 'grid') {
       return (
-        <Card key={item.id} className="overflow-hidden">
+        <Card key={item.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleItemClick(item)}>
           <div className="aspect-square relative">
             {imageUrl ? (
               <img
@@ -138,7 +171,7 @@ export default function MobileCloset() {
 
     // List view
     return (
-      <Card key={item.id} className="p-3">
+      <Card key={item.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleItemClick(item)}>
         <div className="flex gap-3">
           <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
             {imageUrl ? (
@@ -249,6 +282,15 @@ export default function MobileCloset() {
         onOpenChange={setShowQuickAdd}
         onComplete={handleQuickAddComplete}
         type="closet"
+      />
+
+      {/* Item Detail Dialog */}
+      <ClosetItemDetailDialog
+        item={selectedItem}
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
+        onDelete={handleDeleteItem}
+        onItemUpdated={fetchItems}
       />
     </MobileLayout>
   );
