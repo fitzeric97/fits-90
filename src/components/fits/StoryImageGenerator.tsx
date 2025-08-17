@@ -428,72 +428,68 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
           transform: generating ? 'translateX(0)' : 'translateX(-100vw)'
         }}
       >
-        <div className="relative w-full h-full flex flex-col bg-white">
-          {/* Top - Fits Logo */}
-          <div className="flex items-center justify-center pt-16 pb-8">
-            <div className="flex items-center gap-3">
-              <img 
-                src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
-                alt="Fits" 
-                className="h-12 w-12"
-              />
-              <h2 className="text-2xl font-bold text-gray-900">Fits</h2>
-            </div>
+        <div className="relative w-full h-full bg-white">
+          {/* Main outfit image - takes up most of the space */}
+          <div className="absolute inset-0">
+            <img 
+              src={fit.image_url} 
+              data-original-src={fit.image_url}
+              alt="Outfit"
+              className="w-full h-full object-cover"
+              crossOrigin="anonymous"
+            />
           </div>
 
-          {/* Main Outfit Image - Takes most of the space */}
-          <div className="flex-1 flex items-center justify-center px-8 pb-8">
-            <div className="relative max-w-full max-h-full">
-              <img 
-                src={fit.image_url} 
-                data-original-src={fit.image_url}
-                alt="Outfit"
-                className="max-w-full max-h-full object-contain rounded-3xl shadow-lg"
-                style={{ maxHeight: '900px', maxWidth: '600px' }}
-                crossOrigin="anonymous"
-              />
-            </div>
-          </div>
-
-          {/* Bottom - Tagged Items Thumbnails */}
+          {/* Tagged items overlay - positioned on the right side */}
           {taggedItems.length > 0 && (
-            <div className="bg-gray-50 px-8 py-6 rounded-t-3xl">
-              <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="absolute top-8 right-8 bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg max-w-[200px]">
+              <div className="space-y-3">
                 {taggedItems.slice(0, 3).map((item) => (
-                  <div key={item.id} className="flex flex-col items-center">
+                  <div key={item.id} className="flex items-center gap-3">
                     {item.product_image_url && (
-                      <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center p-2">
+                      <div className="w-12 h-12 bg-white rounded-xl shadow-md overflow-hidden flex-shrink-0">
                         <img 
                           src={item.product_image_url} 
                           data-original-src={item.product_image_url}
                           alt={item.product_name}
-                          className="w-full h-full object-cover rounded-xl"
+                          className="w-full h-full object-cover"
                           crossOrigin="anonymous"
                         />
                       </div>
                     )}
-                    <p className="text-xs font-medium text-gray-900 mt-2 text-center max-w-16 truncate">
-                      {item.brand_name}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-900 font-semibold text-sm truncate">
+                        {item.brand_name}
+                      </p>
+                      <p className="text-gray-600 text-xs truncate">
+                        {item.product_name}
+                      </p>
+                    </div>
                   </div>
                 ))}
+                
                 {taggedItems.length > 3 && (
-                  <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 bg-gray-200 rounded-2xl shadow-md flex items-center justify-center">
-                      <span className="text-gray-600 font-bold text-sm">+{taggedItems.length - 3}</span>
-                    </div>
-                    <p className="text-xs font-medium text-gray-600 mt-2">more</p>
+                  <div className="text-center pt-2 border-t border-gray-200">
+                    <p className="text-gray-600 text-xs">
+                      +{taggedItems.length - 3} more items
+                    </p>
                   </div>
                 )}
               </div>
-              
-              <div className="text-center">
-                <p className="text-gray-600 text-sm font-medium">
-                  Tap link to shop these items
-                </p>
-              </div>
             </div>
           )}
+
+          {/* Fits logo - bottom right corner */}
+          <div className="absolute bottom-8 right-8 bg-white/95 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg">
+            <div className="flex items-center gap-2">
+              <img 
+                src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
+                alt="Fits" 
+                className="h-8 w-8"
+              />
+              <span className="text-gray-900 font-bold text-lg">Fits</span>
+            </div>
+          </div>
         </div>
       </div>
 
