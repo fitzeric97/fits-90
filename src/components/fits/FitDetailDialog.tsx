@@ -173,11 +173,11 @@ export function FitDetailDialog({
             {/* Image with Tagged Items */}
             <div className="flex gap-4">
               {/* Main Image */}
-              <div className="flex-1 aspect-[3/4] bg-muted rounded-lg overflow-hidden">
+              <div className="flex-1 bg-muted rounded-lg overflow-hidden">
                 <FallbackImage
                   src={fit.image_url}
                   alt={fit.caption || "Outfit"}
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto object-contain max-h-[60vh]"
                   fallbackIcon={<Camera className="h-16 w-16 text-muted-foreground" />}
                 />
               </div>
