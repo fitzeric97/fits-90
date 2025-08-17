@@ -583,16 +583,6 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
       {/* Visible UI */}
       <div className="flex flex-col gap-2">
         <Button
-          onClick={generateAndShare}
-          disabled={generating}
-          size="sm"
-          className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-3 py-1 h-8 text-xs"
-        >
-          <Instagram className="w-3 h-3 mr-1" />
-          {generating ? 'Generating...' : 'Story'}
-        </Button>
-        
-        <Button
           onClick={saveToDevice}
           disabled={generating}
           size="sm"
