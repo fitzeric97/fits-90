@@ -45,14 +45,14 @@ All colors MUST be HSL.
     --cream-muted: 30 15% 65%;   /* Medium cream for secondary text */
 
     /* Mobile-specific backgrounds */
-    --mobile-background: 25 20% 18%;  /* Warm brown for mobile main area */
+    --mobile-background: 25 25% 25%;  /* Match primary brown */
     --mobile-surface: 45 15% 85%;     /* Darker cream for mobile header/nav */
 
-    --sidebar-background: 25 25% 30%;  /* Rich brown sidebar */
+    --sidebar-background: 25 25% 25%;  /* Match primary brown */
     --sidebar-foreground: 45 30% 95%;  /* Cream sidebar text */
     --sidebar-primary: 45 30% 95%;  /* Cream active items */
     --sidebar-primary-foreground: 25 25% 25%;
-    --sidebar-accent: 25 20% 35%;  /* Slightly lighter brown accent */
+    --sidebar-accent: 25 25% 25%;  /* Match primary brown */
     --sidebar-accent-foreground: 45 30% 95%;  /* Cream accent text */
     --sidebar-border: 25 20% 25%;
     --sidebar-ring: 45 30% 95%;
@@ -94,14 +94,14 @@ All colors MUST be HSL.
     --cream-muted: 40 20% 60%;   /* Medium cream for dark mode */
     
     /* Mobile-specific backgrounds for dark mode */
-    --mobile-background: 25 18% 12%;  /* Dark brown for mobile main area */
+    --mobile-background: 25 25% 25%;  /* Match primary brown */
     --mobile-surface: 25 15% 15%;     /* Darker brown for mobile header/nav in dark mode */
     
-    --sidebar-background: 25 18% 10%;
+    --sidebar-background: 25 25% 25%;
     --sidebar-foreground: 45 20% 88%;
     --sidebar-primary: 45 30% 75%;
     --sidebar-primary-foreground: 25 25% 15%;
-    --sidebar-accent: 25 15% 15%;
+    --sidebar-accent: 25 25% 25%;
     --sidebar-accent-foreground: 45 20% 88%;
     --sidebar-border: 25 15% 18%;
     --sidebar-ring: 45 30% 75%;
