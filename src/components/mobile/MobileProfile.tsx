@@ -4,17 +4,19 @@ import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut, Settings, Share2, Trophy, User, BarChart3, Package, Heart, Camera, Plus } from "lucide-react";
+import { LogOut, Settings, Share2, Trophy, User, Package, Heart, Camera, Plus } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
+import { LucideIcon } from "lucide-react";
+
 interface ProfileSection {
   id: string;
   title: string;
   description: string;
-  icon: any;
+  icon: LucideIcon;
   action: () => void;
   value?: string | number;
   variant?: 'default' | 'stats' | 'action' | 'destructive';
@@ -134,7 +136,7 @@ export default function MobileProfile() {
     });
   };
 
-  function handleShare() {
+  const handleShare = () => {
     const shareUrl = `${window.location.origin}/join?ref=${user?.id}`;
     if (navigator.share) {
       navigator.share({
@@ -149,12 +151,12 @@ export default function MobileProfile() {
         description: "Share this link with your friends to invite them to Fits",
       });
     }
-  }
+  };
 
-  async function handleSignOut() {
+  const handleSignOut = async () => {
     await signOut();
     navigate('/');
-  }
+  };
 
   const handleSearch = (query: string) => {
     if (!query.trim()) {
@@ -215,7 +217,7 @@ export default function MobileProfile() {
                 }`}>
                   {section.title}
                 </p>
-                <p className="text-xs text-muted-foreground line-clamp-2">
+                <p className="text-xs text-muted-foreground overflow-hidden">
                   {section.description}
                 </p>
               </div>
