@@ -42,7 +42,29 @@ export function AddLikeDialog({ open, onOpenChange, onLikeAdded }: AddLikeDialog
 
     setLoading(true);
     try {
+      // Debug: Check user authentication state
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('AddLikeDialog - User auth state:', { 
+        user: !!user, 
+        userId: user?.id, 
+        email: user?.email,
+        error: userError?.message 
+      });
+
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Debug: Check session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log('AddLikeDialog - Session state:', { 
+        session: !!session, 
+        accessToken: !!session?.access_token,
+        error: sessionError?.message 
+      });
+
       // Use the edge function to extract product data and add to likes
+      console.log('AddLikeDialog - Calling add-url-to-likes with URL:', url);
       const { data, error } = await supabase.functions.invoke('add-url-to-likes', {
         body: {
           url: url,
@@ -50,7 +72,12 @@ export function AddLikeDialog({ open, onOpenChange, onLikeAdded }: AddLikeDialog
         }
       });
 
-      if (error) throw error;
+      console.log('AddLikeDialog - Edge function response:', { data, error });
+
+      if (error) {
+        console.error('AddLikeDialog - Edge function error:', error);
+        throw error;
+      }
 
       toast({
         title: "Like Added!",
@@ -62,10 +89,10 @@ export function AddLikeDialog({ open, onOpenChange, onLikeAdded }: AddLikeDialog
       onOpenChange(false);
       onLikeAdded?.();
     } catch (error) {
-      console.error('Error adding like:', error);
+      console.error('AddLikeDialog - Full error:', error);
       toast({
         title: "Error",
-        description: "Failed to add like",
+        description: error instanceof Error ? error.message : "Failed to add like",
         variant: "destructive",
       });
     } finally {
