@@ -43,8 +43,8 @@ All colors MUST be HSL.
     --fits-blue: 202 85% 60%;  /* Blue from the Fits logo */
     --fits-blue-foreground: 0 0% 100%;  /* White text on blue */
 
-    /* Custom cream colors for header sections */
-    --cream-header: 40 15% 88%;  /* More visible cream background */
+    /* Custom cream colors for header sections and toasts */
+    --cream-header: 45 30% 95%;  /* Light cream background - perfect for toast text */
     --cream-text: 25 20% 35%;    /* Darker text for better contrast */
     --cream-muted: 30 15% 65%;   /* Medium cream for secondary text */
 
@@ -97,7 +97,7 @@ All colors MUST be HSL.
     --fits-blue-foreground: 0 0% 100%;  /* White text on blue */
     
     /* Custom cream colors for header sections in dark mode */
-    --cream-header: 25 15% 15%;  /* Darker background for dark mode */
+    --cream-header: 45 25% 92%;  /* Light cream text for dark mode toasts */
     --cream-text: 40 25% 75%;    /* Light cream text for dark mode */
     --cream-muted: 40 20% 60%;   /* Medium cream for dark mode */
     
