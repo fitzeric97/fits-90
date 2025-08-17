@@ -291,7 +291,9 @@ export default function MobileActivity() {
                             </Avatar>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-primary truncate">
-                                  {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
+                                  {((profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User')?.length > 15) 
+                                    ? `${(profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User').substring(0, 15)}...`
+                                    : (profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User')}
                                 </p>
                                 {!profile.display_name && (profile.myfits_email || profile.gmail_address) && (
                                   <p className="text-sm text-primary/70 truncate">
@@ -367,7 +369,9 @@ export default function MobileActivity() {
                               </Avatar>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-primary truncate">
-                                  {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
+                                  {((profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User')?.length > 15) 
+                                    ? `${(profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User').substring(0, 15)}...`
+                                    : (profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User')}
                                 </p>
                                 {!profile.display_name && (profile.myfits_email || profile.gmail_address) && (
                                   <p className="text-sm text-primary/70 truncate">
@@ -449,7 +453,9 @@ export default function MobileActivity() {
                                   </Avatar>
                                   <div className="flex-1 min-w-0">
                                     <p className="font-medium text-primary truncate">
-                                      {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
+                                      {((profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User')?.length > 15) 
+                                        ? `${(profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User').substring(0, 15)}...`
+                                        : (profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User')}
                                     </p>
                                     {!profile.display_name && (profile.myfits_email || profile.gmail_address) && (
                                       <p className="text-sm text-primary/70 truncate">
