@@ -113,6 +113,7 @@ export function FollowButton({
       disabled={loading}
       variant={isFollowing ? "outline" : "default"}
       size={size}
+      className={isFollowing ? "border-fits-blue text-fits-blue hover:bg-fits-blue hover:text-white" : "bg-fits-blue hover:bg-fits-blue/90 text-white border-fits-blue"}
     >
       {isFollowing ? (
         <>

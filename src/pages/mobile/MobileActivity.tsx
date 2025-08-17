@@ -276,37 +276,39 @@ export default function MobileActivity() {
                 ) : searchResults.length > 0 ? (
                   <div className="space-y-2">
                     {searchResults.map((profile) => (
-                      <div key={profile.id} className="flex items-center justify-between p-3 bg-card rounded-lg border">
+                      <div key={profile.id} className="p-3 bg-card rounded-lg border">
                         <div 
-                          className="flex items-center space-x-3 flex-1 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
+                          className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
                           onClick={() => navigate(`/profile/${profile.id}`)}
                         >
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                              {profile.display_name?.charAt(0).toUpperCase() || 
-                               profile.myfits_email?.charAt(0).toUpperCase() || 
-                               profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <p className="font-medium text-primary">
-                              {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
-                            </p>
-                            {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
-                              <p className="text-sm text-primary/70">
-                                {profile.myfits_email || profile.gmail_address}
+                          <div className="flex items-center space-x-3 flex-1">
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                                {profile.display_name?.charAt(0).toUpperCase() || 
+                                 profile.myfits_email?.charAt(0).toUpperCase() || 
+                                 profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <p className="font-medium text-primary">
+                                {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
                               </p>
-                            )}
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Tap to view profile
-                            </p>
+                              {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
+                                <p className="text-sm text-primary/70">
+                                  {profile.myfits_email || profile.gmail_address}
+                                </p>
+                              )}
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Tap to view profile
+                              </p>
+                            </div>
                           </div>
+                          <FollowButton 
+                            targetUserId={profile.id}
+                            targetUsername={profile.display_name || profile.myfits_email || profile.gmail_address}
+                            size="sm"
+                          />
                         </div>
-                        <FollowButton 
-                          targetUserId={profile.id}
-                          targetUsername={profile.display_name || profile.myfits_email || profile.gmail_address}
-                          size="sm"
-                        />
                       </div>
                     ))}
                   </div>
@@ -346,38 +348,40 @@ export default function MobileActivity() {
                   ) : (
                     <div className="space-y-2">
                       {suggestedConnections.map((profile) => (
-                        <div key={profile.id} className="flex items-center justify-between p-3 bg-card rounded-lg border">
+                        <div key={profile.id} className="p-3 bg-card rounded-lg border">
                           <div 
-                            className="flex items-center space-x-3 flex-1 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
+                            className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
                             onClick={() => navigate(`/profile/${profile.id}`)}
                           >
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                                {profile.display_name?.charAt(0).toUpperCase() || 
-                                 profile.myfits_email?.charAt(0).toUpperCase() || 
-                                 profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <p className="font-medium text-primary">
-                                {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
-                              </p>
-                              {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
-                                <p className="text-sm text-primary/70">
-                                  {profile.myfits_email || profile.gmail_address}
+                            <div className="flex items-center space-x-3 flex-1">
+                              <Avatar className="h-10 w-10">
+                                <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                                  {profile.display_name?.charAt(0).toUpperCase() || 
+                                   profile.myfits_email?.charAt(0).toUpperCase() || 
+                                   profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <p className="font-medium text-primary">
+                                  {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
                                 </p>
-                              )}
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Tap to view profile
-                              </p>
+                                {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
+                                  <p className="text-sm text-primary/70">
+                                    {profile.myfits_email || profile.gmail_address}
+                                  </p>
+                                )}
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Tap to view profile
+                                </p>
+                              </div>
                             </div>
+                            <FollowButton 
+                              targetUserId={profile.id}
+                              targetUsername={profile.display_name || profile.myfits_email || profile.gmail_address}
+                              size="sm"
+                              onFollowChange={() => fetchConnections()}
+                            />
                           </div>
-                          <FollowButton 
-                            targetUserId={profile.id}
-                            targetUsername={profile.display_name || profile.myfits_email || profile.gmail_address}
-                            size="sm"
-                            onFollowChange={() => fetchConnections()}
-                          />
                         </div>
                       ))}
                     </div>
@@ -422,39 +426,45 @@ export default function MobileActivity() {
                       ) : (
                         <div className="space-y-2">
                           {connections.map((profile) => (
-                            <div key={profile.id} className="flex items-center justify-between p-3 bg-card rounded-lg border">
+                            <div key={profile.id} className="p-3 bg-card rounded-lg border">
                               <div 
-                                className="flex items-center space-x-3 flex-1 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
+                                className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
                                 onClick={() => navigate(`/profile/${profile.id}`)}
                               >
-                                <Avatar className="h-10 w-10">
-                                  <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                                    {profile.display_name?.charAt(0).toUpperCase() || 
-                                     profile.myfits_email?.charAt(0).toUpperCase() || 
-                                     profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                  <p className="font-medium text-primary">
-                                    {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
-                                  </p>
-                                  {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
-                                    <p className="text-sm text-primary/70">
-                                      {profile.myfits_email || profile.gmail_address}
+                                <div className="flex items-center space-x-3 flex-1">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                                      {profile.display_name?.charAt(0).toUpperCase() || 
+                                       profile.myfits_email?.charAt(0).toUpperCase() || 
+                                       profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1">
+                                    <p className="font-medium text-primary">
+                                      {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
                                     </p>
-                                  )}
-                                  <p className="text-xs text-fits-blue font-medium mt-1">
-                                    Connected • Tap to view profile
-                                  </p>
+                                    {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
+                                      <p className="text-sm text-primary/70">
+                                        {profile.myfits_email || profile.gmail_address}
+                                      </p>
+                                    )}
+                                    <p className="text-xs text-fits-blue font-medium mt-1">
+                                      Connected • Tap to view profile
+                                    </p>
+                                  </div>
                                 </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/profile/${profile.id}`);
+                                  }}
+                                  className="bg-fits-blue hover:bg-fits-blue/90 text-white border-fits-blue"
+                                >
+                                  View Profile
+                                </Button>
                               </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => navigate(`/profile/${profile.id}`)}
-                              >
-                                View Profile
-                              </Button>
                             </div>
                           ))}
                         </div>
