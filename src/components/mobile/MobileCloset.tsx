@@ -278,8 +278,6 @@ export default function MobileCloset() {
         renderItem={renderClosetItem}
         addButtonText="Add Item"
         emptyMessage="Your closet is empty. Start adding your favorite items!"
-        onSearch={setSearchQuery}
-        searchPlaceholder="Search by brand, category, name, or description..."
         extraControls={
           <Button
             variant={sortByHeadToToe ? "secondary" : "outline"}
@@ -297,7 +295,7 @@ export default function MobileCloset() {
       <div className="fixed bottom-20 right-4 z-50">
         <Button
           size="lg"
-          className="h-14 w-14 rounded-full shadow-lg"
+          className="h-14 w-14 rounded-full shadow-lg bg-fits-blue hover:bg-fits-blue/90 text-fits-blue-foreground"
           onClick={() => setShowQuickAdd(true)}
         >
           <Plus className="h-6 w-6" />
