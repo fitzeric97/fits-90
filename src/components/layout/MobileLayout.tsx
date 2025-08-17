@@ -15,15 +15,15 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   const navItems = [
     { icon: Heart, label: "Likes", path: "/likes" },
     { icon: ShirtIcon, label: "Closet", path: "/closet" },
+    { icon: Bell, label: "Activity", path: "/activity" },  // New center tab
     { icon: Camera, label: "Fits", path: "/fits" },
-    { icon: Bell, label: "Activity", path: "/activity" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--mobile-background))] flex flex-col no-bounce">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-[hsl(var(--mobile-surface))] border-b safe-top">
+      <header className="sticky top-0 z-40 bg-background border-b">
         <div className="flex items-center justify-center h-14 px-4">
           <img 
             src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
@@ -34,35 +34,55 @@ export function MobileLayout({ children }: MobileLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto no-bounce">
-        <div className="max-w-lg mx-auto w-full pb-20">
+      <main className="flex-1 pb-16 overflow-y-auto">
+        <div className="max-w-lg mx-auto w-full">
           {children}
         </div>
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-[hsl(var(--mobile-surface))] border-t z-40 safe-bottom">
+      {/* Bottom Navigation - Updated to 5 columns */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-background border-t z-40">
         <div className="grid grid-cols-5 h-16">
-          {navItems.map((item) => {
+          {navItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = currentPath === item.path;
+            const isCenter = index === 2; // Activity tab is center
             
             return (
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 text-xs touch-target",
+                  "flex flex-col items-center justify-center gap-1 text-xs relative",
                   isActive 
                     ? "text-primary" 
-                    : "text-muted-foreground"
+                    : "text-muted-foreground",
+                  isCenter && "relative"
                 )}
               >
-                <Icon className={cn(
-                  "h-5 w-5",
-                  isActive && "scale-110"
-                )} />
-                <span className="font-medium">{item.label}</span>
+                {/* Special styling for center Activity button */}
+                {isCenter && (
+                  <div className={cn(
+                    "absolute -top-2 bg-primary rounded-full p-2",
+                    isActive ? "bg-primary" : "bg-muted"
+                  )}>
+                    <Icon className="h-5 w-5 text-white" />
+                  </div>
+                )}
+                
+                {!isCenter && (
+                  <Icon className={cn(
+                    "h-5 w-5",
+                    isActive && "scale-110"
+                  )} />
+                )}
+                
+                <span className={cn(
+                  "font-medium text-[10px]",
+                  isCenter && "mt-3"
+                )}>
+                  {item.label}
+                </span>
               </button>
             );
           })}
