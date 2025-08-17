@@ -75,7 +75,9 @@ export default function AuthCallback() {
               id: data.session.user.id,
               gmail_address: userEmail,
               myfits_email: fitsEmail,
-              display_name: `${firstName} ${lastName}`.trim() || data.session.user.user_metadata?.full_name || data.session.user.user_metadata?.name
+              display_name: `${firstName} ${lastName}`.trim() || data.session.user.user_metadata?.full_name || data.session.user.user_metadata?.name,
+              first_name: firstName || null,
+              last_name: lastName || null,
             }, {
               onConflict: 'id'
             });

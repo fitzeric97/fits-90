@@ -1,6 +1,8 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
+import { ProfileCompletionModal } from "./ProfileCompletionModal";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -9,6 +11,8 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [profileComplete, setProfileComplete] = useState<boolean | null>(null);
+  const [checkingProfile, setCheckingProfile] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -16,7 +20,42 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }, [user, loading, navigate]);
 
-  if (loading) {
+  useEffect(() => {
+    const checkProfileCompletion = async () => {
+      if (!user || loading) return;
+      
+      setCheckingProfile(true);
+      try {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+          setProfileComplete(false);
+          return;
+        }
+
+        const isComplete = !!(profile?.first_name && profile?.last_name);
+        setProfileComplete(isComplete);
+      } catch (error) {
+        console.error("Error checking profile:", error);
+        setProfileComplete(false);
+      } finally {
+        setCheckingProfile(false);
+      }
+    };
+
+    checkProfileCompletion();
+  }, [user, loading]);
+
+  const handleProfileComplete = () => {
+    setProfileComplete(true);
+  };
+
+  if (loading || checkingProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -31,6 +70,15 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!user) {
     return null;
+  }
+
+  if (profileComplete === false) {
+    return (
+      <ProfileCompletionModal
+        isOpen={true}
+        onComplete={handleProfileComplete}
+      />
+    );
   }
 
   return <>{children}</>;

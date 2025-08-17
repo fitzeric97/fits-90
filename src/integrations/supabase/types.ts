@@ -353,8 +353,10 @@ export type Database = {
         Row: {
           created_at: string | null
           display_name: string | null
+          first_name: string | null
           gmail_address: string | null
           id: string
+          last_name: string | null
           myfits_email: string | null
           onboarding_completed: boolean | null
           updated_at: string | null
@@ -362,8 +364,10 @@ export type Database = {
         Insert: {
           created_at?: string | null
           display_name?: string | null
+          first_name?: string | null
           gmail_address?: string | null
           id: string
+          last_name?: string | null
           myfits_email?: string | null
           onboarding_completed?: boolean | null
           updated_at?: string | null
@@ -371,8 +375,10 @@ export type Database = {
         Update: {
           created_at?: string | null
           display_name?: string | null
+          first_name?: string | null
           gmail_address?: string | null
           id?: string
+          last_name?: string | null
           myfits_email?: string | null
           onboarding_completed?: boolean | null
           updated_at?: string | null

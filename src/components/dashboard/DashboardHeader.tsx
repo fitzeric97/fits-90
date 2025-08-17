@@ -11,8 +11,12 @@ export function DashboardHeader() {
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState<{
     display_name: string | null;
+    first_name: string | null;
+    last_name: string | null;
   }>({
     display_name: null,
+    first_name: null,
+    last_name: null,
   });
 
   useEffect(() => {
@@ -25,7 +29,7 @@ export function DashboardHeader() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('display_name')
+        .select('display_name, first_name, last_name')
         .eq('id', user?.id)
         .single();
 
@@ -38,8 +42,11 @@ export function DashboardHeader() {
     }
   };
 
-  // Get the first name from display_name
+  // Get the first name from first_name or display_name
   const getFirstName = () => {
+    if (userProfile.first_name) {
+      return userProfile.first_name;
+    }
     if (userProfile.display_name) {
       return userProfile.display_name.split(' ')[0];
     }
