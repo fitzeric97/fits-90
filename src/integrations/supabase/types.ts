@@ -7,13 +7,46 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
   }
   public: {
     Tables: {
+      activity_feed: {
+        Row: {
+          action_type: string
+          actor_id: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          target_id: string
+          target_type: string
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          actor_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          target_id: string
+          target_type: string
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          actor_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          target_id?: string
+          target_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       brand_websites: {
         Row: {
           brand_name: string
@@ -620,11 +653,11 @@ export type Database = {
     Functions: {
       create_notification: {
         Args: {
-          p_user_id: string
-          p_title: string
-          p_description?: string
-          p_type?: string
           p_data?: Json
+          p_description?: string
+          p_title: string
+          p_type?: string
+          p_user_id: string
         }
         Returns: string
       }
