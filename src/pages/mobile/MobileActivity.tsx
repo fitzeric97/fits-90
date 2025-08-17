@@ -289,12 +289,12 @@ export default function MobileActivity() {
                                  profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="flex-1">
-                              <p className="font-medium text-primary">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-primary truncate">
                                 {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
                               </p>
-                              {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
-                                <p className="text-sm text-primary/70">
+                              {!profile.display_name && (profile.myfits_email || profile.gmail_address) && (
+                                <p className="text-sm text-primary/70 truncate">
                                   {profile.myfits_email || profile.gmail_address}
                                 </p>
                               )}
@@ -361,12 +361,12 @@ export default function MobileActivity() {
                                    profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="flex-1">
-                                <p className="font-medium text-primary">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-primary truncate">
                                   {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
                                 </p>
-                                {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
-                                  <p className="text-sm text-primary/70">
+                                {!profile.display_name && (profile.myfits_email || profile.gmail_address) && (
+                                  <p className="text-sm text-primary/70 truncate">
                                     {profile.myfits_email || profile.gmail_address}
                                   </p>
                                 )}
@@ -439,12 +439,12 @@ export default function MobileActivity() {
                                        profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <div className="flex-1">
-                                    <p className="font-medium text-primary">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-primary truncate">
                                       {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
                                     </p>
-                                    {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
-                                      <p className="text-sm text-primary/70">
+                                    {!profile.display_name && (profile.myfits_email || profile.gmail_address) && (
+                                      <p className="text-sm text-primary/70 truncate">
                                         {profile.myfits_email || profile.gmail_address}
                                       </p>
                                     )}
