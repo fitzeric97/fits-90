@@ -116,8 +116,8 @@ export default function MobileActivity() {
     try {
       const { data: profiles, error } = await supabase
         .from('profiles')
-        .select('id, display_name')
-        .or(`display_name.ilike.%${query}%`)
+        .select('id, display_name, myfits_email, gmail_address')
+        .or(`display_name.ilike.%${query}%,myfits_email.ilike.%${query}%,gmail_address.ilike.%${query}%`)
         .neq('id', user?.id) // Exclude current user
         .limit(20);
 
@@ -187,7 +187,7 @@ export default function MobileActivity() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search for people..."
+                    placeholder="Search by name or email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -205,16 +205,25 @@ export default function MobileActivity() {
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-10 w-10">
                             <AvatarFallback>
-                              {profile.display_name?.charAt(0).toUpperCase() || 'U'}
+                              {profile.display_name?.charAt(0).toUpperCase() || 
+                               profile.myfits_email?.charAt(0).toUpperCase() || 
+                               profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{profile.display_name || 'Anonymous User'}</p>
+                            <p className="font-medium">
+                              {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
+                            </p>
+                            {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
+                              <p className="text-sm text-muted-foreground">
+                                {profile.myfits_email || profile.gmail_address}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <FollowButton 
                           targetUserId={profile.id}
-                          targetUsername={profile.display_name}
+                          targetUsername={profile.display_name || profile.myfits_email || profile.gmail_address}
                           size="sm"
                         />
                       </div>
