@@ -40,9 +40,9 @@ All colors MUST be HSL.
     --radius: 0.5rem;
 
     /* Custom cream colors for header sections */
-    --cream-header: 45 20% 96%;  /* Match background */
-    --cream-text: 40 25% 75%;    /* Cream text color for visibility */
-    --cream-muted: 40 20% 80%;   /* Slightly darker cream for subtle elements */
+    --cream-header: 40 15% 88%;  /* More visible cream background */
+    --cream-text: 25 20% 35%;    /* Darker text for better contrast */
+    --cream-muted: 30 15% 65%;   /* Medium cream for secondary text */
 
     /* Mobile-specific backgrounds */
     --mobile-background: 25 20% 18%;  /* Warm brown for mobile main area */
@@ -89,9 +89,9 @@ All colors MUST be HSL.
     --ring: 45 30% 85%;  /* Light cream focus rings */
     
     /* Custom cream colors for header sections in dark mode */
-    --cream-header: 25 20% 8%;   /* Match dark background */
-    --cream-text: 40 20% 60%;    /* Cream text for dark mode */
-    --cream-muted: 40 15% 50%;   /* Darker cream for dark mode */
+    --cream-header: 25 15% 15%;  /* Darker background for dark mode */
+    --cream-text: 40 25% 75%;    /* Light cream text for dark mode */
+    --cream-muted: 40 20% 60%;   /* Medium cream for dark mode */
     
     /* Mobile-specific backgrounds for dark mode */
     --mobile-background: 25 18% 12%;  /* Dark brown for mobile main area */
