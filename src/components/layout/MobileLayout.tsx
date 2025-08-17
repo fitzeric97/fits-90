@@ -55,7 +55,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 text-xs relative",
                   isActive 
-                    ? "text-primary" 
+                    ? "text-fits-blue" 
                     : "text-muted-foreground",
                   isCenter && "relative"
                 )}
@@ -63,22 +63,22 @@ export function MobileLayout({ children }: MobileLayoutProps) {
                 {/* Special styling for center Activity button */}
                 {isCenter && (
                   <div className={cn(
-                    "absolute -top-2 bg-primary rounded-full p-2",
-                    isActive ? "bg-primary" : "bg-muted"
+                    "absolute -top-2 rounded-full p-2",
+                    isActive ? "bg-fits-blue" : "bg-muted"
                   )}>
-                    <Icon className="h-5 w-5 text-white" />
+                    <Icon className="h-6 w-6 text-white" strokeWidth={2.5} />
                   </div>
                 )}
                 
                 {!isCenter && (
                   <Icon className={cn(
-                    "h-5 w-5",
+                    "h-6 w-6",
                     isActive && "scale-110"
-                  )} />
+                  )} strokeWidth={2.5} />
                 )}
                 
                 <span className={cn(
-                  "font-medium text-[10px]",
+                  "font-bold text-[11px]",
                   isCenter && "mt-3"
                 )}>
                   {item.label}
