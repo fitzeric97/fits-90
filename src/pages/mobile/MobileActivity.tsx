@@ -190,7 +190,7 @@ export default function MobileActivity() {
                     placeholder="Search by name or email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-card text-card-foreground border-border placeholder:text-muted-foreground focus:bg-card"
                   />
                 </div>
                 
