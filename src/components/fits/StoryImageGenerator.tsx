@@ -581,16 +581,7 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
 
       {/* Visible UI */}
       <div className="flex flex-col gap-2">
-        <Button
-          onClick={saveToDevice}
-          disabled={generating}
-          size="sm"
-          variant="outline"
-          className="px-3 py-1 h-8 text-xs"
-        >
-          <Download className="w-3 h-3 mr-1" />
-          {generating ? 'Saving...' : 'Save to Device'}
-        </Button>
+        {/* No buttons for now */}
       </div>
     </>
   );
