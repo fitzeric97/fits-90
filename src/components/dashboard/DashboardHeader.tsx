@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { NotificationBell } from "./NotificationBell";
 import { ConnectionNotification } from "./ConnectionNotification";
+import { PointsScoreboard } from "./PointsScoreboard";
 
 export function DashboardHeader() {
   const { user } = useAuth();
@@ -70,8 +71,9 @@ export function DashboardHeader() {
 
   return (
     <header className="h-14 border-b bg-background flex items-center justify-between px-4 relative">
-      {/* Left side - Menu button */}
+      {/* Left side - Points, Menu button, and Logo */}
       <div className="flex items-center gap-4 sm:flex-1">
+        <PointsScoreboard />
         <SidebarTrigger className="h-20 w-20 p-4" />
         <div className="hidden sm:flex items-center gap-2">
           <img 

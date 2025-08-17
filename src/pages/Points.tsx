@@ -67,11 +67,11 @@ export default function Points() {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span>Share a new fit</span>
-                <Badge variant="secondary">+50 points</Badge>
+                <Badge variant="secondary">+100 points</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span>Add item to closet</span>
-                <Badge variant="secondary">+25 points</Badge>
+                <Badge variant="secondary">+50 points</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span>Like an item</span>
