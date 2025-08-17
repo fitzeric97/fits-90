@@ -222,7 +222,7 @@ export default function MobileLikes() {
             variant={sortByHeadToToe ? "secondary" : "outline"}
             size="sm"
             onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
-            className="flex items-center gap-1 border-cream-muted text-cream-text hover:bg-cream-muted"
+            className="flex items-center gap-1 bg-primary-foreground/20 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/30"
           >
             <ArrowUpDown className="h-3 w-3" />
             Head to Toe

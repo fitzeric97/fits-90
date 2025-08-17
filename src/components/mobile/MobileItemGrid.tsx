@@ -36,19 +36,19 @@ export function MobileItemGrid({
   return (
     <div className="flex flex-col h-full">
       {/* Controls */}
-      <div className="sticky top-0 bg-cream-header z-30 p-4 border-b">
+      <div className="sticky top-0 bg-primary z-30 p-4 border-b border-primary/20">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <h2 className="font-semibold text-cream-text">{items.length} items</h2>
+            <h2 className="font-semibold text-primary-foreground">{items.length} items</h2>
             {extraControls}
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex bg-cream-muted rounded-lg p-1">
+            <div className="flex bg-primary-foreground/20 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('grid')}
                 className={cn(
-                  "p-1.5 rounded",
-                  viewMode === 'grid' && "bg-background shadow-sm"
+                  "p-1.5 rounded text-primary-foreground",
+                  viewMode === 'grid' && "bg-primary-foreground/30 shadow-sm"
                 )}
               >
                 <Grid3x3 className="h-4 w-4" />
@@ -56,15 +56,15 @@ export function MobileItemGrid({
               <button
                 onClick={() => setViewMode('list')}
                 className={cn(
-                  "p-1.5 rounded",
-                  viewMode === 'list' && "bg-background shadow-sm"
+                  "p-1.5 rounded text-primary-foreground",
+                  viewMode === 'list' && "bg-primary-foreground/30 shadow-sm"
                 )}
               >
                 <List className="h-4 w-4" />
               </button>
             </div>
             {onAddNew && (
-              <Button size="sm" onClick={onAddNew}>
+              <Button size="sm" onClick={onAddNew} variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
                 <Plus className="h-4 w-4" />
               </Button>
             )}
@@ -75,19 +75,19 @@ export function MobileItemGrid({
         {items.length > 0 && onSearch && (
           <div className="flex justify-center">
             <div className="relative w-full max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary-foreground/60" />
               <Input
                 placeholder={searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="pl-10 pr-10"
+                className="pl-10 pr-10 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
               />
               {searchQuery && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handleSearchChange('')}
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-primary-foreground/20 text-primary-foreground"
                 >
                   <X className="h-3 w-3" />
                 </Button>

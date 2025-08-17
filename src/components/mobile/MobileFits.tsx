@@ -307,6 +307,11 @@ export default function MobileFits() {
         onAddNew={() => setShowAddDialog(true)}
         addButtonText="Add Outfit"
         emptyMessage="No outfits yet. Share your first fit!"
+        onSearch={(query) => {
+          // Optional: Add search functionality for fits based on caption
+          // For now, we'll keep it simple without search for fits
+        }}
+        searchPlaceholder="Search your fits..."
       />
       
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
