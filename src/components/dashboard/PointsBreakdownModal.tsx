@@ -1,6 +1,6 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X, Trophy, ShirtIcon, Heart, Zap } from "lucide-react";
+import { X, Trophy, ShirtIcon, Heart, Camera } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface PointsBreakdownModalProps {
@@ -17,7 +17,7 @@ interface PointsBreakdownModalProps {
 export function PointsBreakdownModal({ isOpen, onClose, points }: PointsBreakdownModalProps) {
   const breakdownItems = [
     {
-      icon: <Zap className="h-6 w-6" />,
+      icon: <Camera className="h-6 w-6" />,
       label: "Fits Shared",
       count: points.fits,
       pointsEach: 100,
