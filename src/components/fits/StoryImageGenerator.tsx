@@ -527,7 +527,6 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
             {taggedItems.length > 0 && (
               <div className="absolute right-8 top-0 bottom-8 w-96">
                 <div className="bg-gray-50 rounded-3xl p-8 h-full shadow-xl">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Tagged ({taggedItems.length})</h3>
                   <div className="space-y-6">
                     {taggedItems.slice(0, 3).map((item) => (
                       <div key={item.id} className="bg-white rounded-2xl p-4 shadow-md">
