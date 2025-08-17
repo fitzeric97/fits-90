@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import * as htmlToImage from 'html-to-image';
-import { Share2, Instagram, Check, Copy } from 'lucide-react';
+import { Share2, Instagram, Check, Copy, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -370,21 +370,101 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
   };
 
   const downloadFallback = (dataUrl: string) => {
-    // Fallback: Download image and provide instructions
+    // Simple download without Instagram integration
     const link = document.createElement('a');
     link.download = 'fit-story.jpg';
     link.href = dataUrl;
     link.click();
     
-    // Try to open Instagram app
-    setTimeout(() => {
-      window.open('instagram://story-camera', '_blank');
-    }, 1000);
-    
     toast({
-      title: "Image downloaded & link copied!",
-      description: "Open Instagram, select the image, and add the link as a sticker",
+      title: "Image downloaded!",
+      description: "Your fit story has been saved to your device",
     });
+  };
+
+  const saveToDevice = async () => {
+    console.log('💾 Starting simple save to device...', { 
+      fitId: fit.id, 
+      hasTaggedItems: taggedItems.length > 0
+    });
+
+    setDebugError(null);
+    
+    if (!storyRef.current) {
+      const error = 'Story ref is null - DOM element not found';
+      console.error('❌', error);
+      setDebugError(error);
+      return;
+    }
+    
+    setGenerating(true);
+    
+    try {
+      // Pre-load images (same as existing logic)
+      const imageUrls: string[] = [];
+      
+      if (fit.image_url) {
+        imageUrls.push(fit.image_url);
+      }
+      
+      taggedItems.forEach(item => {
+        if (item.product_image_url) {
+          imageUrls.push(item.product_image_url);
+        }
+      });
+      
+      const preloadPromises = imageUrls.map(async (url, index) => {
+        try {
+          const loadedImg = await preloadImage(url);
+          const dataUrl = imageToDataUrl(loadedImg);
+          return { url, dataUrl, success: true };
+        } catch (error) {
+          console.warn(`⚠️ Image ${index + 1} failed to pre-load:`, url, error);
+          return { url, dataUrl: url, success: false };
+        }
+      });
+
+      const preloadResults = await Promise.all(preloadPromises);
+      
+      // Update DOM images
+      const images = storyRef.current.querySelectorAll('img');
+      Array.from(images).forEach((img) => {
+        const originalSrc = img.getAttribute('data-original-src') || img.src;
+        const result = preloadResults.find(r => r.url === originalSrc);
+        if (result) {
+          img.src = result.dataUrl;
+        }
+      });
+      
+      // Wait for DOM to update
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Generate image
+      const dataUrl = await htmlToImage.toPng(storyRef.current, {
+        width: 1080,
+        height: 1920,
+        pixelRatio: 1,
+        backgroundColor: '#ffffff',
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top left',
+        }
+      });
+
+      // Simple download
+      downloadFallback(dataUrl);
+      
+    } catch (error) {
+      console.error('💥 Save to device failed:', error);
+      
+      toast({
+        title: "Error",
+        description: "Failed to save image. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const copyLink = async () => {
@@ -428,20 +508,8 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
         }}
       >
         <div className="relative w-full h-full bg-white">
-          {/* Fits logo - centered at the top */}
-          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg z-10">
-            <div className="flex items-center gap-3">
-              <img 
-                src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
-                alt="Fits" 
-                className="h-10 w-10"
-              />
-              <span className="text-gray-900 font-bold text-2xl">Fits</span>
-            </div>
-          </div>
-
           {/* Main content area */}
-          <div className="absolute inset-0 pt-32">
+          <div className="absolute inset-0 pt-8">
             {/* Main outfit image - left side */}
             <div className="absolute left-8 top-0 bottom-8" style={{ width: taggedItems.length > 0 ? '600px' : 'calc(100% - 64px)' }}>
               <div className="w-full h-full rounded-3xl overflow-hidden shadow-xl">
@@ -496,6 +564,18 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
                 </div>
               </div>
             )}
+
+            {/* Fits logo - bottom left */}
+            <div className="absolute bottom-16 left-8 bg-white/95 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg z-10">
+              <div className="flex items-center gap-3">
+                <img 
+                  src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
+                  alt="Fits" 
+                  className="h-10 w-10"
+                />
+                <span className="text-gray-900 font-bold text-2xl">Fits</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -510,6 +590,17 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
         >
           <Instagram className="w-3 h-3 mr-1" />
           {generating ? 'Generating...' : 'Story'}
+        </Button>
+        
+        <Button
+          onClick={saveToDevice}
+          disabled={generating}
+          size="sm"
+          variant="outline"
+          className="px-3 py-1 h-8 text-xs"
+        >
+          <Download className="w-3 h-3 mr-1" />
+          {generating ? 'Saving...' : 'Save to Device'}
         </Button>
       </div>
     </>
