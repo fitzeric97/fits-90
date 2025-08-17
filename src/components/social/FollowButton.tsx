@@ -31,10 +31,11 @@ export function FollowButton({
 
   const checkFollowStatus = async () => {
     const { data } = await supabase
-      .from('user_follows')
+      .from('user_connections')
       .select('*')
-      .eq('follower_id', user?.id)
-      .eq('following_id', targetUserId)
+      .eq('user_id', user?.id)
+      .eq('connected_user_id', targetUserId)
+      .eq('status', 'accepted')
       .maybeSingle();
     
     setIsFollowing(!!data);
@@ -54,12 +55,12 @@ export function FollowButton({
     
     try {
       if (isFollowing) {
-        // Unfollow
+        // Disconnect
         const { error } = await supabase
-          .from('user_follows')
+          .from('user_connections')
           .delete()
-          .eq('follower_id', user.id)
-          .eq('following_id', targetUserId);
+          .eq('user_id', user.id)
+          .eq('connected_user_id', targetUserId);
 
         if (error) throw error;
         
@@ -67,16 +68,18 @@ export function FollowButton({
         onFollowChange?.(false);
         
         toast({
-          title: "Unfollowed",
-          description: `You unfollowed ${targetUsername || 'this user'}`,
+          title: "Disconnected",
+          description: `You disconnected from ${targetUsername || 'this user'}`,
         });
       } else {
-        // Follow
+        // Connect
         const { error } = await supabase
-          .from('user_follows')
+          .from('user_connections')
           .insert({
-            follower_id: user.id,
-            following_id: targetUserId
+            user_id: user.id,
+            connected_user_id: targetUserId,
+            requested_by: user.id,
+            status: 'accepted'
           });
 
         if (error) throw error;
@@ -85,8 +88,8 @@ export function FollowButton({
         onFollowChange?.(true);
         
         toast({
-          title: "Following!",
-          description: `You're now following ${targetUsername || 'this user'}`,
+          title: "Connected!",
+          description: `You're now connected to ${targetUsername || 'this user'}`,
         });
       }
     } catch (error) {
