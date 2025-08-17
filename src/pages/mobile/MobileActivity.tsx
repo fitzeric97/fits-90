@@ -277,11 +277,11 @@ export default function MobileActivity() {
                   <div className="space-y-2">
                     {searchResults.map((profile) => (
                       <div key={profile.id} className="p-3 bg-card rounded-lg border">
-                        <div 
-                          className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
-                          onClick={() => navigate(`/profile/${profile.id}`)}
-                        >
-                          <div className="flex items-center space-x-3 flex-1">
+                        <div className="flex items-center justify-between">
+                          <div 
+                            className="flex items-center space-x-3 flex-1 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
+                            onClick={() => navigate(`/profile/${profile.id}`)}
+                          >
                             <Avatar className="h-10 w-10">
                               <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                                 {profile.display_name?.charAt(0).toUpperCase() || 
@@ -303,11 +303,13 @@ export default function MobileActivity() {
                               </p>
                             </div>
                           </div>
-                          <FollowButton 
-                            targetUserId={profile.id}
-                            targetUsername={profile.display_name || profile.myfits_email || profile.gmail_address}
-                            size="sm"
-                          />
+                          <div className="flex-shrink-0 ml-3">
+                            <FollowButton 
+                              targetUserId={profile.id}
+                              targetUsername={profile.display_name || profile.myfits_email || profile.gmail_address}
+                              size="sm"
+                            />
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -349,11 +351,11 @@ export default function MobileActivity() {
                     <div className="space-y-2">
                       {suggestedConnections.map((profile) => (
                         <div key={profile.id} className="p-3 bg-card rounded-lg border">
-                          <div 
-                            className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
-                            onClick={() => navigate(`/profile/${profile.id}`)}
-                          >
-                            <div className="flex items-center space-x-3 flex-1">
+                          <div className="flex items-center justify-between">
+                            <div 
+                              className="flex items-center space-x-3 flex-1 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
+                              onClick={() => navigate(`/profile/${profile.id}`)}
+                            >
                               <Avatar className="h-10 w-10">
                                 <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                                   {profile.display_name?.charAt(0).toUpperCase() || 
@@ -375,12 +377,14 @@ export default function MobileActivity() {
                                 </p>
                               </div>
                             </div>
-                            <FollowButton 
-                              targetUserId={profile.id}
-                              targetUsername={profile.display_name || profile.myfits_email || profile.gmail_address}
-                              size="sm"
-                              onFollowChange={() => fetchConnections()}
-                            />
+                            <div className="flex-shrink-0 ml-3">
+                              <FollowButton 
+                                targetUserId={profile.id}
+                                targetUsername={profile.display_name || profile.myfits_email || profile.gmail_address}
+                                size="sm"
+                                onFollowChange={() => fetchConnections()}
+                              />
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -427,11 +431,11 @@ export default function MobileActivity() {
                         <div className="space-y-2">
                           {connections.map((profile) => (
                             <div key={profile.id} className="p-3 bg-card rounded-lg border">
-                              <div 
-                                className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
-                                onClick={() => navigate(`/profile/${profile.id}`)}
-                              >
-                                <div className="flex items-center space-x-3 flex-1">
+                              <div className="flex items-center justify-between">
+                                <div 
+                                  className="flex items-center space-x-3 flex-1 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
+                                  onClick={() => navigate(`/profile/${profile.id}`)}
+                                >
                                   <Avatar className="h-10 w-10">
                                     <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                                       {profile.display_name?.charAt(0).toUpperCase() || 
@@ -453,17 +457,19 @@ export default function MobileActivity() {
                                     </p>
                                   </div>
                                 </div>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/profile/${profile.id}`);
-                                  }}
-                                  className="bg-fits-blue hover:bg-fits-blue/90 text-white border-fits-blue"
-                                >
-                                  View Profile
-                                </Button>
+                                <div className="flex-shrink-0 ml-3">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/profile/${profile.id}`);
+                                    }}
+                                    className="bg-fits-blue hover:bg-fits-blue/90 text-white border-fits-blue"
+                                  >
+                                    View Profile
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           ))}
