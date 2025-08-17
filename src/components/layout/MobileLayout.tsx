@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Heart, ShirtIcon, Camera, User, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ConnectionNotification } from "@/components/dashboard/ConnectionNotification";
 
 interface MobileLayoutProps {
   children: ReactNode;
@@ -24,12 +25,16 @@ export function MobileLayout({ children }: MobileLayoutProps) {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-cream-header border-b">
-        <div className="flex items-center justify-center h-14 px-4">
+        <div className="flex items-center justify-between h-14 px-4">
+          <div className="w-8"></div> {/* Spacer for centering */}
           <img 
             src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
             alt="Fits" 
             className="h-8 w-8"
           />
+          <div className="flex items-center">
+            <ConnectionNotification />
+          </div>
         </div>
       </header>
 

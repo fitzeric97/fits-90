@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { NotificationBell } from "./NotificationBell";
+import { ConnectionNotification } from "./ConnectionNotification";
 
 export function DashboardHeader() {
   const { user } = useAuth();
@@ -93,6 +94,7 @@ export function DashboardHeader() {
       
       {/* Right side - Notifications and User */}
       <div className="flex items-center gap-2">
+        <ConnectionNotification />
         <NotificationBell />
         <Button 
           variant="ghost" 
