@@ -23,7 +23,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background border-b">
+      <header className="sticky top-0 z-40 bg-cream-header border-b">
         <div className="flex items-center justify-center h-14 px-4">
           <img 
             src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
@@ -41,7 +41,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
       </main>
 
       {/* Bottom Navigation - Updated to 5 columns */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-background border-t z-40">
+      <nav className="fixed bottom-0 left-0 right-0 bg-cream-header border-t z-40">
         <div className="grid grid-cols-5 h-16">
           {navItems.map((item, index) => {
             const Icon = item.icon;
