@@ -250,16 +250,16 @@ export default function Likes() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 bg-cream-header p-4 rounded-lg">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-4">
-              <h1 className="text-3xl font-bold">My Likes</h1>
+              <h1 className="text-3xl font-bold text-cream-text">My Likes</h1>
               {likes.length > 0 && (
                 <Button
-                  variant={sortByHeadToToe ? "default" : "outline"}
+                  variant={sortByHeadToToe ? "secondary" : "outline"}
                   size="sm"
                   onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 border-cream-muted text-cream-text hover:bg-cream-muted"
                 >
                   <ArrowUpDown className="h-4 w-4" />
                   <span className="hidden sm:inline">Sort </span>Head to Toe
