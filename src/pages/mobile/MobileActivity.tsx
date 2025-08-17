@@ -459,13 +459,13 @@ export default function MobileActivity() {
                                 </div>
                                 <div className="flex-shrink-0 ml-3">
                                   <Button
-                                    variant="outline"
+                                    variant="default"
                                     size="sm"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       navigate(`/profile/${profile.id}`);
                                     }}
-                                    className="bg-fits-blue hover:bg-fits-blue/90 text-white border-fits-blue"
+                                    className="bg-fits-blue hover:bg-fits-blue/90 text-white border-fits-blue min-w-[100px]"
                                   >
                                     View Profile
                                   </Button>
