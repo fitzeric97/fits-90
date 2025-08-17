@@ -37,12 +37,44 @@ export default function MobileLikes() {
   const [sortByHeadToToe, setSortByHeadToToe] = useState(false);
   const [selectedLike, setSelectedLike] = useState(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredLikes, setFilteredLikes] = useState([]);
   const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     if (user) fetchLikes();
   }, [user]);
+
+  // Filter likes based on search query
+  useEffect(() => {
+    let filtered = likes;
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = likes.filter((like) => {
+        const searchableFields = [
+          like.brand_name?.toLowerCase(),
+          like.category?.toLowerCase(), 
+          like.description?.toLowerCase(),
+          like.title?.toLowerCase(),
+        ].filter(Boolean);
+
+        return searchableFields.some(field => field?.includes(query));
+      });
+    }
+
+    // Sort by Head to Toe order if enabled
+    if (sortByHeadToToe) {
+      filtered = [...filtered].sort((a, b) => {
+        const aIndex = a.category ? headToToeOrder.indexOf(a.category) : 999;
+        const bIndex = b.category ? headToToeOrder.indexOf(b.category) : 999;
+        return aIndex - bIndex;
+      });
+    }
+
+    setFilteredLikes(filtered);
+  }, [likes, searchQuery, sortByHeadToToe]);
 
   const fetchLikes = async () => {
     const { data } = await supabase
@@ -173,13 +205,7 @@ export default function MobileLikes() {
   }
 
   // Sort by Head to Toe order if enabled
-  const sortedLikes = sortByHeadToToe 
-    ? [...likes].sort((a, b) => {
-        const aIndex = a.category ? headToToeOrder.indexOf(a.category) : 999;
-        const bIndex = b.category ? headToToeOrder.indexOf(b.category) : 999;
-        return aIndex - bIndex;
-      })
-    : likes;
+  const sortedLikes = filteredLikes;
 
   return (
     <MobileLayout>
@@ -189,12 +215,14 @@ export default function MobileLikes() {
         onAddNew={() => setShowAddDialog(true)}
         addButtonText="Add Like"
         emptyMessage="No liked items yet. Start adding things you love!"
+        onSearch={setSearchQuery}
+        searchPlaceholder="Search by brand, category, or description..."
         extraControls={
           <Button
-            variant={sortByHeadToToe ? "default" : "outline"}
+            variant={sortByHeadToToe ? "secondary" : "outline"}
             size="sm"
             onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 border-cream-muted text-cream-text hover:bg-cream-muted"
           >
             <ArrowUpDown className="h-3 w-3" />
             Head to Toe

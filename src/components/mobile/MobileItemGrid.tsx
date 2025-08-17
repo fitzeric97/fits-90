@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Grid3x3, List, Plus } from "lucide-react";
+import { Grid3x3, List, Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface MobileItemGridProps {
@@ -10,6 +11,8 @@ interface MobileItemGridProps {
   addButtonText?: string;
   emptyMessage?: string;
   extraControls?: React.ReactNode;
+  onSearch?: (query: string) => void;
+  searchPlaceholder?: string;
 }
 
 export function MobileItemGrid({ 
@@ -18,18 +21,29 @@ export function MobileItemGrid({
   onAddNew,
   addButtonText = "Add Item",
   emptyMessage = "No items yet",
-  extraControls
+  extraControls,
+  onSearch,
+  searchPlaceholder = "Search items..."
 }: MobileItemGridProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    onSearch?.(value);
+  };
 
   return (
     <div className="flex flex-col h-full">
       {/* Controls */}
-      <div className="sticky top-0 bg-background z-30 p-4 border-b">
+      <div className="sticky top-0 bg-cream-header z-30 p-4 border-b">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold">{items.length} items</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="font-semibold text-cream-text">{items.length} items</h2>
+            {extraControls}
+          </div>
           <div className="flex items-center gap-2">
-            <div className="flex bg-muted rounded-lg p-1">
+            <div className="flex bg-cream-muted rounded-lg p-1">
               <button
                 onClick={() => setViewMode('grid')}
                 className={cn(
@@ -56,9 +70,29 @@ export function MobileItemGrid({
             )}
           </div>
         </div>
-        {extraControls && (
-          <div className="flex justify-start">
-            {extraControls}
+        
+        {/* Search Bar - Centered */}
+        {items.length > 0 && onSearch && (
+          <div className="flex justify-center">
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={searchPlaceholder}
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pl-10 pr-10"
+              />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSearchChange('')}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>

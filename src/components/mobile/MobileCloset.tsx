@@ -38,6 +38,8 @@ export default function MobileCloset() {
   const [sortByHeadToToe, setSortByHeadToToe] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredItems, setFilteredItems] = useState([]);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -48,6 +50,38 @@ export default function MobileCloset() {
       setLoading(false);
     }
   }, [user]);
+
+  // Filter items based on search query
+  useEffect(() => {
+    let filtered = items;
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = items.filter((item) => {
+        const searchableFields = [
+          item.product_name?.toLowerCase(),
+          item.brand_name?.toLowerCase(),
+          item.product_description?.toLowerCase(),
+          item.category?.toLowerCase(),
+          item.color?.toLowerCase(),
+          item.size?.toLowerCase(),
+        ].filter(Boolean);
+
+        return searchableFields.some(field => field?.includes(query));
+      });
+    }
+
+    // Sort by Head to Toe order if enabled
+    if (sortByHeadToToe) {
+      filtered = [...filtered].sort((a, b) => {
+        const aIndex = a.category ? headToToeOrder.indexOf(a.category) : 999;
+        const bIndex = b.category ? headToToeOrder.indexOf(b.category) : 999;
+        return aIndex - bIndex;
+      });
+    }
+
+    setFilteredItems(filtered);
+  }, [items, searchQuery, sortByHeadToToe]);
 
   const fetchItems = async () => {
     try {
@@ -235,13 +269,7 @@ export default function MobileCloset() {
   }
 
   // Sort items by Head to Toe order if enabled
-  const sortedItems = sortByHeadToToe 
-    ? [...items].sort((a, b) => {
-        const aIndex = a.category ? headToToeOrder.indexOf(a.category) : 999;
-        const bIndex = b.category ? headToToeOrder.indexOf(b.category) : 999;
-        return aIndex - bIndex;
-      })
-    : items;
+  const sortedItems = filteredItems;
 
   return (
     <MobileLayout>
@@ -250,12 +278,14 @@ export default function MobileCloset() {
         renderItem={renderClosetItem}
         addButtonText="Add Item"
         emptyMessage="Your closet is empty. Start adding your favorite items!"
+        onSearch={setSearchQuery}
+        searchPlaceholder="Search by brand, category, name, or description..."
         extraControls={
           <Button
-            variant={sortByHeadToToe ? "default" : "outline"}
+            variant={sortByHeadToToe ? "secondary" : "outline"}
             size="sm"
             onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 border-cream-muted text-cream-text hover:bg-cream-muted"
           >
             <ArrowUpDown className="h-3 w-3" />
             Head to Toe
