@@ -278,6 +278,7 @@ export default function MobileCloset() {
         renderItem={renderClosetItem}
         addButtonText="Add Item"
         emptyMessage="Your closet is empty. Start adding your favorite items!"
+        gridColumns={3}
         extraControls={
           <Button
             variant={sortByHeadToToe ? "secondary" : "outline"}

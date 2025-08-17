@@ -217,6 +217,7 @@ export default function MobileLikes() {
         emptyMessage="No liked items yet. Start adding things you love!"
         onSearch={setSearchQuery}
         searchPlaceholder="Search by brand, category, or description..."
+        gridColumns={3}
         extraControls={
           <Button
             variant={sortByHeadToToe ? "secondary" : "outline"}

@@ -13,6 +13,7 @@ interface MobileItemGridProps {
   extraControls?: React.ReactNode;
   onSearch?: (query: string) => void;
   searchPlaceholder?: string;
+  gridColumns?: number; // New prop to control grid columns
 }
 
 export function MobileItemGrid({ 
@@ -23,7 +24,8 @@ export function MobileItemGrid({
   emptyMessage = "No items yet",
   extraControls,
   onSearch,
-  searchPlaceholder = "Search items..."
+  searchPlaceholder = "Search items...",
+  gridColumns = 2 // Default to 2 columns for backward compatibility
 }: MobileItemGridProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
@@ -112,7 +114,7 @@ export function MobileItemGrid({
         ) : (
           <div className={cn(
             viewMode === 'grid' 
-              ? "grid grid-cols-2 gap-3"
+              ? `grid gap-3 ${gridColumns === 3 ? 'grid-cols-3' : 'grid-cols-2'}`
               : "space-y-3"
           )}>
             {items.map(item => renderItem(item, viewMode))}
