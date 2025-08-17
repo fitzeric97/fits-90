@@ -295,8 +295,8 @@ export default function MobileActivity() {
                                 </p>
                                 {!profile.display_name && (profile.myfits_email || profile.gmail_address) && (
                                   <p className="text-sm text-primary/70 truncate">
-                                     {(profile.myfits_email || profile.gmail_address)?.length > 25 
-                                       ? `${(profile.myfits_email || profile.gmail_address).substring(0, 25)}...`
+                                     {(profile.myfits_email || profile.gmail_address)?.length > 15 
+                                       ? `${(profile.myfits_email || profile.gmail_address).substring(0, 15)}...`
                                        : profile.myfits_email || profile.gmail_address}
                                   </p>
                                 )}
@@ -371,9 +371,9 @@ export default function MobileActivity() {
                                 </p>
                                 {!profile.display_name && (profile.myfits_email || profile.gmail_address) && (
                                   <p className="text-sm text-primary/70 truncate">
-                                    {(profile.myfits_email || profile.gmail_address)?.length > 25 
-                                      ? `${(profile.myfits_email || profile.gmail_address).substring(0, 25)}...`
-                                      : profile.myfits_email || profile.gmail_address}
+                                     {(profile.myfits_email || profile.gmail_address)?.length > 15 
+                                       ? `${(profile.myfits_email || profile.gmail_address).substring(0, 15)}...`
+                                       : profile.myfits_email || profile.gmail_address}
                                   </p>
                                 )}
                                 <p className="text-xs text-muted-foreground mt-1">
@@ -453,9 +453,9 @@ export default function MobileActivity() {
                                     </p>
                                     {!profile.display_name && (profile.myfits_email || profile.gmail_address) && (
                                       <p className="text-sm text-primary/70 truncate">
-                                        {(profile.myfits_email || profile.gmail_address)?.length > 25 
-                                          ? `${(profile.myfits_email || profile.gmail_address).substring(0, 25)}...`
-                                          : profile.myfits_email || profile.gmail_address}
+                                         {(profile.myfits_email || profile.gmail_address)?.length > 15 
+                                           ? `${(profile.myfits_email || profile.gmail_address).substring(0, 15)}...`
+                                           : profile.myfits_email || profile.gmail_address}
                                       </p>
                                     )}
                                     <p className="text-xs text-fits-blue font-medium mt-1">
