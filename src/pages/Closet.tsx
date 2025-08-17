@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive, Square, Footprints, Eye, Trash2, Sparkles, ArrowUpDown, Gem } from "lucide-react";
+import { Search, Filter, Grid, List, Heart, ExternalLink, Calendar, Tag, Package, Shirt, Zap, Scissors, ShirtIcon, ShoppingBag, Dumbbell, Archive, Square, Footprints, Eye, Trash2, Sparkles, ArrowUpDown, Gem, X } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileCloset from "@/components/mobile/MobileCloset";
@@ -290,11 +290,24 @@ export default function Closet() {
         {/* Header */}
         <div className="flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold">My Closet</h1>
-              <p className="text-muted-foreground">
-                Your digital wardrobe ({closetItems.length} items)
-              </p>
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-3xl font-bold">My Closet</h1>
+                <p className="text-muted-foreground">
+                  Your digital wardrobe ({closetItems.length} items)
+                </p>
+              </div>
+              {closetItems.length > 0 && (
+                <Button
+                  variant={sortByHeadToToe ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowUpDown className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sort </span>Head to Toe
+                </Button>
+              )}
             </div>
             
             <div className="flex flex-wrap gap-2">
@@ -327,20 +340,32 @@ export default function Closet() {
               </div>
             </div>
           </div>
-          
-          {/* Sort Controls */}
-          <div className="flex items-center justify-end">
-            <Button
-              variant={sortByHeadToToe ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
-              className="flex items-center gap-2"
-            >
-              <ArrowUpDown className="h-4 w-4" />
-              <span className="hidden sm:inline">Sort </span>Head to Toe
-            </Button>
-          </div>
         </div>
+
+        {/* Search Bar */}
+        {closetItems.length > 0 && (
+          <div className="flex justify-center">
+            <div className="relative max-w-md w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by brand, category, name, or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-10"
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Grid View - Default */}
         {viewMode === "grid" && (
@@ -585,16 +610,6 @@ export default function Closet() {
         {/* Filters - Only show when in grid or list view */}
         {(viewMode === "grid" || viewMode === "list") && (
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search items, brands, or descriptions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="Category" />
