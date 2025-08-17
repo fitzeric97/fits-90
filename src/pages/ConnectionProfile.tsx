@@ -77,6 +77,11 @@ const ConnectionProfile = () => {
   const [activeTab, setActiveTab] = useState("fits");
   const [isConnected, setIsConnected] = useState(false);
 
+  // Reset search when switching tabs
+  useEffect(() => {
+    setSearchTerm("");
+  }, [activeTab]);
+
   useEffect(() => {
     if (!userId || !user) return;
     fetchData();
@@ -302,12 +307,27 @@ const ConnectionProfile = () => {
           )}
         </div>
 
+        {/* Connection Status Notice */}
+        {!isConnected && userId !== user?.id && (
+          <div className="bg-muted/50 border border-muted rounded-lg p-4 text-center">
+            <UserPlus className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground mb-3">
+              Connect with {profile?.display_name || "this user"} to see their closet, likes, and favorite brands
+            </p>
+            <FollowButton 
+              targetUserId={userId!}
+              targetUsername={profile?.display_name || profile?.myfits_email || "User"}
+              size="sm"
+            />
+          </div>
+        )}
+
         {/* Search and Sort Controls */}
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Search items..."
+              placeholder={`Search ${activeTab}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -328,21 +348,40 @@ const ConnectionProfile = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-4 max-w-2xl">
-            <TabsTrigger value="fits" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="fits" 
+              className="flex items-center gap-2 transition-all"
+              title="View outfit posts"
+            >
               <Camera className="h-4 w-4" />
-              Fits ({fits.length})
+              <span className="hidden sm:inline">Fits</span> ({fits.length})
             </TabsTrigger>
-            <TabsTrigger value="closet" className="flex items-center gap-2" disabled={!isConnected}>
+            <TabsTrigger 
+              value="closet" 
+              className="flex items-center gap-2 transition-all" 
+              disabled={!isConnected}
+              title={!isConnected ? "Connect to view closet" : "View closet items"}
+            >
               <ShirtIcon className="h-4 w-4" />
-              Closet ({closetItems.length})
+              <span className="hidden sm:inline">Closet</span> ({closetItems.length})
             </TabsTrigger>
-            <TabsTrigger value="likes" className="flex items-center gap-2" disabled={!isConnected}>
+            <TabsTrigger 
+              value="likes" 
+              className="flex items-center gap-2 transition-all" 
+              disabled={!isConnected}
+              title={!isConnected ? "Connect to view likes" : "View liked items"}
+            >
               <Heart className="h-4 w-4" />
-              Likes ({likes.length})
+              <span className="hidden sm:inline">Likes</span> ({likes.length})
             </TabsTrigger>
-            <TabsTrigger value="brands" className="flex items-center gap-2" disabled={!isConnected}>
+            <TabsTrigger 
+              value="brands" 
+              className="flex items-center gap-2 transition-all" 
+              disabled={!isConnected}
+              title={!isConnected ? "Connect to view brands" : "View favorite brands"}
+            >
               <Store className="h-4 w-4" />
-              Brands ({brands.length})
+              <span className="hidden sm:inline">Brands</span> ({brands.length})
             </TabsTrigger>
           </TabsList>
 
