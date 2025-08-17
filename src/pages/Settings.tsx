@@ -35,7 +35,6 @@ export default function Settings() {
   const [profileForm, setProfileForm] = useState({
     firstName: '',
     lastName: '',
-    username: '',
   });
 
   useEffect(() => {
@@ -72,7 +71,6 @@ export default function Settings() {
           setProfileForm({
             firstName: nameParts[0] || '',
             lastName: nameParts.slice(1).join(' ') || '',
-            username: '', // You can extend this to store username separately
           });
         }
       }
@@ -83,21 +81,38 @@ export default function Settings() {
 
   const updateProfile = async () => {
     try {
-      const displayName = `${profileForm.firstName} ${profileForm.lastName}`.trim();
+      // Ensure we have valid form data
+      if (!profileForm.firstName.trim() && !profileForm.lastName.trim()) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter at least your first name.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const displayName = `${profileForm.firstName.trim()} ${profileForm.lastName.trim()}`.trim();
+      
       const { error } = await supabase
         .from('profiles')
         .upsert({
           id: user?.id,
           display_name: displayName || null,
+        }, {
+          onConflict: 'id'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile update error:', error);
+        throw error;
+      }
       
       toast({
         title: "Profile Updated",
-        description: "Your profile information has been saved.",
+        description: "Your profile information has been saved successfully.",
       });
       
+      // Refresh the profile data
       await fetchUserProfile();
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -150,7 +165,7 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
                 <CardDescription>
-                  Your name and username to help others find you
+                  Your name to help others find you
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -162,6 +177,7 @@ export default function Settings() {
                       value={profileForm.firstName}
                       onChange={(e) => setProfileForm({...profileForm, firstName: e.target.value})}
                       placeholder="Enter your first name"
+                      className="bg-card text-card-foreground border-border focus:bg-card focus:text-card-foreground"
                     />
                   </div>
                   <div className="space-y-2">
@@ -171,22 +187,11 @@ export default function Settings() {
                       value={profileForm.lastName}
                       onChange={(e) => setProfileForm({...profileForm, lastName: e.target.value})}
                       placeholder="Enter your last name"
+                      className="bg-card text-card-foreground border-border focus:bg-card focus:text-card-foreground"
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    value={profileForm.username}
-                    onChange={(e) => setProfileForm({...profileForm, username: e.target.value})}
-                    placeholder="Choose a unique username"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    This will help others find you in search
-                  </p>
-                </div>
-                <Button onClick={updateProfile}>
+                <Button onClick={updateProfile} className="w-full md:w-auto">
                   Save Profile
                 </Button>
               </CardContent>
