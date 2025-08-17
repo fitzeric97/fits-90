@@ -39,6 +39,10 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Mobile-specific backgrounds */
+    --mobile-background: 25 20% 18%;  /* Warm brown for mobile main area */
+    --mobile-surface: 45 20% 96%;     /* Cream for mobile header/nav */
+
     --sidebar-background: 25 25% 30%;  /* Rich brown sidebar */
     --sidebar-foreground: 45 30% 95%;  /* Cream sidebar text */
     --sidebar-primary: 45 30% 95%;  /* Cream active items */
@@ -78,6 +82,10 @@ All colors MUST be HSL.
     --border: 25 15% 20%;  /* Dark coffee borders */
     --input: 25 15% 20%;
     --ring: 45 30% 85%;  /* Light cream focus rings */
+    
+    /* Mobile-specific backgrounds for dark mode */
+    --mobile-background: 25 18% 12%;  /* Dark brown for mobile main area */
+    --mobile-surface: 25 20% 8%;      /* Very dark coffee for mobile header/nav */
     
     --sidebar-background: 25 18% 10%;
     --sidebar-foreground: 45 20% 88%;

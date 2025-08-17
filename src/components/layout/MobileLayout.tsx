@@ -20,9 +20,9 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col no-bounce">
+    <div className="min-h-screen bg-[hsl(var(--mobile-background))] flex flex-col no-bounce">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background border-b safe-top">
+      <header className="sticky top-0 z-40 bg-[hsl(var(--mobile-surface))] border-b safe-top">
         <div className="flex items-center justify-center h-14 px-4">
           <img 
             src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
@@ -40,7 +40,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-background border-t z-40 safe-bottom">
+      <nav className="fixed bottom-0 left-0 right-0 bg-[hsl(var(--mobile-surface))] border-t z-40 safe-bottom">
         <div className="grid grid-cols-4 h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
