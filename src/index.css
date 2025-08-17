@@ -39,6 +39,10 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Fits logo blue accent color */
+    --fits-blue: 202 85% 60%;  /* Blue from the Fits logo */
+    --fits-blue-foreground: 0 0% 100%;  /* White text on blue */
+
     /* Custom cream colors for header sections */
     --cream-header: 40 15% 88%;  /* More visible cream background */
     --cream-text: 25 20% 35%;    /* Darker text for better contrast */
@@ -87,6 +91,10 @@ All colors MUST be HSL.
     --border: 25 15% 20%;  /* Dark coffee borders */
     --input: 25 15% 20%;
     --ring: 45 30% 85%;  /* Light cream focus rings */
+    
+    /* Fits logo blue accent color for dark mode */
+    --fits-blue: 202 85% 55%;  /* Slightly darker blue for dark mode */
+    --fits-blue-foreground: 0 0% 100%;  /* White text on blue */
     
     /* Custom cream colors for header sections in dark mode */
     --cream-header: 25 15% 15%;  /* Darker background for dark mode */

@@ -64,7 +64,7 @@ export function MobileItemGrid({
               </button>
             </div>
             {onAddNew && (
-              <Button size="sm" onClick={onAddNew} variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
+              <Button size="sm" onClick={onAddNew} className="bg-fits-blue hover:bg-fits-blue/90 text-fits-blue-foreground">
                 <Plus className="h-4 w-4" />
               </Button>
             )}
@@ -102,12 +102,12 @@ export function MobileItemGrid({
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center">
             <p className="text-muted-foreground mb-4">{emptyMessage}</p>
-            {onAddNew && (
-              <Button onClick={onAddNew}>
-                <Plus className="h-4 w-4 mr-2" />
-                {addButtonText}
-              </Button>
-            )}
+              {onAddNew && (
+                <Button onClick={onAddNew} className="bg-fits-blue hover:bg-fits-blue/90 text-fits-blue-foreground">
+                  <Plus className="h-4 w-4 mr-2" />
+                  {addButtonText}
+                </Button>
+              )}
           </div>
         ) : (
           <div className={cn(

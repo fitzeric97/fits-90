@@ -270,7 +270,7 @@ export default function Likes() {
             <div className="flex flex-wrap gap-2">
               <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button className="bg-fits-blue hover:bg-fits-blue/90 text-fits-blue-foreground">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Like
                   </Button>

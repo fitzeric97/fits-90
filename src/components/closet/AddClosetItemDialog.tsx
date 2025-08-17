@@ -177,7 +177,7 @@ export function AddClosetItemDialog({ onItemAdded }: AddClosetItemDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="bg-fits-blue hover:bg-fits-blue/90 text-fits-blue-foreground">
           <Plus className="h-4 w-4 mr-2" />
           Add Item
         </Button>

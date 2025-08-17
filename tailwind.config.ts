@@ -66,6 +66,10 @@ export default {
 					header: 'hsl(var(--cream-header))',
 					text: 'hsl(var(--cream-text))',
 					muted: 'hsl(var(--cream-muted))'
+				},
+				'fits-blue': {
+					DEFAULT: 'hsl(var(--fits-blue))',
+					foreground: 'hsl(var(--fits-blue-foreground))'
 				}
 			},
 			borderRadius: {
