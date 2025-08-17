@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Home from "./pages/Home";
 import ConnectPage from "./pages/ConnectPage";
 
+import MobileActivity from "./pages/mobile/MobileActivity";
 import AuthCallback from "./pages/AuthCallback";
 import InstagramCallback from "./pages/InstagramCallback";
 import GmailCallback from "./pages/GmailCallback";
@@ -115,6 +116,11 @@ const App = () => {
             <Route path="/notifications/settings" element={
               <ProtectedRoute>
                 <NotificationSettings />
+              </ProtectedRoute>
+            } />
+            <Route path="/activity" element={
+              <ProtectedRoute>
+                <MobileActivity />
               </ProtectedRoute>
             } />
             <Route path="/settings" element={

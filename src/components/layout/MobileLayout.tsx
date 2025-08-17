@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Heart, ShirtIcon, Camera, User } from "lucide-react";
+import { Heart, ShirtIcon, Camera, User, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MobileLayoutProps {
@@ -16,6 +16,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
     { icon: Heart, label: "Likes", path: "/likes" },
     { icon: ShirtIcon, label: "Closet", path: "/closet" },
     { icon: Camera, label: "Fits", path: "/fits" },
+    { icon: Bell, label: "Activity", path: "/activity" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
 
@@ -41,7 +42,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-[hsl(var(--mobile-surface))] border-t z-40 safe-bottom">
-        <div className="grid grid-cols-4 h-16">
+        <div className="grid grid-cols-5 h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentPath === item.path;
