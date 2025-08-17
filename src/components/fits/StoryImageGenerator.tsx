@@ -27,7 +27,6 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
   const [generating, setGenerating] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [debugError, setDebugError] = useState<string | null>(null);
-  const [debugMode, setDebugMode] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -429,66 +428,74 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
         }}
       >
         <div className="relative w-full h-full bg-white">
-          {/* Main outfit image - takes up most of the space */}
-          <div className="absolute inset-0">
-            <img 
-              src={fit.image_url} 
-              data-original-src={fit.image_url}
-              alt="Outfit"
-              className="w-full h-full object-cover"
-              crossOrigin="anonymous"
-            />
-          </div>
-
-          {/* Tagged items overlay - positioned on the right side */}
-          {taggedItems.length > 0 && (
-            <div className="absolute top-8 right-8 bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg max-w-[200px]">
-              <div className="space-y-3">
-                {taggedItems.slice(0, 3).map((item) => (
-                  <div key={item.id} className="flex items-center gap-3">
-                    {item.product_image_url && (
-                      <div className="w-12 h-12 bg-white rounded-xl shadow-md overflow-hidden flex-shrink-0">
-                        <img 
-                          src={item.product_image_url} 
-                          data-original-src={item.product_image_url}
-                          alt={item.product_name}
-                          className="w-full h-full object-cover"
-                          crossOrigin="anonymous"
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-gray-900 font-semibold text-sm truncate">
-                        {item.brand_name}
-                      </p>
-                      <p className="text-gray-600 text-xs truncate">
-                        {item.product_name}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                
-                {taggedItems.length > 3 && (
-                  <div className="text-center pt-2 border-t border-gray-200">
-                    <p className="text-gray-600 text-xs">
-                      +{taggedItems.length - 3} more items
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Fits logo - bottom right corner */}
-          <div className="absolute bottom-8 right-8 bg-white/95 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg">
-            <div className="flex items-center gap-2">
+          {/* Fits logo - centered at the top */}
+          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg z-10">
+            <div className="flex items-center gap-3">
               <img 
                 src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
                 alt="Fits" 
-                className="h-8 w-8"
+                className="h-10 w-10"
               />
-              <span className="text-gray-900 font-bold text-lg">Fits</span>
+              <span className="text-gray-900 font-bold text-2xl">Fits</span>
             </div>
+          </div>
+
+          {/* Main content area */}
+          <div className="absolute inset-0 pt-32">
+            {/* Main outfit image - left side */}
+            <div className="absolute left-8 top-0 bottom-8" style={{ width: taggedItems.length > 0 ? '600px' : 'calc(100% - 64px)' }}>
+              <div className="w-full h-full rounded-3xl overflow-hidden shadow-xl">
+                <img 
+                  src={fit.image_url} 
+                  data-original-src={fit.image_url}
+                  alt="Outfit"
+                  className="w-full h-full object-cover"
+                  crossOrigin="anonymous"
+                />
+              </div>
+            </div>
+
+            {/* Tagged items section - right side */}
+            {taggedItems.length > 0 && (
+              <div className="absolute right-8 top-0 bottom-8 w-96">
+                <div className="bg-gray-50 rounded-3xl p-8 h-full shadow-xl">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Tagged ({taggedItems.length})</h3>
+                  <div className="space-y-6">
+                    {taggedItems.slice(0, 3).map((item) => (
+                      <div key={item.id} className="bg-white rounded-2xl p-4 shadow-md">
+                        {item.product_image_url && (
+                          <div className="w-full aspect-square bg-gray-100 rounded-xl overflow-hidden mb-3">
+                            <img 
+                              src={item.product_image_url} 
+                              data-original-src={item.product_image_url}
+                              alt={item.product_name}
+                              className="w-full h-full object-cover"
+                              crossOrigin="anonymous"
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-gray-900 font-semibold text-lg mb-1">
+                            {item.brand_name}
+                          </p>
+                          <p className="text-gray-600 text-sm">
+                            {item.product_name}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {taggedItems.length > 3 && (
+                      <div className="text-center py-4">
+                        <p className="text-gray-600 text-lg font-medium">
+                          +{taggedItems.length - 3} more items
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -504,78 +511,7 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
           <Instagram className="w-3 h-3 mr-1" />
           {generating ? 'Generating...' : 'Story'}
         </Button>
-        
-        {/* Debug button to preview template */}
-        <Button
-          onClick={() => setDebugMode(!debugMode)}
-          size="sm"
-          variant="outline"
-          className="text-xs px-2 py-1 h-6"
-        >
-          {debugMode ? 'Hide Preview' : 'Preview Template'}
-        </Button>
       </div>
-
-      {/* Debug Template Preview - Shows actual template when debug mode is on */}
-      {debugMode && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-4 max-w-sm w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold">Story Template Preview</h3>
-              <Button onClick={() => setDebugMode(false)} size="sm" variant="ghost">✕</Button>
-            </div>
-            
-            <div 
-              className="w-full bg-white border rounded-lg overflow-hidden"
-              style={{ 
-                aspectRatio: '9/16',
-                maxHeight: '400px'
-              }}
-            >
-              <div className="relative w-full h-full flex flex-col bg-white text-black" style={{ fontSize: '3px' }}>
-                {/* Scaled down version for preview */}
-                <div className="flex items-center justify-center pt-4 pb-2">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                    <span className="text-black font-bold" style={{ fontSize: '6px' }}>Fits</span>
-                  </div>
-                </div>
-
-                <div className="flex-1 flex items-center justify-center px-2 pb-2">
-                  <div className="w-16 h-20 bg-gray-200 rounded border flex items-center justify-center">
-                    <span style={{ fontSize: '4px' }}>Outfit Image</span>
-                  </div>
-                </div>
-
-                {taggedItems.length > 0 && (
-                  <div className="bg-gray-50 px-2 py-1 rounded-t-lg">
-                    <div className="flex items-center justify-center gap-1 mb-1">
-                      {taggedItems.slice(0, 3).map((item, idx) => (
-                        <div key={idx} className="flex flex-col items-center">
-                          <div className="w-3 h-3 bg-white rounded border"></div>
-                          <span style={{ fontSize: '2px' }}>{item.brand_name.substring(0, 4)}</span>
-                        </div>
-                      ))}
-                      {taggedItems.length > 3 && (
-                        <div className="w-3 h-3 bg-gray-200 rounded flex items-center justify-center">
-                          <span style={{ fontSize: '2px' }}>+{taggedItems.length - 3}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-center">
-                      <span style={{ fontSize: '3px' }}>Tap link to shop these items</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <p className="text-xs text-gray-600 mt-2">
-              This is what your story template should look like. If this looks correct but the generated image is still white, there may be a rendering issue.
-            </p>
-          </div>
-        </div>
-      )}
     </>
   );
 }
