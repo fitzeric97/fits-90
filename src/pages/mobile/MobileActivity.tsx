@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { FollowButton } from "@/components/social/FollowButton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
 
 export default function MobileActivity() {
   const [activities, setActivities] = useState([]);
@@ -16,6 +17,7 @@ export default function MobileActivity() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -202,7 +204,10 @@ export default function MobileActivity() {
                   <div className="space-y-2">
                     {searchResults.map((profile) => (
                       <div key={profile.id} className="flex items-center justify-between p-3 bg-card rounded-lg border">
-                        <div className="flex items-center space-x-3">
+                        <div 
+                          className="flex items-center space-x-3 flex-1 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
+                          onClick={() => navigate(`/profile/${profile.id}`)}
+                        >
                           <Avatar className="h-10 w-10">
                             <AvatarFallback>
                               {profile.display_name?.charAt(0).toUpperCase() || 
@@ -210,7 +215,7 @@ export default function MobileActivity() {
                                profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
+                          <div className="flex-1">
                             <p className="font-medium">
                               {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
                             </p>
@@ -219,6 +224,9 @@ export default function MobileActivity() {
                                 {profile.myfits_email || profile.gmail_address}
                               </p>
                             )}
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Tap to view profile
+                            </p>
                           </div>
                         </div>
                         <FollowButton 

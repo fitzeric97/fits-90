@@ -9,9 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Search, Heart, ShirtIcon, ExternalLink, Camera, Store } from "lucide-react";
+import { ArrowLeft, Search, Heart, ShirtIcon, ExternalLink, Camera, Store, UserPlus } from "lucide-react";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { useToast } from "@/hooks/use-toast";
+import { FollowButton } from "@/components/social/FollowButton";
 
 interface Profile {
   id: string;
@@ -74,6 +75,7 @@ const ConnectionProfile = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "alphabetical">("newest");
   const [activeTab, setActiveTab] = useState("fits");
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     if (!userId || !user) return;
@@ -104,15 +106,8 @@ const ConnectionProfile = () => {
         return;
       }
 
-      if (!connection) {
-        toast({
-          title: "Access Denied",
-          description: "You can only view profiles of connected users",
-          variant: "destructive",
-        });
-        navigate("/connect");
-        return;
-      }
+      const isConnected = !!connection;
+      setIsConnected(isConnected);
 
       // Fetch profile
       const { data: profileData, error: profileError } = await supabase
@@ -127,33 +122,59 @@ const ConnectionProfile = () => {
         setProfile(profileData);
       }
 
-      // Fetch likes
-      const { data: likesData, error: likesError } = await supabase
-        .from("user_likes")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+      // Fetch likes (only if connected)
+      if (isConnected) {
+        const { data: likesData, error: likesError } = await supabase
+          .from("user_likes")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
 
-      if (likesError) {
-        console.error("Likes fetch error:", likesError);
-      } else {
-        setLikes(likesData || []);
+        if (likesError) {
+          console.error("Likes fetch error:", likesError);
+        } else {
+          setLikes(likesData || []);
+        }
+
+        // Fetch closet items (only if connected)
+        const { data: closetData, error: closetError } = await supabase
+          .from("closet_items")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
+
+        if (closetError) {
+          console.error("Closet fetch error:", closetError);
+        } else {
+          setClosetItems(closetData || []);
+        }
+
+        // Calculate brands from closet items and likes (only if connected)
+        const brandCounts: { [key: string]: number } = {};
+        
+        // Count brands from closet items
+        closetData?.forEach(item => {
+          if (item.brand_name) {
+            brandCounts[item.brand_name] = (brandCounts[item.brand_name] || 0) + 1;
+          }
+        });
+
+        // Count brands from likes
+        likesData?.forEach(like => {
+          if (like.brand_name) {
+            brandCounts[like.brand_name] = (brandCounts[like.brand_name] || 0) + 1;
+          }
+        });
+
+        // Convert to array and sort by count
+        const brandsArray = Object.entries(brandCounts)
+          .map(([brand_name, count]) => ({ brand_name, count }))
+          .sort((a, b) => b.count - a.count);
+
+        setBrands(brandsArray);
       }
 
-      // Fetch closet items
-      const { data: closetData, error: closetError } = await supabase
-        .from("closet_items")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (closetError) {
-        console.error("Closet fetch error:", closetError);
-      } else {
-        setClosetItems(closetData || []);
-      }
-
-      // Fetch fits
+      // Fetch fits (always public)
       const { data: fitsData, error: fitsError } = await supabase
         .from("fits")
         .select("*")
@@ -165,30 +186,6 @@ const ConnectionProfile = () => {
       } else {
         setFits(fitsData || []);
       }
-
-      // Calculate brands from closet items and likes
-      const brandCounts: { [key: string]: number } = {};
-      
-      // Count brands from closet items
-      closetData?.forEach(item => {
-        if (item.brand_name) {
-          brandCounts[item.brand_name] = (brandCounts[item.brand_name] || 0) + 1;
-        }
-      });
-
-      // Count brands from likes
-      likesData?.forEach(like => {
-        if (like.brand_name) {
-          brandCounts[like.brand_name] = (brandCounts[like.brand_name] || 0) + 1;
-        }
-      });
-
-      // Convert to array and sort by count
-      const brandsArray = Object.entries(brandCounts)
-        .map(([brand_name, count]) => ({ brand_name, count }))
-        .sort((a, b) => b.count - a.count);
-
-      setBrands(brandsArray);
     } catch (error) {
       console.error("Fetch error:", error);
       toast({
@@ -288,7 +285,7 @@ const ConnectionProfile = () => {
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold">
               {profile?.display_name || "User Profile"}
             </h1>
@@ -296,6 +293,13 @@ const ConnectionProfile = () => {
               <p className="text-muted-foreground">{profile.myfits_email}</p>
             )}
           </div>
+          {!isConnected && userId !== user?.id && (
+            <FollowButton 
+              targetUserId={userId!}
+              targetUsername={profile?.display_name || profile?.myfits_email || "User"}
+              size="default"
+            />
+          )}
         </div>
 
         {/* Search and Sort Controls */}
@@ -328,15 +332,15 @@ const ConnectionProfile = () => {
               <Camera className="h-4 w-4" />
               Fits ({fits.length})
             </TabsTrigger>
-            <TabsTrigger value="closet" className="flex items-center gap-2">
+            <TabsTrigger value="closet" className="flex items-center gap-2" disabled={!isConnected}>
               <ShirtIcon className="h-4 w-4" />
               Closet ({closetItems.length})
             </TabsTrigger>
-            <TabsTrigger value="likes" className="flex items-center gap-2">
+            <TabsTrigger value="likes" className="flex items-center gap-2" disabled={!isConnected}>
               <Heart className="h-4 w-4" />
               Likes ({likes.length})
             </TabsTrigger>
-            <TabsTrigger value="brands" className="flex items-center gap-2">
+            <TabsTrigger value="brands" className="flex items-center gap-2" disabled={!isConnected}>
               <Store className="h-4 w-4" />
               Brands ({brands.length})
             </TabsTrigger>
@@ -381,7 +385,18 @@ const ConnectionProfile = () => {
           </TabsContent>
 
           <TabsContent value="closet" className="mt-6">
-            {closetItems.length === 0 ? (
+            {!isConnected ? (
+              <div className="text-center py-12">
+                <UserPlus className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Connect to view closet</h3>
+                <p className="text-muted-foreground mb-4">Connect with this user to see their closet items.</p>
+                <FollowButton 
+                  targetUserId={userId!}
+                  targetUsername={profile?.display_name || profile?.myfits_email || "User"}
+                  size="default"
+                />
+              </div>
+            ) : closetItems.length === 0 ? (
               <div className="text-center py-12">
                 <ShirtIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Empty closet</h3>
@@ -434,7 +449,18 @@ const ConnectionProfile = () => {
           </TabsContent>
 
           <TabsContent value="likes" className="mt-6">
-            {likes.length === 0 ? (
+            {!isConnected ? (
+              <div className="text-center py-12">
+                <UserPlus className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Connect to view likes</h3>
+                <p className="text-muted-foreground mb-4">Connect with this user to see their liked items.</p>
+                <FollowButton 
+                  targetUserId={userId!}
+                  targetUsername={profile?.display_name || profile?.myfits_email || "User"}
+                  size="default"
+                />
+              </div>
+            ) : likes.length === 0 ? (
               <div className="text-center py-12">
                 <Heart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No likes yet</h3>
@@ -496,7 +522,18 @@ const ConnectionProfile = () => {
           </TabsContent>
 
           <TabsContent value="brands" className="mt-6">
-            {brands.length === 0 ? (
+            {!isConnected ? (
+              <div className="text-center py-12">
+                <UserPlus className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Connect to view brands</h3>
+                <p className="text-muted-foreground mb-4">Connect with this user to see their favorite brands.</p>
+                <FollowButton 
+                  targetUserId={userId!}
+                  targetUsername={profile?.display_name || profile?.myfits_email || "User"}
+                  size="default"
+                />
+              </div>
+            ) : brands.length === 0 ? (
               <div className="text-center py-12">
                 <Store className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No brands yet</h3>
