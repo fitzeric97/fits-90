@@ -47,7 +47,7 @@ export default function MobileActivity() {
           </div>
         </div>
         
-        <ActivityFeed key={refreshTrigger} />
+        <ActivityFeed key={refreshTrigger} activities={[]} />
       </div>
     </MobileLayout>
   );
