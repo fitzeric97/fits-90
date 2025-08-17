@@ -229,7 +229,7 @@ export default function MobileActivity() {
           </div>
           
           <Tabs defaultValue="activity" className="w-full" onValueChange={(value) => {
-            if (value === 'connections' && connections.length === 0 && suggestedConnections.length === 0) {
+            if ((value === 'connections' || value === 'search') && connections.length === 0 && suggestedConnections.length === 0) {
               fetchConnections();
             }
           }}>
@@ -282,18 +282,18 @@ export default function MobileActivity() {
                           onClick={() => navigate(`/profile/${profile.id}`)}
                         >
                           <Avatar className="h-10 w-10">
-                            <AvatarFallback>
+                            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                               {profile.display_name?.charAt(0).toUpperCase() || 
                                profile.myfits_email?.charAt(0).toUpperCase() || 
                                profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
-                            <p className="font-medium">
+                            <p className="font-medium text-primary">
                               {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
                             </p>
                             {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-sm text-primary/70">
                                 {profile.myfits_email || profile.gmail_address}
                               </p>
                             )}
@@ -315,7 +315,77 @@ export default function MobileActivity() {
                     <Search className="h-8 w-8 text-muted-foreground mb-2" />
                     <p className="text-muted-foreground">No users found matching "{searchQuery}"</p>
                   </div>
-                ) : (
+                ) : null}
+
+                {/* Suggested Connections Section */}
+                <div className="space-y-3 border-t pt-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">People You May Know</h3>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={fetchConnections}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      Refresh
+                    </Button>
+                  </div>
+                  
+                  {connectionsLoading ? (
+                    <div className="flex items-center justify-center h-32">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                      <span className="ml-2 text-sm text-muted-foreground">Loading suggestions...</span>
+                    </div>
+                  ) : suggestedConnections.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-32 p-4 bg-muted/20 rounded-lg">
+                      <Users className="h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-center text-muted-foreground">
+                        No new people to connect with right now.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {suggestedConnections.map((profile) => (
+                        <div key={profile.id} className="flex items-center justify-between p-3 bg-card rounded-lg border">
+                          <div 
+                            className="flex items-center space-x-3 flex-1 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
+                            onClick={() => navigate(`/profile/${profile.id}`)}
+                          >
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                                {profile.display_name?.charAt(0).toUpperCase() || 
+                                 profile.myfits_email?.charAt(0).toUpperCase() || 
+                                 profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <p className="font-medium text-primary">
+                                {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
+                              </p>
+                              {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
+                                <p className="text-sm text-primary/70">
+                                  {profile.myfits_email || profile.gmail_address}
+                                </p>
+                              )}
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Tap to view profile
+                              </p>
+                            </div>
+                          </div>
+                          <FollowButton 
+                            targetUserId={profile.id}
+                            targetUsername={profile.display_name || profile.myfits_email || profile.gmail_address}
+                            size="sm"
+                            onFollowChange={() => fetchConnections()}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Default state when no search and no suggestions yet */}
+                {!searchQuery && !searchLoading && suggestedConnections.length === 0 && !connectionsLoading && (
                   <div className="flex flex-col items-center justify-center h-32 text-center">
                     <Search className="h-8 w-8 text-muted-foreground mb-2" />
                     <p className="text-muted-foreground">Search for people to connect with</p>
@@ -358,18 +428,18 @@ export default function MobileActivity() {
                                 onClick={() => navigate(`/profile/${profile.id}`)}
                               >
                                 <Avatar className="h-10 w-10">
-                                  <AvatarFallback>
+                                  <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                                     {profile.display_name?.charAt(0).toUpperCase() || 
                                      profile.myfits_email?.charAt(0).toUpperCase() || 
                                      profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
-                                  <p className="font-medium">
+                                  <p className="font-medium text-primary">
                                     {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
                                   </p>
                                   {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-sm text-primary/70">
                                       {profile.myfits_email || profile.gmail_address}
                                     </p>
                                   )}
@@ -385,68 +455,6 @@ export default function MobileActivity() {
                               >
                                 View Profile
                               </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Suggested Connections Section */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">Suggested Connections</h3>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={fetchConnections}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          Refresh
-                        </Button>
-                      </div>
-                      
-                      {suggestedConnections.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-32 p-4 bg-muted/20 rounded-lg">
-                          <Users className="h-8 w-8 text-muted-foreground mb-2" />
-                          <p className="text-center text-muted-foreground">
-                            No new people to connect with right now.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {suggestedConnections.map((profile) => (
-                            <div key={profile.id} className="flex items-center justify-between p-3 bg-card rounded-lg border">
-                              <div 
-                                className="flex items-center space-x-3 flex-1 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
-                                onClick={() => navigate(`/profile/${profile.id}`)}
-                              >
-                                <Avatar className="h-10 w-10">
-                                  <AvatarFallback>
-                                    {profile.display_name?.charAt(0).toUpperCase() || 
-                                     profile.myfits_email?.charAt(0).toUpperCase() || 
-                                     profile.gmail_address?.charAt(0).toUpperCase() || 'U'}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                  <p className="font-medium">
-                                    {profile.display_name || profile.myfits_email || profile.gmail_address || 'Anonymous User'}
-                                  </p>
-                                  {profile.display_name && (profile.myfits_email || profile.gmail_address) && (
-                                    <p className="text-sm text-muted-foreground">
-                                      {profile.myfits_email || profile.gmail_address}
-                                    </p>
-                                  )}
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    Tap to view profile
-                                  </p>
-                                </div>
-                              </div>
-                              <FollowButton 
-                                targetUserId={profile.id}
-                                targetUsername={profile.display_name || profile.myfits_email || profile.gmail_address}
-                                size="sm"
-                                onFollowChange={() => fetchConnections()}
-                              />
                             </div>
                           ))}
                         </div>
