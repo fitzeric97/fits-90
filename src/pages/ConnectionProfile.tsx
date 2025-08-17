@@ -93,25 +93,31 @@ const ConnectionProfile = () => {
     try {
       setLoading(true);
       
-      // Check if users are connected
-      const { data: connection, error: connectionError } = await supabase
-        .from("user_connections")
-        .select("*")
-        .or(`and(user_id.eq.${user?.id},connected_user_id.eq.${userId}),and(user_id.eq.${userId},connected_user_id.eq.${user?.id})`)
-        .eq("status", "accepted")
-        .maybeSingle();
+      // Check if users are connected - simplified query to avoid RLS issues
+      let isConnected = false;
+      
+      try {
+        const { data: connections, error: connectionError } = await supabase
+          .from("user_connections")
+          .select("*")
+          .or(`user_id.eq.${user?.id},connected_user_id.eq.${user?.id}`)
+          .eq("status", "accepted");
 
-      if (connectionError) {
-        console.error("Connection check error:", connectionError);
-        toast({
-          title: "Error",
-          description: "Failed to verify connection",
-          variant: "destructive",
-        });
-        return;
+        if (connectionError) {
+          console.error("Connection check error:", connectionError);
+          // Don't return early - allow viewing public content
+        } else {
+          // Check if the target user is in any of these connections
+          isConnected = connections?.some(conn => 
+            (conn.user_id === userId && conn.connected_user_id === user?.id) ||
+            (conn.connected_user_id === userId && conn.user_id === user?.id)
+          ) || false;
+        }
+      } catch (error) {
+        console.error("Connection verification failed:", error);
+        // Continue with isConnected = false to show public content only
       }
 
-      const isConnected = !!connection;
       setIsConnected(isConnected);
 
       // Fetch profile
