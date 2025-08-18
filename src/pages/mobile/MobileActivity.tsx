@@ -233,10 +233,10 @@ export default function MobileActivity() {
               fetchConnections();
             }
           }}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="activity">Feed</TabsTrigger>
-              <TabsTrigger value="search">Find People</TabsTrigger>
-              <TabsTrigger value="connections">
+            <TabsList className="grid w-full grid-cols-3 bg-muted">
+              <TabsTrigger value="activity" className="data-[state=active]:text-fits-blue data-[state=active]:bg-background">Feed</TabsTrigger>
+              <TabsTrigger value="search" className="data-[state=active]:text-fits-blue data-[state=active]:bg-background">Find People</TabsTrigger>
+              <TabsTrigger value="connections" className="data-[state=active]:text-fits-blue data-[state=active]:bg-background">
                 <Users className="h-4 w-4 mr-1" />
                 Connections
               </TabsTrigger>
