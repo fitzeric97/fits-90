@@ -6,6 +6,7 @@ import { TagClosetDialog } from "@/components/fits/TagClosetDialog";
 import { StoryImageGenerator } from "@/components/fits/StoryImageGenerator";
 import { Camera, Calendar, Tag, Trash2, Edit, Package } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -49,6 +50,7 @@ export function FitDetailDialog({
   const [userProfile, setUserProfile] = useState<{ display_name: string | null }>({ display_name: null });
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (fit && open) {
@@ -159,6 +161,10 @@ export function FitDetailDialog({
     }
   };
 
+  const handleItemClick = (itemId: string) => {
+    navigate(`/closet/${itemId}`);
+  };
+
   if (!fit) return null;
 
   return (
@@ -189,24 +195,28 @@ export function FitDetailDialog({
                     Tagged ({taggedItems.length})
                   </p>
                   <div className="space-y-2">
-                    {taggedItems.map((item) => {
-                      const imageUrl = item.uploaded_image_url || item.product_image_url || item.stored_image_path;
-                      return (
-                        <div key={item.tagId} className="w-20 h-20 rounded-md overflow-hidden bg-muted">
-                          {imageUrl ? (
-                            <img
-                              src={imageUrl}
-                              alt={item.product_name || item.brand_name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Package className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                     {taggedItems.map((item) => {
+                       const imageUrl = item.uploaded_image_url || item.product_image_url || item.stored_image_path;
+                       return (
+                         <div 
+                           key={item.tagId} 
+                           className="w-20 h-20 rounded-md overflow-hidden bg-muted cursor-pointer hover:bg-muted/80 transition-colors"
+                           onClick={() => handleItemClick(item.id)}
+                         >
+                           {imageUrl ? (
+                             <img
+                               src={imageUrl}
+                               alt={item.product_name || item.brand_name}
+                               className="w-full h-full object-cover"
+                             />
+                           ) : (
+                             <div className="w-full h-full flex items-center justify-center">
+                               <Package className="h-4 w-4 text-muted-foreground" />
+                             </div>
+                           )}
+                         </div>
+                       );
+                     })}
                   </div>
                 </div>
               )}
