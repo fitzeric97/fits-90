@@ -49,12 +49,27 @@ export default function AdminStyleCreator() {
     const file = e.target.files[0];
     if (!file) return;
 
-    console.log('Starting image upload:', file.name, file.type, file.size);
+    console.log('=== STARTING IMAGE UPLOAD ===');
+    console.log('File details:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+    
     setIsUploading(true);
     try {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Getting current user...');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('User result:', { user: user?.id, error: userError });
+      
+      if (userError) {
+        console.error('User error:', userError);
+        throw userError;
+      }
+      
       if (!user) {
+        console.error('No user found');
         throw new Error('User not authenticated');
       }
 
@@ -63,14 +78,18 @@ export default function AdminStyleCreator() {
       const fileName = `inspiration-${Date.now()}.${fileExt}`;
       const filePath = `${user.id}/inspirations/${fileName}`;
 
-      console.log('Uploading to path:', filePath);
-      const { error: uploadError } = await supabase.storage
+      console.log('Uploading to bucket: item-images');
+      console.log('Upload path:', filePath);
+      
+      const uploadResult = await supabase.storage
         .from('item-images')
         .upload(filePath, file);
 
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw uploadError;
+      console.log('Upload result:', uploadResult);
+
+      if (uploadResult.error) {
+        console.error('Upload error details:', uploadResult.error);
+        throw uploadResult.error;
       }
 
       console.log('Upload successful, getting public URL');
@@ -79,7 +98,7 @@ export default function AdminStyleCreator() {
         .from('item-images')
         .getPublicUrl(filePath);
 
-      console.log('Public URL:', publicUrl);
+      console.log('Public URL generated:', publicUrl);
       setImagePreview(publicUrl);
       setInspiration({ ...inspiration, image_url: publicUrl });
 
@@ -87,12 +106,16 @@ export default function AdminStyleCreator() {
         description: 'Image uploaded successfully!'
       });
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('=== UPLOAD ERROR ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error.message);
+      console.error('Error code:', error.code);
       toast({
         variant: 'destructive',
-        description: `Failed to upload image: ${error.message}`
+        description: `Failed to upload image: ${error.message || 'Unknown error'}`
       });
     } finally {
+      console.log('=== UPLOAD FINISHED ===');
       setIsUploading(false);
     }
   };
