@@ -9,7 +9,7 @@ export function PointsScoreboard() {
 
   if (loading) {
     return (
-      <div className="bg-cream-muted text-fits-blue px-3 py-1.5 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-cream-text/20 transition-colors border-2 border-cream-text/30 shadow-lg">
+      <div className="bg-cream-header text-fits-blue px-3 py-1.5 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-cream-muted transition-colors border-2 border-cream-muted shadow-lg">
         <Trophy className="h-4 w-4" />
         <span className="font-mono font-bold text-lg">---</span>
       </div>
@@ -20,7 +20,7 @@ export function PointsScoreboard() {
     <>
       <button
         onClick={() => setShowBreakdown(true)}
-        className="bg-cream-muted text-fits-blue px-3 py-1.5 rounded-lg flex items-center gap-2 hover:bg-cream-text/20 transition-colors border-2 border-cream-text/30 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+        className="bg-cream-header text-fits-blue px-3 py-1.5 rounded-lg flex items-center gap-2 hover:bg-cream-muted transition-colors border-2 border-cream-muted shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
       >
         <Trophy className="h-4 w-4" />
         <span className="font-mono font-bold text-lg tabular-nums">
