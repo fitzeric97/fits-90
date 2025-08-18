@@ -40,83 +40,56 @@ export default function Home() {
     if (!user) return;
 
     try {
-      // Fetch recent likes
-      const { data: likes, error: likesError } = await supabase
-        .from('user_likes')
+      // Fetch from centralized activity_feed table to avoid duplicates
+      const { data: activityData, error } = await supabase
+        .from('activity_feed')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(20);
 
-      // Fetch recent closet items
-      const { data: closetItems, error: closetError } = await supabase
-        .from('closet_items')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
+      if (error) {
+        console.error('Error fetching activity feed:', error);
+        setActivities([]);
+        return;
+      }
 
-      // Fetch recent fits
-      const { data: fits, error: fitsError } = await supabase
-        .from('fits')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
+      // Transform to match ActivityItem interface
+      const transformedActivities: ActivityItem[] = (activityData || []).map(activity => {
+        const metadata = (activity.metadata as any) || {};
+        
+        let type: 'like' | 'closet_add' | 'fit_post';
+        switch (activity.action_type) {
+          case 'liked_item':
+            type = 'like';
+            break;
+          case 'added_closet':
+            type = 'closet_add';
+            break;
+          case 'created_fit':
+            type = 'fit_post';
+            break;
+          default:
+            type = 'like';
+        }
 
-      if (likesError) console.error('Error fetching likes:', likesError);
-      if (closetError) console.error('Error fetching closet items:', closetError);
-      if (fitsError) console.error('Error fetching fits:', fitsError);
+        return {
+          id: activity.target_id,
+          type,
+          user_name: 'You',
+          user_email: user.email || '',
+          title: metadata.item_name || metadata.fit_caption || 'New Item',
+          description: metadata.fit_caption,
+          image_url: metadata.item_image,
+          brand_name: metadata.brand_name,
+          category: undefined,
+          price: metadata.price,
+          url: undefined,
+          created_at: activity.created_at,
+        };
+      });
 
-      // Transform and combine data
-      const likeActivities: ActivityItem[] = (likes || []).map(like => ({
-        id: like.id,
-        type: 'like' as const,
-        user_name: 'You', // Will be updated when we have friends system
-        user_email: user.email || '',
-        title: like.title,
-        description: like.description,
-        image_url: like.image_url,
-        brand_name: like.brand_name,
-        category: like.category,
-        price: like.price,
-        url: like.url,
-        created_at: like.created_at,
-      }));
-
-      const closetActivities: ActivityItem[] = (closetItems || []).map(item => ({
-        id: item.id,
-        type: 'closet_add' as const,
-        user_name: 'You', // Will be updated when we have friends system
-        user_email: user.email || '',
-        title: item.product_name || 'New Item',
-        description: item.product_description,
-        image_url: item.product_image_url || item.uploaded_image_url,
-        brand_name: item.brand_name,
-        category: item.category,
-        price: item.price,
-        url: item.company_website_url,
-        created_at: item.created_at,
-      }));
-
-      const fitActivities: ActivityItem[] = (fits || []).map(fit => ({
-        id: fit.id,
-        type: 'fit_post' as const,
-        user_name: 'You', // Will be updated when we have friends system
-        user_email: user.email || '',
-        title: fit.caption || 'New Fit',
-        description: undefined,
-        image_url: fit.image_url,
-        brand_name: undefined,
-        category: undefined,
-        price: undefined,
-        url: undefined,
-        created_at: fit.created_at,
-      }));
-
-      // Combine and sort by created_at
-      const combined = [...likeActivities, ...closetActivities, ...fitActivities]
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 20);
-
-      setActivities(combined);
+      setActivities(transformedActivities);
     } catch (error) {
       console.error('Error fetching activity feed:', error);
     } finally {
