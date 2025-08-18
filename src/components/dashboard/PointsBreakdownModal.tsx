@@ -95,7 +95,7 @@ export function PointsBreakdownModal({ isOpen, onClose, points }: PointsBreakdow
 
           {/* Motivational Message */}
           <div className="text-center p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg border border-yellow-500/20">
-            <div className="text-sm font-semibold text-yellow-700 dark:text-yellow-400">
+            <div className="text-sm font-semibold text-cream-text">
               🎯 Keep sharing fits and engaging to earn more points!
             </div>
           </div>
