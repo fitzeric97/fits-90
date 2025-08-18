@@ -170,23 +170,37 @@ export default function ClosetItemDetail() {
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Image */}
-          <Card className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="aspect-square">
-                <FallbackImage
-                  src={item.stored_image_path 
-                    ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
-                    : item.product_image_url
-                  }
-                  fallbackSrc={item.uploaded_image_url}
-                  alt={item.product_name || item.brand_name}
-                  className="w-full h-full object-cover"
-                  fallbackIcon={<Package className="h-16 w-16 text-muted-foreground" />}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          {/* Left Column: Image + Button */}
+          <div className="space-y-4">
+            {/* Image */}
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="aspect-square">
+                  <FallbackImage
+                    src={item.stored_image_path 
+                      ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` 
+                      : item.product_image_url
+                    }
+                    fallbackSrc={item.uploaded_image_url}
+                    alt={item.product_name || item.brand_name}
+                    className="w-full h-full object-cover"
+                    fallbackIcon={<Package className="h-16 w-16 text-muted-foreground" />}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Brand Website Button */}
+            {item.company_website_url && (
+              <Button
+                variant="outline"
+                onClick={() => window.open(item.company_website_url!, '_blank')}
+                className="w-full text-cream-text"
+              >
+                View on Brand Website
+              </Button>
+            )}
+          </div>
 
           {/* Details */}
           <div className="space-y-6">
@@ -256,32 +270,20 @@ export default function ClosetItemDetail() {
                   )}
                 </div>
 
-                {item.order_number && (
-                  <div>
-                    <h4 className="font-medium mb-2">Order Number</h4>
-                    <p className="text-sm text-muted-foreground font-mono">
-                      {item.order_number}
-                    </p>
-                  </div>
-                )}
+                 {item.order_number && (
+                   <div>
+                     <h4 className="font-medium mb-2">Order Number</h4>
+                     <p className="text-sm text-muted-foreground font-mono">
+                       {item.order_number}
+                     </p>
+                   </div>
+                 )}
 
-                {item.company_website_url && (
-                  <div>
-                    <Button
-                      variant="outline"
-                      onClick={() => window.open(item.company_website_url!, '_blank')}
-                      className="w-full"
-                    >
-                      View on Brand Website
-                    </Button>
-                  </div>
-                )}
-
-                <div className="pt-4 border-t">
-                  <p className="text-xs text-muted-foreground">
-                    Added on {new Date(item.created_at).toLocaleDateString()}
-                  </p>
-                </div>
+                 <div className="pt-4 border-t">
+                   <p className="text-xs text-muted-foreground">
+                     Added on {new Date(item.created_at).toLocaleDateString()}
+                   </p>
+                 </div>
               </CardContent>
             </Card>
           </div>
