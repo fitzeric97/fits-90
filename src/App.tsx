@@ -30,6 +30,7 @@ import ConnectionProfile from "./pages/ConnectionProfile";
 import Profile from "./pages/Profile";
 import StyleInspirations from "./pages/StyleInspirations";
 import StyleInspirationDetail from "./pages/StyleInspirationDetail";
+import AdminStyleCreator from "./pages/AdminStyleCreator";
 import Points from "./pages/Points";
 
 const queryClient = new QueryClient();
@@ -138,6 +139,11 @@ const App = () => {
             <Route path="/inspirations/:id" element={
               <ProtectedRoute>
                 <StyleInspirationDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/inspirations" element={
+              <ProtectedRoute>
+                <AdminStyleCreator />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
