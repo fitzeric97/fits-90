@@ -31,6 +31,7 @@ import Profile from "./pages/Profile";
 import StyleInspirations from "./pages/StyleInspirations";
 import StyleInspirationDetail from "./pages/StyleInspirationDetail";
 import AdminStyleCreator from "./pages/AdminStyleCreator";
+import { AdminRoute } from "./components/auth/AdminRoute";
 import Points from "./pages/Points";
 
 const queryClient = new QueryClient();
@@ -141,11 +142,14 @@ const App = () => {
                 <StyleInspirationDetail />
               </ProtectedRoute>
             } />
-            <Route path="/admin/inspirations" element={
-              <ProtectedRoute>
-                <AdminStyleCreator />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/admin/inspirations"
+              element={
+                <AdminRoute>
+                  <AdminStyleCreator />
+                </AdminRoute>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
