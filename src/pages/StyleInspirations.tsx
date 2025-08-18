@@ -1,16 +1,8 @@
 import { StyleInspirationsGrid } from '@/components/inspirations/StyleInspirationsGrid';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { Button } from '@/components/ui/button';
-import { PlusCircle, Sparkles } from 'lucide-react';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { useAdminStatus } from '@/hooks/useAdminStatus';
-import { useNavigate } from 'react-router-dom';
+import { Sparkles } from 'lucide-react';
 
 export default function StyleInspirations() {
-  const { user } = useAuth();
-  const { isAdmin } = useAdminStatus();
-  const navigate = useNavigate();
-
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-6 space-y-6">
@@ -25,16 +17,6 @@ export default function StyleInspirations() {
               Discover curated looks and trending styles
             </p>
           </div>
-
-          {user && isAdmin && (
-            <Button 
-              onClick={() => navigate('/admin/inspirations')}
-              className="flex items-center gap-2"
-            >
-              <PlusCircle className="h-4 w-4" />
-              Manage Inspirations
-            </Button>
-          )}
         </div>
 
         {/* Featured Section */}

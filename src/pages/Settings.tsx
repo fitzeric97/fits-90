@@ -8,19 +8,23 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, Check, User, Instagram, Mail, Bell, Trash2 } from "lucide-react";
+import { Copy, Check, User, Instagram, Mail, Bell, Trash2, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ConnectedMailboxes } from "@/components/settings/ConnectedMailboxes";
 import { InstagramConnector } from "@/components/settings/InstagramConnector";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useAdminStatus } from "@/hooks/useAdminStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNavigate } from "react-router-dom";
 
 export default function Settings() {
   const { user } = useAuth();
+  const { isAdmin } = useAdminStatus();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [emailCopied, setEmailCopied] = useState(false);
   const [notifications, setNotifications] = useState({
     daily: true,
@@ -143,7 +147,13 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
+        <TabsList className={`grid w-full mb-6 ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'}`}>
+          {isAdmin && (
+            <TabsTrigger value="admin" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              {!isMobile && "Admin"}
+            </TabsTrigger>
+          )}
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             {!isMobile && "Profile"}
@@ -161,6 +171,39 @@ export default function Settings() {
             {!isMobile && "Notifications"}
           </TabsTrigger>
         </TabsList>
+
+        {isAdmin && (
+          <TabsContent value="admin" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  Admin Panel
+                </CardTitle>
+                <CardDescription>
+                  Administrative tools and management features
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-lg">Style Inspirations</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Create and manage style inspirations for the community
+                        </p>
+                      </div>
+                      <Button onClick={() => navigate('/admin/inspirations')}>
+                        Manage Inspirations
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         <TabsContent value="profile" className="space-y-6">
           <Card>
