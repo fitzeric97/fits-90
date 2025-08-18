@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'fits-fashion-forward',
   webDir: 'dist',
   server: {
-    url: 'https://08f391db-8e85-41a6-b6ae-20821228cf40.lovableproject.com?forceHideBadge=true',
+    url: 'https://myfits.co?forceHideBadge=true',
     cleartext: true
   },
   plugins: {
