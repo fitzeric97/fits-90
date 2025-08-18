@@ -28,6 +28,8 @@ import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
 import ConnectionProfile from "./pages/ConnectionProfile";
 import Profile from "./pages/Profile";
+import StyleInspirations from "./pages/StyleInspirations";
+import StyleInspirationDetail from "./pages/StyleInspirationDetail";
 import Points from "./pages/Points";
 
 const queryClient = new QueryClient();
@@ -128,9 +130,14 @@ const App = () => {
                 <Settings />
               </ProtectedRoute>
             } />
-            <Route path="/profile/:userId" element={
+            <Route path="/inspirations" element={
               <ProtectedRoute>
-                <ConnectionProfile />
+                <StyleInspirations />
+              </ProtectedRoute>
+            } />
+            <Route path="/inspirations/:id" element={
+              <ProtectedRoute>
+                <StyleInspirationDetail />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

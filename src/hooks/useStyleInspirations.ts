@@ -129,9 +129,6 @@ export function useStyleInspiration(id: string) {
   return useQuery({
     queryKey: ['style-inspiration', id],
     queryFn: async () => {
-      // Increment view count using RPC
-      await supabase.rpc('increment_view_count', { inspiration_id: id });
-
       const { data, error } = await supabase
         .from('style_inspirations')
         .select(`
@@ -143,6 +140,12 @@ export function useStyleInspiration(id: string) {
         .single();
 
       if (error) throw error;
+
+      // Increment view count
+      await supabase
+        .from('style_inspirations')
+        .update({ view_count: (data.view_count || 0) + 1 })
+        .eq('id', id);
 
       // Get interaction stats
       const { data: interactions } = await supabase

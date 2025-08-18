@@ -803,6 +803,10 @@ export type Database = {
         }
         Returns: string
       }
+      increment_view_count: {
+        Args: { inspiration_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
