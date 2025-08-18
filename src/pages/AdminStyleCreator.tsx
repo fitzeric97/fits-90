@@ -49,24 +49,37 @@ export default function AdminStyleCreator() {
     const file = e.target.files[0];
     if (!file) return;
 
+    console.log('Starting image upload:', file.name, file.type, file.size);
     setIsUploading(true);
     try {
-      // Upload to Supabase storage
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Upload to Supabase storage with user ID in path
       const fileExt = file.name.split('.').pop();
       const fileName = `inspiration-${Date.now()}.${fileExt}`;
-      const filePath = `inspirations/${fileName}`;
+      const filePath = `${user.id}/inspirations/${fileName}`;
 
+      console.log('Uploading to path:', filePath);
       const { error: uploadError } = await supabase.storage
         .from('item-images')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
+      console.log('Upload successful, getting public URL');
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('item-images')
         .getPublicUrl(filePath);
 
+      console.log('Public URL:', publicUrl);
       setImagePreview(publicUrl);
       setInspiration({ ...inspiration, image_url: publicUrl });
 
@@ -77,7 +90,7 @@ export default function AdminStyleCreator() {
       console.error('Error uploading image:', error);
       toast({
         variant: 'destructive',
-        description: 'Failed to upload image'
+        description: `Failed to upload image: ${error.message}`
       });
     } finally {
       setIsUploading(false);
