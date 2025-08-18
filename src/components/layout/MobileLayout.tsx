@@ -26,14 +26,18 @@ export function MobileLayout({ children }: MobileLayoutProps) {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-cream-header border-b">
-        <div className="flex items-center justify-between h-14 px-4">
-          <PointsScoreboard />
-          <img 
-            src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
-            alt="Fits" 
-            className="h-8 w-8"
-          />
-          <div className="flex items-center">
+        <div className="flex items-center h-14 px-4 relative">
+          <div className="flex-shrink-0">
+            <PointsScoreboard />
+          </div>
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <img 
+              src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
+              alt="Fits" 
+              className="h-8 w-8"
+            />
+          </div>
+          <div className="flex items-center ml-auto">
             <ConnectionNotification />
           </div>
         </div>
