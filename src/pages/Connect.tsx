@@ -41,6 +41,7 @@ export default function Connect() {
     if (user) {
       fetchConnections();
       fetchPendingRequests();
+      fetchAllUsers();
     }
   }, [user]);
 
@@ -103,6 +104,27 @@ export default function Connect() {
       } else {
         setPendingRequests([]);
       }
+    }
+  };
+
+  const fetchAllUsers = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .neq('id', user.id)
+        .limit(20);
+
+      if (error) {
+        console.error('Error fetching users:', error);
+      } else {
+        setUsers(data || []);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
