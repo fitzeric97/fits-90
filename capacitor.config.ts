@@ -1,11 +1,11 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.08f391db8e8541a6b6ae20821228cf40',
-  appName: 'fits-fashion-forward',
+  appId: 'app.lovable.020860e348a944e39426735365ec659b',
+  appName: 'fits-90',
   webDir: 'dist',
   server: {
-    url: 'https://myfits.co?forceHideBadge=true',
+    url: 'https://020860e3-48a9-44e3-9426-735365ec659b.lovableproject.com?forceHideBadge=true',
     cleartext: true
   },
   plugins: {
