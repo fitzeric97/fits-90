@@ -553,12 +553,12 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
               <div className="relative w-full h-full">
                 {/* Decorative border */}
                 <div className="absolute -inset-2 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 rounded-3xl blur-sm opacity-75"></div>
-                <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
+                <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white flex items-center justify-center">
                   <img 
                     src={fit.image_url} 
                     data-original-src={fit.image_url}
                     alt="Outfit"
-                    className="w-full h-full object-cover"
+                    className="max-w-full max-h-full object-contain"
                     crossOrigin="anonymous"
                   />
                 </div>
