@@ -4,9 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { TagIcon, MoreHorizontal, Edit, GripVertical } from "lucide-react";
+import { TagIcon, MoreHorizontal, Edit, GripVertical, Instagram } from "lucide-react";
 import { TagClosetDialog } from "./TagClosetDialog";
 import { ImageEditor } from "./ImageEditor";
+import { StoryImageGenerator } from "./StoryImageGenerator";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import {
@@ -338,6 +339,25 @@ export function FitCard({ fit, onUpdate }: FitCardProps) {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              </div>
+
+              {/* Prominent Instagram Story Share Button - Mobile Only */}
+              <div className="md:hidden absolute top-2 left-2 z-10">
+                <StoryImageGenerator
+                  fit={{
+                    id: fit.id,
+                    image_url: fit.image_url,
+                    caption: fit.caption || undefined,
+                    created_at: fit.created_at,
+                  }}
+                  taggedItems={taggedItems.map(item => ({
+                    id: item.id,
+                    product_name: item.product_name || item.brand_name,
+                    brand_name: item.brand_name,
+                    product_image_url: item.product_image_url || item.uploaded_image_url,
+                    price: undefined, // Add price if available in your schema
+                  }))}
+                />
               </div>
 
               {fit.is_instagram_url && (

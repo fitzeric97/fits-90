@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import * as htmlToImage from 'html-to-image';
 import { Share2, Instagram, Check, Copy, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { StoryTutorial } from './StoryTutorial';
 
 interface StoryImageGeneratorProps {
   fit: {
@@ -27,8 +28,21 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
   const [generating, setGenerating] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [debugError, setDebugError] = useState<string | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+
+  // Check if user has seen tutorial
+  useEffect(() => {
+    const hasSeenTutorial = localStorage.getItem('fits-story-tutorial-completed');
+    if (!hasSeenTutorial && isMobile) {
+      // Show tutorial on first use
+      const timer = setTimeout(() => {
+        setShowTutorial(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile]);
 
   // Only show on mobile devices - Instagram Stories are mobile-only
   if (!isMobile) {
@@ -479,6 +493,12 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
 
   return (
     <>
+      {/* Tutorial Modal */}
+      <StoryTutorial 
+        open={showTutorial} 
+        onClose={() => setShowTutorial(false)} 
+      />
+
       {/* Debug Error Display */}
       {debugError && (
         <div className="fixed top-4 left-4 right-4 z-50 bg-red-500 text-white p-4 rounded-lg max-h-64 overflow-auto">
@@ -496,7 +516,7 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
       {/* Hidden Story Template - This gets converted to image */}
       <div 
         ref={storyRef}
-        className="fixed top-0 left-0 pointer-events-none bg-white"
+        className="fixed top-0 left-0 pointer-events-none"
         style={{ 
           width: '1080px', 
           height: '1920px',
@@ -507,81 +527,206 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
           transform: generating ? 'translateX(0)' : 'translateX(-100vw)'
         }}
       >
-        <div className="relative w-full h-full bg-white">
-          {/* Main content area */}
-          <div className="absolute inset-0 pt-8">
-            {/* Main outfit image - left side */}
-            <div className="absolute left-8 top-0 bottom-8" style={{ width: taggedItems.length > 0 ? '600px' : 'calc(100% - 64px)' }}>
-              <div className="w-full h-full rounded-3xl overflow-hidden shadow-xl">
-                <img 
-                  src={fit.image_url} 
-                  data-original-src={fit.image_url}
-                  alt="Outfit"
-                  className="w-full h-full object-cover"
-                  crossOrigin="anonymous"
-                />
+        {/* Enhanced Story Design with Brand Gradient */}
+        <div className="relative w-full h-full bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+          
+          {/* Brand Header with Gradient */}
+          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-r from-amber-600 via-orange-600 to-yellow-600 flex items-center justify-center z-20">
+            <div className="flex items-center gap-4">
+              <img 
+                src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
+                alt="Fits" 
+                className="h-16 w-16 rounded-2xl shadow-lg"
+              />
+              <div className="text-white">
+                <h1 className="text-5xl font-bold tracking-tight">FITS</h1>
+                <p className="text-xl opacity-90">Style Creator</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content Area */}
+          <div className="absolute inset-0 pt-32 pb-40">
+            
+            {/* Main outfit image - Enhanced with shadow and border */}
+            <div className="absolute left-12 top-12 bottom-12" style={{ width: taggedItems.length > 0 ? '580px' : 'calc(100% - 96px)' }}>
+              <div className="relative w-full h-full">
+                {/* Decorative border */}
+                <div className="absolute -inset-2 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 rounded-3xl blur-sm opacity-75"></div>
+                <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
+                  <img 
+                    src={fit.image_url} 
+                    data-original-src={fit.image_url}
+                    alt="Outfit"
+                    className="w-full h-full object-cover"
+                    crossOrigin="anonymous"
+                  />
+                </div>
+                
+                {/* Stylish Caption Overlay */}
+                {fit.caption && (
+                  <div className="absolute bottom-4 left-4 right-4 bg-black/70 backdrop-blur-md rounded-2xl p-4">
+                    <p className="text-white text-lg font-medium leading-relaxed">
+                      {fit.caption}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Tagged items section - right side */}
+            {/* Enhanced Tagged Items Section */}
             {taggedItems.length > 0 && (
-              <div className="absolute right-8 top-0 bottom-8 w-96">
-                <div className="bg-gray-50 rounded-3xl p-8 h-full shadow-xl">
-                  <div className="space-y-6">
-                    {taggedItems.slice(0, 3).map((item) => (
-                      <div key={item.id} className="bg-white rounded-2xl p-4 shadow-md">
-                        {item.product_image_url && (
-                          <div className="w-full aspect-square bg-gray-100 rounded-xl overflow-hidden mb-3">
-                            <img 
-                              src={item.product_image_url} 
-                              data-original-src={item.product_image_url}
-                              alt={item.product_name}
-                              className="w-full h-full object-cover"
-                              crossOrigin="anonymous"
-                            />
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-gray-900 font-semibold text-lg mb-1">
-                            {item.brand_name}
-                          </p>
-                          <p className="text-gray-600 text-sm">
-                            {item.product_name}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+              <div className="absolute right-12 top-12 bottom-12 w-96">
+                <div className="relative h-full">
+                  {/* Background with gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/95 to-amber-50/95 backdrop-blur-md rounded-3xl shadow-2xl border-2 border-white/50"></div>
+                  
+                  <div className="relative p-8 h-full">
+                    {/* Section Header */}
+                    <div className="mb-6">
+                      <h3 className="text-2xl font-bold text-amber-800 mb-2">Get The Look</h3>
+                      <div className="h-1 w-16 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"></div>
+                    </div>
                     
-                    {taggedItems.length > 3 && (
-                      <div className="text-center py-4">
-                        <p className="text-gray-600 text-lg font-medium">
-                          +{taggedItems.length - 3} more items
-                        </p>
-                      </div>
-                    )}
+                    <div className="space-y-6 overflow-y-auto max-h-[calc(100%-120px)]">
+                      {taggedItems.slice(0, 4).map((item, index) => (
+                        <div key={item.id} className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-amber-100 hover-scale">
+                          <div className="flex items-center gap-4">
+                            <div className="relative">
+                              {item.product_image_url && (
+                                <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl overflow-hidden flex-shrink-0">
+                                  <img 
+                                    src={item.product_image_url} 
+                                    data-original-src={item.product_image_url}
+                                    alt={item.product_name}
+                                    className="w-full h-full object-cover"
+                                    crossOrigin="anonymous"
+                                  />
+                                </div>
+                              )}
+                              <div className="absolute -top-2 -left-2 w-6 h-6 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                {index + 1}
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-amber-900 font-bold text-lg mb-1 truncate">
+                                {item.brand_name}
+                              </p>
+                              <p className="text-amber-700 text-sm leading-tight">
+                                {item.product_name}
+                              </p>
+                              {item.price && (
+                                <p className="text-orange-600 font-semibold text-sm mt-1">
+                                  {item.price}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {taggedItems.length > 4 && (
+                        <div className="text-center py-4">
+                          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full text-lg font-semibold">
+                            <span>+{taggedItems.length - 4} more items</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             )}
+          </div>
 
-            {/* Fits logo - bottom left */}
-            <div className="absolute bottom-16 left-8 bg-white/95 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg z-10">
-              <div className="flex items-center gap-3">
+          {/* Enhanced Footer with Call-to-Action */}
+          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-r from-amber-700 via-orange-700 to-yellow-700">
+            <div className="flex items-center justify-between px-12 h-full">
+              
+              {/* Brand Section */}
+              <div className="flex items-center gap-4">
                 <img 
                   src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
                   alt="Fits" 
-                  className="h-10 w-10"
+                  className="h-12 w-12 rounded-xl"
                 />
-                <span className="text-gray-900 font-bold text-2xl">Fits</span>
+                <div className="text-white">
+                  <h2 className="text-3xl font-bold">FITS</h2>
+                  <p className="text-lg opacity-90">Style. Share. Inspire.</p>
+                </div>
+              </div>
+              
+              {/* Call to Action */}
+              <div className="text-right text-white">
+                <p className="text-2xl font-bold mb-1">Download the app!</p>
+                <p className="text-lg opacity-90">Create your style story</p>
+                {username && (
+                  <p className="text-sm opacity-75 mt-2">Styled by @{username}</p>
+                )}
               </div>
             </div>
           </div>
+
+          {/* Decorative Elements */}
+          <div className="absolute top-1/4 right-4 w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-400 rounded-full opacity-60"></div>
+          <div className="absolute top-1/3 left-4 w-6 h-6 bg-gradient-to-r from-yellow-400 to-amber-400 rounded-full opacity-40"></div>
+          <div className="absolute bottom-1/3 right-8 w-10 h-10 bg-gradient-to-r from-orange-400 to-red-400 rounded-full opacity-50"></div>
+          
         </div>
       </div>
 
-      {/* Visible UI */}
-      <div className="flex flex-col gap-2">
-        {/* No buttons for now */}
+      {/* Visible UI - Enhanced with Preview and Tutorial */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={generateAndShare}
+            disabled={generating}
+            className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white border-0 shadow-lg animate-fade-in"
+            size="lg"
+          >
+            {generating ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                Creating Story...
+              </>
+            ) : (
+              <>
+                <Instagram className="w-5 h-5 mr-2" />
+                Share to Story
+              </>
+            )}
+          </Button>
+          
+          <Button
+            onClick={saveToDevice}
+            disabled={generating}
+            variant="outline"
+            size="lg"
+            className="bg-white/90 border-amber-300 text-amber-700 hover:bg-amber-50"
+          >
+            <Download className="w-5 h-5 mr-2" />
+            Save Image
+          </Button>
+        </div>
+        
+        <Button
+          onClick={copyLink}
+          variant="ghost"
+          size="sm"
+          className="text-amber-700 hover:text-amber-800 hover:bg-amber-50"
+        >
+          {linkCopied ? (
+            <>
+              <Check className="w-4 h-4 mr-2 text-green-600" />
+              Link Copied!
+            </>
+          ) : (
+            <>
+              <Copy className="w-4 h-4 mr-2" />
+              Copy Link
+            </>
+          )}
+        </Button>
       </div>
     </>
   );
