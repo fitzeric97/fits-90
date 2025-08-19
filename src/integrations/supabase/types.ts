@@ -250,91 +250,6 @@ export type Database = {
         }
         Relationships: []
       }
-      inspiration_interactions: {
-        Row: {
-          created_at: string | null
-          id: string
-          inspiration_id: string | null
-          interaction_type: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          inspiration_id?: string | null
-          interaction_type: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          inspiration_id?: string | null
-          interaction_type?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "inspiration_interactions_inspiration_id_fkey"
-            columns: ["inspiration_id"]
-            isOneToOne: false
-            referencedRelation: "style_inspirations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      inspiration_products: {
-        Row: {
-          affiliate_link: string | null
-          brand: string | null
-          created_at: string | null
-          id: string
-          image_url: string | null
-          inspiration_id: string | null
-          position_x: number | null
-          position_y: number | null
-          price: string | null
-          product_name: string
-          product_type: string | null
-          product_url: string
-        }
-        Insert: {
-          affiliate_link?: string | null
-          brand?: string | null
-          created_at?: string | null
-          id?: string
-          image_url?: string | null
-          inspiration_id?: string | null
-          position_x?: number | null
-          position_y?: number | null
-          price?: string | null
-          product_name: string
-          product_type?: string | null
-          product_url: string
-        }
-        Update: {
-          affiliate_link?: string | null
-          brand?: string | null
-          created_at?: string | null
-          id?: string
-          image_url?: string | null
-          inspiration_id?: string | null
-          position_x?: number | null
-          position_y?: number | null
-          price?: string | null
-          product_name?: string
-          product_type?: string | null
-          product_url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "inspiration_products_inspiration_id_fkey"
-            columns: ["inspiration_id"]
-            isOneToOne: false
-            referencedRelation: "style_inspirations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       instagram_connections: {
         Row: {
           access_token: string | null
@@ -441,7 +356,6 @@ export type Database = {
           first_name: string | null
           gmail_address: string | null
           id: string
-          is_admin: boolean | null
           last_name: string | null
           myfits_email: string | null
           onboarding_completed: boolean | null
@@ -453,7 +367,6 @@ export type Database = {
           first_name?: string | null
           gmail_address?: string | null
           id: string
-          is_admin?: boolean | null
           last_name?: string | null
           myfits_email?: string | null
           onboarding_completed?: boolean | null
@@ -465,7 +378,6 @@ export type Database = {
           first_name?: string | null
           gmail_address?: string | null
           id?: string
-          is_admin?: boolean | null
           last_name?: string | null
           myfits_email?: string | null
           onboarding_completed?: boolean | null
@@ -596,54 +508,6 @@ export type Database = {
           scraped_at?: string
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      style_inspirations: {
-        Row: {
-          admin_user_id: string | null
-          category: string | null
-          created_at: string | null
-          description: string | null
-          id: string
-          image_url: string
-          is_active: boolean | null
-          season: string | null
-          source_url: string | null
-          tags: string[] | null
-          title: string
-          updated_at: string | null
-          view_count: number | null
-        }
-        Insert: {
-          admin_user_id?: string | null
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          image_url: string
-          is_active?: boolean | null
-          season?: string | null
-          source_url?: string | null
-          tags?: string[] | null
-          title: string
-          updated_at?: string | null
-          view_count?: number | null
-        }
-        Update: {
-          admin_user_id?: string | null
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          image_url?: string
-          is_active?: boolean | null
-          season?: string | null
-          source_url?: string | null
-          tags?: string[] | null
-          title?: string
-          updated_at?: string | null
-          view_count?: number | null
         }
         Relationships: []
       }
@@ -802,10 +666,6 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
-      }
-      increment_view_count: {
-        Args: { inspiration_id: string }
-        Returns: undefined
       }
     }
     Enums: {

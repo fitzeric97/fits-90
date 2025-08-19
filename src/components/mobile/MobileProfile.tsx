@@ -4,9 +4,8 @@ import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut, Settings, Share2, Trophy, User, Package, Heart, Camera, Plus, Shield } from "lucide-react";
+import { LogOut, Settings, Share2, Trophy, User, Package, Heart, Camera, Plus } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useAdminStatus } from "@/hooks/useAdminStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -25,7 +24,6 @@ interface ProfileSection {
 
 export default function MobileProfile() {
   const { user, signOut } = useAuth();
-  const { isAdmin } = useAdminStatus();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -46,15 +44,6 @@ export default function MobileProfile() {
   useEffect(() => {
     if (user) {
       const sections: ProfileSection[] = [
-        // Admin Section (only for admin users)
-        ...(isAdmin ? [{
-          id: 'admin',
-          title: 'Admin',
-          description: 'Create & manage style inspirations',
-          icon: Shield,
-          action: () => navigate('/admin/inspirations'),
-          variant: 'action' as const
-        }] : []),
         // Stats Section
         {
           id: 'closet-stats',
@@ -131,7 +120,7 @@ export default function MobileProfile() {
       setFilteredSections(sections);
       setLoading(false);
     }
-  }, [user, stats, isAdmin]);
+  }, [user, stats]);
 
   const fetchStats = async () => {
     const [closetCount, likesCount, fitsCount] = await Promise.all([

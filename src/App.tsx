@@ -28,10 +28,6 @@ import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
 import ConnectionProfile from "./pages/ConnectionProfile";
 import Profile from "./pages/Profile";
-import StyleInspirations from "./pages/StyleInspirations";
-import StyleInspirationDetail from "./pages/StyleInspirationDetail";
-import AdminStyleCreator from "./pages/AdminStyleCreator";
-import { AdminRoute } from "./components/auth/AdminRoute";
 import Points from "./pages/Points";
 
 const queryClient = new QueryClient();
@@ -132,24 +128,11 @@ const App = () => {
                 <Settings />
               </ProtectedRoute>
             } />
-            <Route path="/inspirations" element={
+            <Route path="/profile/:userId" element={
               <ProtectedRoute>
-                <StyleInspirations />
+                <ConnectionProfile />
               </ProtectedRoute>
             } />
-            <Route path="/inspirations/:id" element={
-              <ProtectedRoute>
-                <StyleInspirationDetail />
-              </ProtectedRoute>
-            } />
-            <Route
-              path="/admin/inspirations"
-              element={
-                <AdminRoute>
-                  <AdminStyleCreator />
-                </AdminRoute>
-              }
-            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
