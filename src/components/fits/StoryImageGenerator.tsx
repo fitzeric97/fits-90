@@ -1,10 +1,13 @@
 import { useRef, useState, useEffect } from 'react';
 import * as htmlToImage from 'html-to-image';
-import { Share2, Instagram, Check, Copy, Download } from 'lucide-react';
+import { Share2, Instagram, Check, Copy, Download, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { StoryTutorial } from './StoryTutorial';
+import { Camera as CapacitorCamera } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 interface StoryImageGeneratorProps {
   fit: {
@@ -396,10 +399,11 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
     });
   };
 
-  const saveToDevice = async () => {
-    console.log('💾 Starting simple save to device...', { 
+  const saveToCameraRoll = async () => {
+    console.log('📱 Starting save to camera roll...', { 
       fitId: fit.id, 
-      hasTaggedItems: taggedItems.length > 0
+      hasTaggedItems: taggedItems.length > 0,
+      isNative: Capacitor.isNativePlatform()
     });
 
     setDebugError(null);
@@ -465,17 +469,65 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
         }
       });
 
-      // Simple download
-      downloadFallback(dataUrl);
+      // Save to camera roll using Capacitor
+      if (Capacitor.isNativePlatform()) {
+        console.log('📱 Saving to native camera roll...');
+        
+        // Convert to blob and create file URL for Capacitor
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        
+        // Create a file path for temporary storage
+        const fileName = `fit-story-${Date.now()}.png`;
+        
+        // For Capacitor, we need to use the Filesystem API or a simpler approach
+        // Since we're dealing with images, let's use the simpler approach with base64
+        const base64Data = dataUrl.split(',')[1]; // Remove data:image/png;base64, prefix
+        
+        try {
+          // Use Capacitor's writeFile to save to gallery
+          const writeResult = await Filesystem.writeFile({
+            path: fileName,
+            data: base64Data,
+            directory: Directory.Documents,
+          });
+          
+          console.log('✅ File written to device:', writeResult);
+          
+          toast({
+            title: "Saved to Device!",
+            description: "Your fit story is now in your device storage",
+          });
+        } catch (capacitorError) {
+          console.warn('Capacitor save failed, using fallback:', capacitorError);
+          // Fallback to regular download
+          downloadFallback(dataUrl);
+        }
+      } else {
+        console.log('💻 Not on native platform, using download fallback...');
+        // Fallback for web
+        downloadFallback(dataUrl);
+      }
       
     } catch (error) {
-      console.error('💥 Save to device failed:', error);
+      console.error('💥 Save to camera roll failed:', error);
       
-      toast({
-        title: "Error",
-        description: "Failed to save image. Please try again.",
-        variant: "destructive"
-      });
+      // Fallback to download if camera roll save fails
+      try {
+        const dataUrl = await htmlToImage.toPng(storyRef.current, {
+          width: 1080,
+          height: 1920,
+          pixelRatio: 1,
+          backgroundColor: '#ffffff',
+        });
+        downloadFallback(dataUrl);
+      } catch (fallbackError) {
+        toast({
+          title: "Error",
+          description: "Failed to save image. Please try again.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setGenerating(false);
     }
@@ -698,14 +750,14 @@ export function StoryImageGenerator({ fit, taggedItems, username }: StoryImageGe
           </Button>
           
           <Button
-            onClick={saveToDevice}
+            onClick={saveToCameraRoll}
             disabled={generating}
             variant="outline"
             size="lg"
             className="bg-white/90 border-amber-300 text-amber-700 hover:bg-amber-50"
           >
-            <Download className="w-5 h-5 mr-2" />
-            Save Image
+            <Camera className="w-5 h-5 mr-2" />
+            Save to Photos
           </Button>
         </div>
         
