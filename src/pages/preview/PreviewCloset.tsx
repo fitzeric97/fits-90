@@ -2,14 +2,39 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { PreviewSignUpModal } from "@/components/preview/PreviewSignUpModal";
+import { PreviewMobileLayout } from "@/components/preview/PreviewMobileLayout";
+import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, ArrowLeft } from "lucide-react";
+import { Package, ArrowUpDown, Plus } from "lucide-react";
+
+// Head to Toe ordering - from top of body to bottom
+const headToToeOrder = [
+  'hats',
+  'necklaces', 
+  'fragrances',
+  'shirts',
+  't-shirts',
+  'polo-shirts',
+  'button-shirts',
+  'sweaters',
+  'hoodies',
+  'jackets',
+  'activewear',
+  'pants',
+  'jeans',
+  'shorts',
+  'shoes',
+  'boots'
+];
 
 export default function PreviewCloset() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const [sortByHeadToToe, setSortByHeadToToe] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredItems, setFilteredItems] = useState([]);
   const navigate = useNavigate();
 
   const DEMO_USER_EMAIL = "fitzeric97@gmail.com";
@@ -17,6 +42,38 @@ export default function PreviewCloset() {
   useEffect(() => {
     fetchItems();
   }, []);
+
+  // Filter items based on search query and sorting
+  useEffect(() => {
+    let filtered = items;
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = items.filter((item: any) => {
+        const searchableFields = [
+          item.product_name?.toLowerCase(),
+          item.brand_name?.toLowerCase(),
+          item.product_description?.toLowerCase(),
+          item.category?.toLowerCase(),
+          item.color?.toLowerCase(),
+          item.size?.toLowerCase(),
+        ].filter(Boolean);
+
+        return searchableFields.some(field => field?.includes(query));
+      });
+    }
+
+    // Sort by Head to Toe order if enabled
+    if (sortByHeadToToe) {
+      filtered = [...filtered].sort((a: any, b: any) => {
+        const aIndex = a.category ? headToToeOrder.indexOf(a.category) : 999;
+        const bIndex = b.category ? headToToeOrder.indexOf(b.category) : 999;
+        return aIndex - bIndex;
+      });
+    }
+
+    setFilteredItems(filtered);
+  }, [items, searchQuery, sortByHeadToToe]);
 
   const fetchItems = async () => {
     try {
@@ -52,97 +109,106 @@ export default function PreviewCloset() {
     setShowSignUpModal(true);
   };
 
+  const renderClosetItem = (item: any, viewMode: 'grid' | 'list') => {
+    const imageUrl = item.uploaded_image_url || item.product_image_url || item.stored_image_path;
+    
+    if (viewMode === 'grid') {
+      return (
+        <Card key={item.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
+          <div className="aspect-square relative">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={item.product_name || "Closet item"}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <Package className="h-8 w-8 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+          <div className="p-3">
+            <p className="font-medium text-sm truncate">{item.product_name || "Unknown Item"}</p>
+            <p className="text-xs text-muted-foreground">{item.brand_name}</p>
+            {item.price && (
+              <p className="text-sm font-semibold mt-1">{item.price}</p>
+            )}
+          </div>
+        </Card>
+      );
+    }
+
+    // List view
+    return (
+      <Card key={item.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow">
+        <div className="flex gap-3">
+          <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={item.product_name || "Closet item"}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <Package className="h-6 w-6 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium truncate">{item.product_name || "Unknown Item"}</p>
+            <p className="text-sm text-muted-foreground">{item.brand_name}</p>
+            {item.price && (
+              <p className="text-sm font-semibold mt-1">{item.price}</p>
+            )}
+            {item.category && (
+              <p className="text-xs text-muted-foreground mt-1 capitalize">{item.category}</p>
+            )}
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+      <PreviewMobileLayout onSignUpTrigger={handleInteraction} currentSection="closet">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </PreviewMobileLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-card sticky top-0 z-40">
-        <div className="container max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 md:gap-4">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => navigate('/preview')}
-                className="flex items-center gap-1 md:gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">Back</span>
-              </Button>
-              <div className="flex items-center gap-2">
-                <Package className="h-5 w-5 text-blue-500" />
-                <h1 className="text-lg md:text-xl font-bold">Your Closet</h1>
-              </div>
-            </div>
-            <Button onClick={handleInteraction} size="sm" className="md:size-default">
-              <span className="hidden sm:inline">Sign Up Now</span>
-              <span className="sm:hidden">Sign Up</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="container max-w-6xl mx-auto px-4 py-6">
-        <div className="mb-6">
-          <p className="text-muted-foreground text-center">
-            Browse through closet items - click anywhere to create your own account!
-          </p>
-        </div>
-
-        {items.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No closet items found</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
-            {items.map((item: any) => {
-              const imageUrl = item.uploaded_image_url || item.product_image_url || item.stored_image_path;
-              return (
-                <Card 
-                  key={item.id} 
-                  className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={handleInteraction}
-                >
-                  <div className="aspect-square relative">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt={item.product_name || "Closet item"}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        <Package className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <p className="font-medium text-sm truncate">{item.product_name || "Unknown Item"}</p>
-                    <p className="text-xs text-muted-foreground">{item.brand_name}</p>
-                    {item.price && (
-                      <p className="text-sm font-semibold mt-1">{item.price}</p>
-                    )}
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
+    <PreviewMobileLayout onSignUpTrigger={handleInteraction} currentSection="closet">
+      <MobileItemGrid
+        items={filteredItems}
+        renderItem={renderClosetItem}
+        onAddNew={handleInteraction}
+        addButtonText="Add Item"
+        emptyMessage="Your closet is empty. Start adding your favorite items!"
+        onSearch={setSearchQuery}
+        searchPlaceholder="Search by brand, name, category, color, or size..."
+        gridColumns={3}
+        extraControls={
+          <Button
+            variant={sortByHeadToToe ? "secondary" : "outline"}
+            size="sm"
+            onClick={handleInteraction}
+            className="flex items-center gap-1 bg-primary-foreground/20 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/30"
+          >
+            <ArrowUpDown className="h-3 w-3" />
+            Head to Toe
+          </Button>
+        }
+      />
+      
       <PreviewSignUpModal 
         open={showSignUpModal} 
         onOpenChange={setShowSignUpModal} 
       />
-    </div>
+    </PreviewMobileLayout>
   );
 }
