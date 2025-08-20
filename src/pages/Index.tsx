@@ -114,7 +114,7 @@ const Index = () => {
             onClick={() => navigate('/preview')}
             className="w-full"
           >
-            See what you're signing up for
+            Preview Mode
           </Button>
         </div>
       </div>
