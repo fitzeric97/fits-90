@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Upload, Link as LinkIcon, Edit, Instagram } from "lucide-react";
+import { Plus, Upload, Link as LinkIcon, Edit, Instagram, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,8 @@ import { InstagramPhotoBrowser } from "./InstagramPhotoBrowser";
 import { InstagramUrlImport } from "./InstagramUrlImport";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 
 interface AddFitDialogProps {
   onFitAdded?: () => void;
@@ -44,14 +46,68 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setImagePreview(result);
-        setShowImageEditor(true);
-      };
-      reader.readAsDataURL(file);
+      processSelectedImage(file);
+    }
+  };
+
+  const processSelectedImage = (file: File) => {
+    setSelectedImage(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setImagePreview(result);
+      setShowImageEditor(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleNativeCamera = async () => {
+    try {
+      const image = await CapacitorCamera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera,
+      });
+
+      if (image.webPath) {
+        const response = await fetch(image.webPath);
+        const blob = await response.blob();
+        const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+        processSelectedImage(file);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      toast({
+        title: "Camera Error",
+        description: "Failed to take photo. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleNativePhotoLibrary = async () => {
+    try {
+      const image = await CapacitorCamera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Photos,
+      });
+
+      if (image.webPath) {
+        const response = await fetch(image.webPath);
+        const blob = await response.blob();
+        const file = new File([blob], 'photo-library.jpg', { type: 'image/jpeg' });
+        processSelectedImage(file);
+      }
+    } catch (error) {
+      console.error('Error selecting photo:', error);
+      toast({
+        title: "Photo Library Error",
+        description: "Failed to select photo. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -264,20 +320,45 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
                           Edit & Crop
                         </Button>
                       </div>
-                    ) : (
-                      <div className="text-center">
+                     ) : (
+                      <div className="text-center space-y-4">
                         <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                         <p className="text-sm text-muted-foreground mb-2">
-                          Upload your fit photo to edit and crop it perfectly
+                          Choose how to add your fit photo
                         </p>
-                        <Input
-                          id="image-upload"
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          onChange={handleImageSelect}
-                          className="max-w-xs mx-auto"
-                        />
+                        
+                        {Capacitor.isNativePlatform() ? (
+                          // Native camera options for mobile app
+                          <div className="space-y-3">
+                            <Button
+                              type="button"
+                              onClick={handleNativeCamera}
+                              className="w-full bg-primary"
+                            >
+                              <Camera className="h-4 w-4 mr-2" />
+                              Take Photo
+                            </Button>
+                            <Button
+                              type="button"
+                              onClick={handleNativePhotoLibrary}
+                              variant="outline"
+                              className="w-full"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Choose from Library
+                            </Button>
+                          </div>
+                        ) : (
+                          // Web file input with camera support
+                          <Input
+                            id="image-upload"
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handleImageSelect}
+                            className="max-w-xs mx-auto"
+                          />
+                        )}
                       </div>
                     )}
                   </div>
