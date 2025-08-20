@@ -41,13 +41,54 @@ export default function PreviewFits() {
 
       const demoUserId = profiles[0].id;
 
-      const { data } = await supabase
+      const { data: fits } = await supabase
         .from('fits')
         .select('*')
         .eq('user_id', demoUserId)
         .order('created_at', { ascending: false });
 
-      setFits(data || []);
+      if (!fits) {
+        setFits([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch tagged items for each fit
+      const fitsWithTags = await Promise.all(
+        fits.map(async (fit) => {
+          const { data: taggedData } = await supabase
+            .from('fit_tags')
+            .select(`
+              id,
+              closet_item_id,
+              item_order,
+              closet_items!inner (
+                id,
+                product_name,
+                brand_name,
+                product_image_url,
+                uploaded_image_url
+              )
+            `)
+            .eq('fit_id', fit.id)
+            .order('item_order', { ascending: true })
+            .order('created_at', { ascending: true })
+            .limit(3);
+
+          const taggedItems = taggedData?.map((tag: any) => ({
+            ...tag.closet_items,
+            tagId: tag.id,
+            item_order: tag.item_order || 0
+          })).filter(Boolean) || [];
+
+          return {
+            ...fit,
+            taggedItems
+          };
+        })
+      );
+
+      setFits(fitsWithTags);
     } catch (error) {
       console.error('Error fetching fits:', error);
     } finally {
@@ -62,15 +103,51 @@ export default function PreviewFits() {
 
   const renderFitItem = (fit: any) => (
     <Card key={fit.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleFitClick(fit)}>
-      <div className="aspect-square relative">
-        <img
-          src={fit.image_url}
-          alt={fit.caption || "Fit"}
-          className="w-full h-full object-cover"
-        />
+      <div className="flex">
+        {/* Main image */}
+        <div className="aspect-square relative flex-1">
+          <img
+            src={fit.image_url}
+            alt={fit.caption || "Fit"}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        
+        {/* Tagged items thumbnails */}
+        {fit.taggedItems && fit.taggedItems.length > 0 && (
+          <div className="w-16 p-2 border-l border-border bg-muted/20 flex flex-col gap-1">
+            {fit.taggedItems.slice(0, 3).map((item: any, index: number) => (
+              <div
+                key={item.tagId}
+                className="w-12 h-12 rounded border border-border bg-background overflow-hidden"
+                title={`${item.product_name} - ${item.brand_name}`}
+              >
+                {(item.uploaded_image_url || item.product_image_url) ? (
+                  <img
+                    src={item.uploaded_image_url || item.product_image_url}
+                    alt={item.product_name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <span className="text-xs text-muted-foreground font-medium">
+                      {item.product_name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+            {fit.taggedItems.length > 3 && (
+              <div className="w-12 h-6 rounded border border-border bg-background flex items-center justify-center">
+                <span className="text-xs text-muted-foreground">+{fit.taggedItems.length - 3}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+      
       {fit.caption && (
-        <div className="p-3">
+        <div className="p-3 pt-2">
           <p className="text-sm truncate">{fit.caption}</p>
         </div>
       )}
