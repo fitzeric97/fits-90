@@ -103,34 +103,35 @@ export default function Preview() {
       <div className="border-b bg-card sticky top-0 z-40">
         <div className="container max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={() => navigate('/')}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 md:gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back
+                <span className="hidden sm:inline">Back</span>
               </Button>
               <div className="flex items-center gap-2">
-                <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fits Logo" className="w-8 h-8 object-contain" />
-                <h1 className="text-xl font-bold">Fits Preview</h1>
+                <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fits Logo" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
+                <h1 className="text-lg md:text-xl font-bold">Fits Preview</h1>
               </div>
             </div>
-            <Button onClick={handleInteraction}>
-              Sign Up Now
+            <Button onClick={handleInteraction} size="sm" className="md:size-default">
+              <span className="hidden sm:inline">Sign Up Now</span>
+              <span className="sm:hidden">Sign Up</span>
             </Button>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="container max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <div className="container max-w-6xl mx-auto px-4 py-4 md:py-8 space-y-6 md:space-y-8">
         {/* Introduction */}
-        <div className="text-center space-y-4 py-8">
-          <h2 className="text-3xl font-bold">Welcome to Fits</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <div className="text-center space-y-4 py-4 md:py-8">
+          <h2 className="text-2xl md:text-3xl font-bold">Welcome to Fits</h2>
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             Organize your style, track your favorites, and discover new looks. 
             Here's a preview of what you can do with Fits - click anywhere to get started!
           </p>
@@ -142,7 +143,7 @@ export default function Preview() {
           icon={<Heart className="h-5 w-5 text-red-500" />}
           onInteraction={handleInteraction}
         >
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
             {previewData.likes.slice(0, 6).map((like: any) => (
               <Card key={like.id} className="overflow-hidden">
                 <div className="aspect-square relative">
@@ -173,7 +174,7 @@ export default function Preview() {
           icon={<Package className="h-5 w-5 text-blue-500" />}
           onInteraction={handleInteraction}
         >
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
             {previewData.closetItems.slice(0, 6).map((item: any) => {
               const imageUrl = item.uploaded_image_url || item.product_image_url || item.stored_image_path;
               return (
@@ -207,7 +208,7 @@ export default function Preview() {
           icon={<ImageIcon className="h-5 w-5 text-green-500" />}
           onInteraction={handleInteraction}
         >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
             {previewData.fits.slice(0, 4).map((fit: any) => (
               <Card key={fit.id} className="overflow-hidden">
                 <div className="aspect-square relative">
@@ -266,12 +267,12 @@ export default function Preview() {
         </PreviewSection>
 
         {/* Call to Action */}
-        <div className="text-center py-12 border-t">
-          <h3 className="text-2xl font-bold mb-4">Ready to organize your style?</h3>
-          <p className="text-muted-foreground mb-6">
+        <div className="text-center py-8 md:py-12 border-t">
+          <h3 className="text-xl md:text-2xl font-bold mb-4">Ready to organize your style?</h3>
+          <p className="text-sm md:text-base text-muted-foreground mb-6 px-4">
             Join thousands of users who are already using Fits to track their wardrobe and discover new looks.
           </p>
-          <Button size="lg" onClick={handleInteraction}>
+          <Button size="lg" onClick={handleInteraction} className="w-full sm:w-auto">
             Get Started Now
           </Button>
         </div>
