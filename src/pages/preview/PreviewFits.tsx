@@ -90,6 +90,7 @@ export default function PreviewFits() {
       );
 
       setFits(fitsWithTags);
+      console.log('Fetched fits with tags:', fitsWithTags.map(f => ({ id: f.id, taggedCount: f.taggedItems?.length || 0 })));
     } catch (error) {
       console.error('Error fetching fits:', error);
     } finally {
@@ -104,6 +105,9 @@ export default function PreviewFits() {
 
   const renderFitItem = (fit: any, viewMode: 'grid' | 'list') => {
     const taggedItems = fit.taggedItems || [];
+    
+    // Debug logging
+    console.log('Rendering fit:', fit.id, 'with', taggedItems.length, 'tagged items', 'viewMode:', viewMode);
     
     if (viewMode === 'grid') {
       return (
@@ -124,6 +128,7 @@ export default function PreviewFits() {
                 <div className="space-y-1">
                   {taggedItems.slice(0, 4).map((item: any) => {
                     const imageUrl = item.uploaded_image_url || item.product_image_url;
+                    console.log('Rendering tagged item:', item.tagId, imageUrl);
                     return (
                       <div key={item.tagId} className="w-12 h-12 rounded-sm overflow-hidden bg-muted">
                         {imageUrl ? (
