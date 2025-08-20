@@ -61,9 +61,9 @@ export default function PreviewFits() {
             .from('fit_tags')
             .select(`
               id,
-              closet_item_id,  
+              closet_item_id,
               item_order,
-              closet_items!inner (
+              closet_items (
                 id,
                 product_name,
                 brand_name,
