@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PreviewSignUpModal } from "@/components/preview/PreviewSignUpModal";
 import { PreviewMobileLayout } from "@/components/preview/PreviewMobileLayout";
 import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
+import { usePreviewInteraction } from "@/hooks/usePreviewInteraction";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Package, ArrowUpDown, Plus } from "lucide-react";
@@ -36,6 +37,8 @@ export default function PreviewCloset() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredItems, setFilteredItems] = useState([]);
   const navigate = useNavigate();
+
+  const { handleInteraction } = usePreviewInteraction(() => setShowSignUpModal(true));
 
   const DEMO_USER_EMAIL = "fitzeric97@gmail.com";
 
@@ -105,16 +108,12 @@ export default function PreviewCloset() {
     }
   };
 
-  const handleInteraction = () => {
-    setShowSignUpModal(true);
-  };
-
   const renderClosetItem = (item: any, viewMode: 'grid' | 'list') => {
     const imageUrl = item.uploaded_image_url || item.product_image_url || item.stored_image_path;
     
     if (viewMode === 'grid') {
       return (
-        <Card key={item.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
+        <Card key={item.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={handleInteraction}>
           <div className="aspect-square relative">
             {imageUrl ? (
               <img
@@ -141,7 +140,7 @@ export default function PreviewCloset() {
 
     // List view
     return (
-      <Card key={item.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow">
+      <Card key={item.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={handleInteraction}>
         <div className="flex gap-3">
           <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
             {imageUrl ? (
@@ -173,7 +172,7 @@ export default function PreviewCloset() {
 
   if (loading) {
     return (
-      <PreviewMobileLayout onSignUpTrigger={handleInteraction} currentSection="closet">
+      <PreviewMobileLayout onInteraction={handleInteraction} currentSection="closet">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -182,7 +181,7 @@ export default function PreviewCloset() {
   }
 
   return (
-    <PreviewMobileLayout onSignUpTrigger={handleInteraction} currentSection="closet">
+    <PreviewMobileLayout onInteraction={handleInteraction} currentSection="closet">
       <MobileItemGrid
         items={filteredItems}
         renderItem={renderClosetItem}
@@ -196,7 +195,7 @@ export default function PreviewCloset() {
           <Button
             variant={sortByHeadToToe ? "secondary" : "outline"}
             size="sm"
-            onClick={handleInteraction}
+            onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
             className="flex items-center gap-1 bg-primary-foreground/20 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/30"
           >
             <ArrowUpDown className="h-3 w-3" />

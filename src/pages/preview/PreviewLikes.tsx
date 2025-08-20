@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PreviewSignUpModal } from "@/components/preview/PreviewSignUpModal";
 import { PreviewMobileLayout } from "@/components/preview/PreviewMobileLayout";
 import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
+import { usePreviewInteraction } from "@/hooks/usePreviewInteraction";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, ExternalLink, ArrowUpDown, Plus } from "lucide-react";
@@ -36,6 +37,8 @@ export default function PreviewLikes() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredLikes, setFilteredLikes] = useState([]);
   const navigate = useNavigate();
+
+  const { handleInteraction } = usePreviewInteraction(() => setShowSignUpModal(true));
 
   const DEMO_USER_EMAIL = "fitzeric97@gmail.com";
 
@@ -103,14 +106,14 @@ export default function PreviewLikes() {
     }
   };
 
-  const handleInteraction = () => {
-    setShowSignUpModal(true);
+  const handleInteractionWrapper = () => {
+    // No longer used - interactions are handled by the hook
   };
 
   const renderLikeItem = (like: any, viewMode: 'grid' | 'list') => {
     if (viewMode === 'grid') {
       return (
-        <Card key={like.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
+        <Card key={like.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={handleInteraction}>
           <div className="aspect-square relative">
             {like.image_url || like.uploaded_image_url ? (
               <img
@@ -127,6 +130,7 @@ export default function PreviewLikes() {
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
+                  handleInteraction();
                 }}
                 className="bg-white/90 p-1.5 rounded-full"
               >
@@ -147,7 +151,7 @@ export default function PreviewLikes() {
 
     // List view
     return (
-      <Card key={like.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow">
+      <Card key={like.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={handleInteraction}>
         <div className="flex gap-3">
           <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
             {like.image_url || like.uploaded_image_url ? (
@@ -172,6 +176,7 @@ export default function PreviewLikes() {
           <button 
             onClick={(e) => {
               e.stopPropagation();
+              handleInteraction();
             }}
             className="p-2"
           >
@@ -184,7 +189,7 @@ export default function PreviewLikes() {
 
   if (loading) {
     return (
-      <PreviewMobileLayout onSignUpTrigger={handleInteraction} currentSection="likes">
+      <PreviewMobileLayout onInteraction={handleInteraction} currentSection="likes">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -193,7 +198,7 @@ export default function PreviewLikes() {
   }
 
   return (
-    <PreviewMobileLayout onSignUpTrigger={handleInteraction} currentSection="likes">
+    <PreviewMobileLayout onInteraction={handleInteraction} currentSection="likes">
       <MobileItemGrid
         items={filteredLikes}
         renderItem={renderLikeItem}
@@ -207,7 +212,7 @@ export default function PreviewLikes() {
           <Button
             variant={sortByHeadToToe ? "secondary" : "outline"}
             size="sm"
-            onClick={handleInteraction}
+            onClick={() => setSortByHeadToToe(!sortByHeadToToe)}
             className="flex items-center gap-1 bg-primary-foreground/20 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/30"
           >
             <ArrowUpDown className="h-3 w-3" />

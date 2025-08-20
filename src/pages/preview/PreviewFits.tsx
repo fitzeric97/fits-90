@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { PreviewSignUpModal } from "@/components/preview/PreviewSignUpModal";
 import { PreviewMobileLayout } from "@/components/preview/PreviewMobileLayout";
-import { FitsGrid } from "@/components/fits/FitsGrid";
+import { usePreviewInteraction } from "@/hooks/usePreviewInteraction";
 import { Card } from "@/components/ui/card";
 import { ImageIcon } from "lucide-react";
 
@@ -12,6 +12,8 @@ export default function PreviewFits() {
   const [loading, setLoading] = useState(true);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const navigate = useNavigate();
+
+  const { handleInteraction } = usePreviewInteraction(() => setShowSignUpModal(true));
 
   const DEMO_USER_EMAIL = "fitzeric97@gmail.com";
 
@@ -49,12 +51,8 @@ export default function PreviewFits() {
     }
   };
 
-  const handleInteraction = () => {
-    setShowSignUpModal(true);
-  };
-
   const renderFitItem = (fit: any) => (
-    <Card key={fit.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
+    <Card key={fit.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={handleInteraction}>
       <div className="aspect-square relative">
         <img
           src={fit.image_url}
@@ -72,7 +70,7 @@ export default function PreviewFits() {
 
   if (loading) {
     return (
-      <PreviewMobileLayout onSignUpTrigger={handleInteraction} currentSection="fits">
+      <PreviewMobileLayout onInteraction={handleInteraction} currentSection="fits">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -81,7 +79,7 @@ export default function PreviewFits() {
   }
 
   return (
-    <PreviewMobileLayout onSignUpTrigger={handleInteraction} currentSection="fits">
+    <PreviewMobileLayout onInteraction={handleInteraction} currentSection="fits">
       <div className="p-4">
         {fits.length === 0 ? (
           <div className="text-center py-12">

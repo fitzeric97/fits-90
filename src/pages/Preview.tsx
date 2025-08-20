@@ -85,7 +85,7 @@ export default function Preview() {
   if (loading) {
     if (isMobile) {
       return (
-        <PreviewMobileLayout onSignUpTrigger={handleInteraction}>
+        <PreviewMobileLayout onInteraction={handleInteraction}>
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
@@ -102,7 +102,7 @@ export default function Preview() {
   // Mobile Layout
   if (isMobile) {
     return (
-      <PreviewMobileLayout onSignUpTrigger={handleInteraction}>
+      <PreviewMobileLayout onInteraction={handleInteraction}>
         <div className="space-y-6 p-4">
           {/* Introduction */}
           <div className="text-center space-y-4 py-4">

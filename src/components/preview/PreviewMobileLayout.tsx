@@ -1,22 +1,32 @@
 import { ReactNode } from "react";
-import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Heart, ShirtIcon, Camera, User, Bell, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PreviewMobileLayoutProps {
   children: ReactNode;
-  onSignUpTrigger: () => void;
+  onInteraction: () => void;
   currentSection?: 'likes' | 'closet' | 'fits' | 'activity' | 'profile';
 }
 
-export function PreviewMobileLayout({ children, onSignUpTrigger, currentSection = 'likes' }: PreviewMobileLayoutProps) {
+export function PreviewMobileLayout({ children, onInteraction, currentSection = 'likes' }: PreviewMobileLayoutProps) {
+  const navigate = useNavigate();
+  
   const navItems = [
-    { icon: Heart, label: "Likes", path: "likes" },
-    { icon: ShirtIcon, label: "Closet", path: "closet" },
-    { icon: Bell, label: "Activity", path: "activity" },
-    { icon: Camera, label: "Fits", path: "fits" },
-    { icon: User, label: "Profile", path: "profile" },
+    { icon: Heart, label: "Likes", path: "likes", route: "/preview/likes" },
+    { icon: ShirtIcon, label: "Closet", path: "closet", route: "/preview/closet" },
+    { icon: Bell, label: "Activity", path: "activity", route: "/preview" }, // Disabled for now
+    { icon: Camera, label: "Fits", path: "fits", route: "/preview/fits" },
+    { icon: User, label: "Profile", path: "profile", route: "/preview" }, // Disabled for now
   ];
+
+  const handleNavClick = (item: any) => {
+    if (item.path === 'activity' || item.path === 'profile') {
+      onInteraction(); // These sections trigger interaction immediately
+    } else {
+      navigate(item.route);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -26,7 +36,7 @@ export function PreviewMobileLayout({ children, onSignUpTrigger, currentSection 
           <div className="flex-shrink-0">
             {/* Preview Points Scoreboard */}
             <button
-              onClick={onSignUpTrigger}
+              onClick={onInteraction}
               className="bg-cream-header text-fits-blue px-3 py-1.5 rounded-lg flex items-center gap-2 hover:bg-cream-muted transition-colors border-2 border-cream-muted shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
             >
               <Trophy className="h-4 w-4" />
@@ -45,7 +55,7 @@ export function PreviewMobileLayout({ children, onSignUpTrigger, currentSection 
           <div className="flex items-center ml-auto">
             {/* Preview Notification Bell */}
             <button
-              onClick={onSignUpTrigger}
+              onClick={onInteraction}
               className="relative p-2 text-fits-blue hover:bg-cream-muted rounded-lg transition-colors"
             >
               <Bell className="h-5 w-5" />
@@ -60,9 +70,7 @@ export function PreviewMobileLayout({ children, onSignUpTrigger, currentSection 
       {/* Main Content */}
       <main className="flex-1 pb-16 overflow-y-auto">
         <div className="max-w-lg mx-auto w-full">
-          <div onClick={onSignUpTrigger} className="cursor-pointer">
-            {children}
-          </div>
+          {children}
         </div>
       </main>
 
@@ -73,16 +81,19 @@ export function PreviewMobileLayout({ children, onSignUpTrigger, currentSection 
             const Icon = item.icon;
             const isActive = currentSection === item.path;
             const isCenter = index === 2; // Activity tab is center
+            const isDisabled = item.path === 'activity' || item.path === 'profile';
             
             return (
               <button
                 key={item.path}
-                onClick={onSignUpTrigger}
+                onClick={() => handleNavClick(item)}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 text-xs relative",
                   isActive 
                     ? "text-fits-blue" 
-                    : "text-muted-foreground",
+                    : isDisabled 
+                      ? "text-muted-foreground/50"
+                      : "text-muted-foreground",
                   isCenter && "relative"
                 )}
               >
