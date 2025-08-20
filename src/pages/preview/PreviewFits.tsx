@@ -6,6 +6,7 @@ import { PreviewMobileLayout } from "@/components/preview/PreviewMobileLayout";
 import { PreviewFitDetailDialog } from "@/components/preview/PreviewFitDetailDialog";
 import { FloatingSignUpButton } from "@/components/preview/FloatingSignUpButton";
 import { usePreviewInteraction } from "@/hooks/usePreviewInteraction";
+import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
 import { Card } from "@/components/ui/card";
 import { ImageIcon } from "lucide-react";
 
@@ -60,7 +61,7 @@ export default function PreviewFits() {
             .from('fit_tags')
             .select(`
               id,
-              closet_item_id,
+              closet_item_id,  
               item_order,
               closet_items!inner (
                 id,
@@ -73,7 +74,7 @@ export default function PreviewFits() {
             .eq('fit_id', fit.id)
             .order('item_order', { ascending: true })
             .order('created_at', { ascending: true })
-            .limit(3);
+            .limit(4);
 
           const taggedItems = taggedData?.map((tag: any) => ({
             ...tag.closet_items,
@@ -101,58 +102,119 @@ export default function PreviewFits() {
     setShowDetailDialog(true);
   };
 
-  const renderFitItem = (fit: any) => (
-    <Card key={fit.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleFitClick(fit)}>
-      <div className="flex">
-        {/* Main image */}
-        <div className="aspect-square relative flex-1">
-          <img
-            src={fit.image_url}
-            alt={fit.caption || "Fit"}
-            className="w-full h-full object-cover"
-          />
-        </div>
-        
-        {/* Tagged items thumbnails */}
-        {fit.taggedItems && fit.taggedItems.length > 0 && (
-          <div className="w-16 p-2 border-l border-border bg-muted/20 flex flex-col gap-1">
-            {fit.taggedItems.slice(0, 3).map((item: any, index: number) => (
-              <div
-                key={item.tagId}
-                className="w-12 h-12 rounded border border-border bg-background overflow-hidden"
-                title={`${item.product_name} - ${item.brand_name}`}
-              >
-                {(item.uploaded_image_url || item.product_image_url) ? (
-                  <img
-                    src={item.uploaded_image_url || item.product_image_url}
-                    alt={item.product_name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <span className="text-xs text-muted-foreground font-medium">
-                      {item.product_name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
-            {fit.taggedItems.length > 3 && (
-              <div className="w-12 h-6 rounded border border-border bg-background flex items-center justify-center">
-                <span className="text-xs text-muted-foreground">+{fit.taggedItems.length - 3}</span>
+  const renderFitItem = (fit: any, viewMode: 'grid' | 'list') => {
+    const taggedItems = fit.taggedItems || [];
+    
+    if (viewMode === 'grid') {
+      return (
+        <Card key={fit.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleFitClick(fit)}>
+          <div className="flex">
+            {/* Main Image - matching logged-in mobile experience */}
+            <div className="aspect-[3/4] flex-1 relative">
+              <img
+                src={fit.image_url}
+                alt={fit.caption || "Outfit"}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            {/* Tagged Items Sidebar - exactly like logged-in mobile */}
+            {taggedItems.length > 0 && (
+              <div className="w-16 p-2 bg-muted/20 border-l border-border">
+                <div className="space-y-1">
+                  {taggedItems.slice(0, 4).map((item: any) => {
+                    const imageUrl = item.uploaded_image_url || item.product_image_url;
+                    return (
+                      <div key={item.tagId} className="w-12 h-12 rounded-sm overflow-hidden bg-muted">
+                        {imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={item.product_name || item.brand_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-xs text-muted-foreground font-medium">
+                              {(item.product_name || item.brand_name || '?').charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {taggedItems.length > 4 && (
+                    <div className="w-12 h-12 rounded-sm bg-muted flex items-center justify-center">
+                      <span className="text-xs text-muted-foreground">+{taggedItems.length - 4}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
-        )}
-      </div>
-      
-      {fit.caption && (
-        <div className="p-3 pt-2">
-          <p className="text-sm truncate">{fit.caption}</p>
+          {fit.caption && (
+            <div className="p-3">
+              <p className="text-sm truncate">{fit.caption}</p>
+            </div>
+          )}
+        </Card>
+      );
+    }
+
+    // List view - matching logged-in mobile experience
+    return (
+      <Card key={fit.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleFitClick(fit)}>
+        <div className="flex gap-3">
+          <div className="w-20 h-28 rounded-lg overflow-hidden flex-shrink-0">
+            <img
+              src={fit.image_url}
+              alt={fit.caption || "Outfit"}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium">Outfit</p>
+            {fit.caption && (
+              <p className="text-sm text-muted-foreground mt-1">{fit.caption}</p>
+            )}
+            {taggedItems.length > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {taggedItems.length} tagged item{taggedItems.length !== 1 ? 's' : ''}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground mt-2">
+              {new Date(fit.created_at).toLocaleDateString()}
+            </p>
+          </div>
+          
+          {/* Tagged Items Preview */}
+          {taggedItems.length > 0 && (
+            <div className="flex flex-col gap-1">
+              {taggedItems.slice(0, 2).map((item: any) => {
+                const imageUrl = item.uploaded_image_url || item.product_image_url;
+                return (
+                  <div key={item.tagId} className="w-8 h-8 rounded-sm overflow-hidden bg-muted">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={item.product_name || item.brand_name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground font-medium">
+                          {(item.product_name || item.brand_name || '?').charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
-    </Card>
-  );
+      </Card>
+    );
+  };
 
   if (loading) {
     return (
@@ -166,18 +228,22 @@ export default function PreviewFits() {
 
   return (
     <PreviewMobileLayout onInteraction={handleInteraction} currentSection="fits">
-      <div className="p-4">
-        {fits.length === 0 ? (
-          <div className="text-center py-12">
-            <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No fits found</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {fits.map(renderFitItem)}
-          </div>
-        )}
-      </div>
+      {fits.length === 0 ? (
+        <div className="text-center py-12">
+          <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">No fits found</p>
+        </div>
+      ) : (
+        <MobileItemGrid
+          items={fits}
+          renderItem={renderFitItem}
+          onAddNew={handleInteraction}
+          addButtonText="Add Outfit"
+          emptyMessage="No outfits yet. Share your first fit!"
+          onSearch={() => {}}
+          searchPlaceholder="Search your fits..."
+        />
+      )}
       
       <FloatingSignUpButton onClick={() => setShowSignUpModal(true)} />
       

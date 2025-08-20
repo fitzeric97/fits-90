@@ -54,8 +54,8 @@ export function PreviewFitDetailDialog({
 
             {/* Tagged Items Preview */}
             <div className="space-y-3">
-              <h3 className="font-semibold text-sm">Tagged Items ({fit.taggedItems?.length || 0})</h3>
-              {fit.taggedItems && fit.taggedItems.length > 0 ? (
+              <h3 className="font-semibold text-sm">Tagged Items ({fit?.taggedItems?.length || 0})</h3>
+              {fit?.taggedItems && fit.taggedItems.length > 0 ? (
                 <div className="grid grid-cols-3 gap-3">
                   {fit.taggedItems.map((item: any) => (
                     <div
@@ -73,13 +73,13 @@ export function PreviewFitDetailDialog({
                         ) : (
                           <div className="w-full h-full bg-muted flex items-center justify-center">
                             <span className="text-lg text-muted-foreground font-medium">
-                              {item.product_name.charAt(0).toUpperCase()}
+                              {(item.product_name || item.brand_name || '?').charAt(0).toUpperCase()}
                             </span>
                           </div>
                         )}
                       </div>
                       <div className="text-center">
-                        <p className="text-xs font-medium truncate">{item.product_name}</p>
+                        <p className="text-xs font-medium truncate">{item.product_name || item.brand_name}</p>
                         <p className="text-xs text-muted-foreground truncate">{item.brand_name}</p>
                       </div>
                     </div>
