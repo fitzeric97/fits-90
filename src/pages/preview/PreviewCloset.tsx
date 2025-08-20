@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { PreviewSignUpModal } from "@/components/preview/PreviewSignUpModal";
 import { PreviewMobileLayout } from "@/components/preview/PreviewMobileLayout";
 import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
+import { PreviewClosetDetailDialog } from "@/components/preview/PreviewClosetDetailDialog";
+import { FloatingSignUpButton } from "@/components/preview/FloatingSignUpButton";
 import { usePreviewInteraction } from "@/hooks/usePreviewInteraction";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +38,8 @@ export default function PreviewCloset() {
   const [sortByHeadToToe, setSortByHeadToToe] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredItems, setFilteredItems] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   const navigate = useNavigate();
 
   const { handleInteraction } = usePreviewInteraction(() => setShowSignUpModal(true));
@@ -108,12 +112,17 @@ export default function PreviewCloset() {
     }
   };
 
+  const handleItemClick = (item: any) => {
+    setSelectedItem(item);
+    setShowDetailDialog(true);
+  };
+
   const renderClosetItem = (item: any, viewMode: 'grid' | 'list') => {
     const imageUrl = item.uploaded_image_url || item.product_image_url || item.stored_image_path;
     
     if (viewMode === 'grid') {
       return (
-        <Card key={item.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={handleInteraction}>
+        <Card key={item.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleItemClick(item)}>
           <div className="aspect-square relative">
             {imageUrl ? (
               <img
@@ -140,7 +149,7 @@ export default function PreviewCloset() {
 
     // List view
     return (
-      <Card key={item.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={handleInteraction}>
+      <Card key={item.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleItemClick(item)}>
         <div className="flex gap-3">
           <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
             {imageUrl ? (
@@ -202,6 +211,15 @@ export default function PreviewCloset() {
             Head to Toe
           </Button>
         }
+      />
+      
+      <FloatingSignUpButton onClick={() => setShowSignUpModal(true)} />
+      
+      <PreviewClosetDetailDialog
+        item={selectedItem}
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
+        onSignUp={() => setShowSignUpModal(true)}
       />
       
       <PreviewSignUpModal 

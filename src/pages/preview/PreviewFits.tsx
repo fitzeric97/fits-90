@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { PreviewSignUpModal } from "@/components/preview/PreviewSignUpModal";
 import { PreviewMobileLayout } from "@/components/preview/PreviewMobileLayout";
+import { PreviewFitDetailDialog } from "@/components/preview/PreviewFitDetailDialog";
+import { FloatingSignUpButton } from "@/components/preview/FloatingSignUpButton";
 import { usePreviewInteraction } from "@/hooks/usePreviewInteraction";
 import { Card } from "@/components/ui/card";
 import { ImageIcon } from "lucide-react";
@@ -11,6 +13,8 @@ export default function PreviewFits() {
   const [fits, setFits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const [selectedFit, setSelectedFit] = useState(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   const navigate = useNavigate();
 
   const { handleInteraction } = usePreviewInteraction(() => setShowSignUpModal(true));
@@ -51,8 +55,13 @@ export default function PreviewFits() {
     }
   };
 
+  const handleFitClick = (fit: any) => {
+    setSelectedFit(fit);
+    setShowDetailDialog(true);
+  };
+
   const renderFitItem = (fit: any) => (
-    <Card key={fit.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={handleInteraction}>
+    <Card key={fit.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleFitClick(fit)}>
       <div className="aspect-square relative">
         <img
           src={fit.image_url}
@@ -92,6 +101,15 @@ export default function PreviewFits() {
           </div>
         )}
       </div>
+      
+      <FloatingSignUpButton onClick={() => setShowSignUpModal(true)} />
+      
+      <PreviewFitDetailDialog
+        fit={selectedFit}
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
+        onSignUp={() => setShowSignUpModal(true)}
+      />
       
       <PreviewSignUpModal 
         open={showSignUpModal} 

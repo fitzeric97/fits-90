@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { PreviewSignUpModal } from "@/components/preview/PreviewSignUpModal";
 import { PreviewMobileLayout } from "@/components/preview/PreviewMobileLayout";
 import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
+import { PreviewLikeDetailDialog } from "@/components/preview/PreviewLikeDetailDialog";
+import { FloatingSignUpButton } from "@/components/preview/FloatingSignUpButton";
 import { usePreviewInteraction } from "@/hooks/usePreviewInteraction";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +38,8 @@ export default function PreviewLikes() {
   const [sortByHeadToToe, setSortByHeadToToe] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredLikes, setFilteredLikes] = useState([]);
+  const [selectedLike, setSelectedLike] = useState(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   const navigate = useNavigate();
 
   const { handleInteraction } = usePreviewInteraction(() => setShowSignUpModal(true));
@@ -106,14 +110,15 @@ export default function PreviewLikes() {
     }
   };
 
-  const handleInteractionWrapper = () => {
-    // No longer used - interactions are handled by the hook
+  const handleLikeClick = (like: any) => {
+    setSelectedLike(like);
+    setShowDetailDialog(true);
   };
 
   const renderLikeItem = (like: any, viewMode: 'grid' | 'list') => {
     if (viewMode === 'grid') {
       return (
-        <Card key={like.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={handleInteraction}>
+        <Card key={like.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleLikeClick(like)}>
           <div className="aspect-square relative">
             {like.image_url || like.uploaded_image_url ? (
               <img
@@ -126,17 +131,6 @@ export default function PreviewLikes() {
                 <Heart className="h-8 w-8 text-muted-foreground" />
               </div>
             )}
-            <div className="absolute top-2 right-2">
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleInteraction();
-                }}
-                className="bg-white/90 p-1.5 rounded-full"
-              >
-                <ExternalLink className="h-3 w-3" />
-              </button>
-            </div>
           </div>
           <div className="p-3">
             <p className="font-medium text-sm truncate">{like.title}</p>
@@ -151,7 +145,7 @@ export default function PreviewLikes() {
 
     // List view
     return (
-      <Card key={like.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={handleInteraction}>
+      <Card key={like.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleLikeClick(like)}>
         <div className="flex gap-3">
           <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
             {like.image_url || like.uploaded_image_url ? (
@@ -173,15 +167,6 @@ export default function PreviewLikes() {
               <p className="text-sm font-semibold mt-1">{like.price}</p>
             )}
           </div>
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              handleInteraction();
-            }}
-            className="p-2"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </button>
         </div>
       </Card>
     );
@@ -219,6 +204,15 @@ export default function PreviewLikes() {
             Head to Toe
           </Button>
         }
+      />
+      
+      <FloatingSignUpButton onClick={() => setShowSignUpModal(true)} />
+      
+      <PreviewLikeDetailDialog
+        like={selectedLike}
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
+        onSignUp={() => setShowSignUpModal(true)}
       />
       
       <PreviewSignUpModal 
