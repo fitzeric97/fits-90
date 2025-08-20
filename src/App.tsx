@@ -30,6 +30,9 @@ import ConnectionProfile from "./pages/ConnectionProfile";
 import Profile from "./pages/Profile";
 import Points from "./pages/Points";
 import Preview from "./pages/Preview";
+import PreviewLikes from "./pages/preview/PreviewLikes";
+import PreviewCloset from "./pages/preview/PreviewCloset";
+import PreviewFits from "./pages/preview/PreviewFits";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +50,9 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/preview" element={<Preview />} />
+            <Route path="/preview/likes" element={<PreviewLikes />} />
+            <Route path="/preview/closet" element={<PreviewCloset />} />
+            <Route path="/preview/fits" element={<PreviewFits />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/instagram-callback" element={<InstagramCallback />} />
             <Route path="/gmail-callback" element={<GmailCallback />} />

@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PreviewSignUpModal } from "@/components/preview/PreviewSignUpModal";
-import { PreviewSection } from "@/components/preview/PreviewSection";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Package, ImageIcon, Activity, ArrowLeft } from "lucide-react";
+import { Heart, Package, ImageIcon, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Preview() {
@@ -12,8 +11,7 @@ export default function Preview() {
   const [previewData, setPreviewData] = useState({
     likes: [],
     closetItems: [],
-    fits: [],
-    activityFeed: []
+    fits: []
   });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -42,7 +40,7 @@ export default function Preview() {
       const demoUserId = profiles[0].id;
 
       // Fetch all data in parallel
-      const [likesResponse, closetResponse, fitsResponse, activityResponse] = await Promise.all([
+      const [likesResponse, closetResponse, fitsResponse] = await Promise.all([
         supabase
           .from('user_likes')
           .select('*')
@@ -62,21 +60,13 @@ export default function Preview() {
           .select('*')
           .eq('user_id', demoUserId)
           .order('created_at', { ascending: false })
-          .limit(4),
-        
-        supabase
-          .from('activity_feed')
-          .select('*')
-          .eq('user_id', demoUserId)
-          .order('created_at', { ascending: false })
-          .limit(8)
+          .limit(4)
       ]);
 
       setPreviewData({
         likes: likesResponse.data || [],
         closetItems: closetResponse.data || [],
-        fits: fitsResponse.data || [],
-        activityFeed: activityResponse.data || []
+        fits: fitsResponse.data || []
       });
     } catch (error) {
       console.error('Error fetching preview data:', error);
@@ -138,11 +128,15 @@ export default function Preview() {
         </div>
 
         {/* Likes Section */}
-        <PreviewSection
-          title="Your Likes"
-          icon={<Heart className="h-5 w-5 text-red-500" />}
-          onInteraction={handleInteraction}
-        >
+        <div className="space-y-4">
+          <Button
+            variant="ghost"
+            className="flex items-center gap-2 p-0 h-auto text-lg font-semibold hover:bg-transparent"
+            onClick={() => navigate('/preview/likes')}
+          >
+            <Heart className="h-5 w-5 text-red-500" />
+            Your Likes →
+          </Button>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
             {previewData.likes.slice(0, 6).map((like: any) => (
               <Card key={like.id} className="overflow-hidden">
@@ -166,14 +160,18 @@ export default function Preview() {
               </Card>
             ))}
           </div>
-        </PreviewSection>
+        </div>
 
         {/* Closet Section */}
-        <PreviewSection
-          title="Your Closet"
-          icon={<Package className="h-5 w-5 text-blue-500" />}
-          onInteraction={handleInteraction}
-        >
+        <div className="space-y-4">
+          <Button
+            variant="ghost"
+            className="flex items-center gap-2 p-0 h-auto text-lg font-semibold hover:bg-transparent"
+            onClick={() => navigate('/preview/closet')}
+          >
+            <Package className="h-5 w-5 text-blue-500" />
+            Your Closet →
+          </Button>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
             {previewData.closetItems.slice(0, 6).map((item: any) => {
               const imageUrl = item.uploaded_image_url || item.product_image_url || item.stored_image_path;
@@ -200,14 +198,18 @@ export default function Preview() {
               );
             })}
           </div>
-        </PreviewSection>
+        </div>
 
         {/* Fits Section */}
-        <PreviewSection
-          title="Your Fits"
-          icon={<ImageIcon className="h-5 w-5 text-green-500" />}
-          onInteraction={handleInteraction}
-        >
+        <div className="space-y-4">
+          <Button
+            variant="ghost"
+            className="flex items-center gap-2 p-0 h-auto text-lg font-semibold hover:bg-transparent"
+            onClick={() => navigate('/preview/fits')}
+          >
+            <ImageIcon className="h-5 w-5 text-green-500" />
+            Your Fits →
+          </Button>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
             {previewData.fits.slice(0, 4).map((fit: any) => (
               <Card key={fit.id} className="overflow-hidden">
@@ -226,45 +228,7 @@ export default function Preview() {
               </Card>
             ))}
           </div>
-        </PreviewSection>
-
-        {/* Activity Feed Section */}
-        <PreviewSection
-          title="Activity Feed"
-          icon={<Activity className="h-5 w-5 text-purple-500" />}
-          onInteraction={handleInteraction}
-        >
-          <div className="space-y-3">
-            {previewData.activityFeed.slice(0, 5).map((activity: any) => (
-              <Card key={activity.id} className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    {activity.action_type === 'liked_item' && <Heart className="h-4 w-4 text-red-500" />}
-                    {activity.action_type === 'added_closet' && <Package className="h-4 w-4 text-blue-500" />}
-                    {activity.action_type === 'created_fit' && <ImageIcon className="h-4 w-4 text-green-500" />}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm">
-                      {activity.action_type === 'liked_item' && `Liked ${activity.metadata?.item_name || 'an item'}`}
-                      {activity.action_type === 'added_closet' && `Added ${activity.metadata?.item_name || 'an item'} to closet`}
-                      {activity.action_type === 'created_fit' && `Created a new fit`}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(activity.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  {activity.metadata?.item_image && (
-                    <img 
-                      src={activity.metadata.item_image} 
-                      alt="Activity item"
-                      className="w-12 h-12 rounded object-cover"
-                    />
-                  )}
-                </div>
-              </Card>
-            ))}
-          </div>
-        </PreviewSection>
+        </div>
 
         {/* Call to Action */}
         <div className="text-center py-8 md:py-12 border-t">
