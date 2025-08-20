@@ -274,6 +274,7 @@ export function AddFitDialog({ onFitAdded }: AddFitDialogProps) {
                           id="image-upload"
                           type="file"
                           accept="image/*"
+                          capture="environment"
                           onChange={handleImageSelect}
                           className="max-w-xs mx-auto"
                         />
