@@ -29,6 +29,7 @@ import NotFound from "./pages/NotFound";
 import ConnectionProfile from "./pages/ConnectionProfile";
 import Profile from "./pages/Profile";
 import Points from "./pages/Points";
+import Preview from "./pages/Preview";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/preview" element={<Preview />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/instagram-callback" element={<InstagramCallback />} />
             <Route path="/gmail-callback" element={<GmailCallback />} />

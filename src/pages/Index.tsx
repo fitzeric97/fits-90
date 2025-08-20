@@ -107,6 +107,16 @@ const Index = () => {
         >
           {loading ? "Sending link..." : "Send Login Link"}
         </Button>
+
+        <div className="text-center mt-4">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/preview')}
+            className="w-full"
+          >
+            See what you're signing up for
+          </Button>
+        </div>
       </div>
     </div>
   );
