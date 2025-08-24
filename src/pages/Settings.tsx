@@ -364,6 +364,21 @@ export default function Settings() {
                   </a>
                 </Button>
               </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label>Terms of Service</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Review our terms and conditions for using the platform
+                  </p>
+                </div>
+                <Button variant="outline" asChild>
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                    View Terms
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
