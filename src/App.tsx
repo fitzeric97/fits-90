@@ -16,6 +16,7 @@ import InstagramCallback from "./pages/InstagramCallback";
 import GmailCallback from "./pages/GmailCallback";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import InteractiveOnboarding from "./components/onboarding/InteractiveOnboarding";
 import Closet from "./pages/Closet";
 import ClosetItemDetail from "./pages/ClosetItemDetail";
@@ -136,6 +137,7 @@ const App = () => {
                 <Settings />
               </ProtectedRoute>
             } />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/profile/:userId" element={
               <ProtectedRoute>
                 <ConnectionProfile />

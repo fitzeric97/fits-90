@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, Check, User, Instagram, Mail, Bell, Trash2 } from "lucide-react";
+import { Copy, Check, User, Instagram, Mail, Bell, Trash2, Shield, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ConnectedMailboxes } from "@/components/settings/ConnectedMailboxes";
 import { InstagramConnector } from "@/components/settings/InstagramConnector";
@@ -143,7 +143,7 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
+        <TabsList className="grid w-full grid-cols-5 mb-6">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             {!isMobile && "Profile"}
@@ -159,6 +159,10 @@ export default function Settings() {
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             {!isMobile && "Notifications"}
+          </TabsTrigger>
+          <TabsTrigger value="privacy" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            {!isMobile && "Privacy"}
           </TabsTrigger>
         </TabsList>
 
@@ -332,6 +336,33 @@ export default function Settings() {
                     <SelectItem value="evening">Evening (6:00 PM)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="privacy" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Privacy & Legal</CardTitle>
+              <CardDescription>
+                View our privacy policy and data handling practices
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label>Privacy Policy</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Learn how we collect, use, and protect your data
+                  </p>
+                </div>
+                <Button variant="outline" asChild>
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                    View Policy
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
               </div>
             </CardContent>
           </Card>
