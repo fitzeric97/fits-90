@@ -9,8 +9,8 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Cream and Coffee Brown Color Scheme */
-    --background: 25 25% 25%;  /* Rich coffee brown background to match logo */
-    --foreground: 45 30% 95%;  /* Light cream text */
+    --background: 45 25% 94%;  /* Light cream background for better mobile visibility */
+    --foreground: 25 25% 25%;  /* Dark coffee brown text */
 
     --card: 45 25% 94%;  /* Slightly darker cream for cards */
     --card-foreground: 25 15% 15%;  /* Coffee brown text on cards */
