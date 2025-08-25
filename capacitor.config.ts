@@ -11,6 +11,11 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 0
     }
+  },
+  ios: {
+    contentInset: 'automatic',
+    scrollEnabled: true,
+    backgroundColor: '#ff0000'
   }
 };
 
