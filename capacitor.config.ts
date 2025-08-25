@@ -3,20 +3,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.fits.app',
   appName: 'fits-90',
-  webDir: 'dist',
-  server: {
-    cleartext: true
-  },
-  plugins: {
-    SplashScreen: {
-      launchShowDuration: 0
-    }
-  },
-  ios: {
-    contentInset: 'automatic',
-    scrollEnabled: true,
-    backgroundColor: '#ff0000'
-  }
+  webDir: 'dist'
 };
 
 export default config;
