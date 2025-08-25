@@ -76,15 +76,15 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="w-32 h-32 flex items-center justify-center mb-8">
+    <div className="min-h-screen bg-card flex flex-col items-center justify-center p-4" style={{backgroundColor: '#ffffff', minHeight: '100vh'}}>
+      <div className="w-32 h-32 flex items-center justify-center mb-8" style={{backgroundColor: '#f0f0f0'}}>
         <img src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" alt="Fits Logo" className="w-32 h-32 object-contain" />
       </div>
       
-      <div className="max-w-sm w-full space-y-6">
+      <div className="max-w-sm w-full space-y-6" style={{backgroundColor: '#ffffff', color: '#000000'}}>
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Welcome to Fits</h1>
-          <p className="text-muted-foreground">Please sign in to continue</p>
+          <h1 className="text-2xl font-bold mb-2" style={{color: '#000000'}}>Welcome to Fits</h1>
+          <p style={{color: '#666666'}}>Please sign in to continue</p>
         </div>
 
         <div className="space-y-2">
