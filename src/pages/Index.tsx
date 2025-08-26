@@ -84,7 +84,7 @@ function AuthScreen() {
   return (
     <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4">
       {/* Logo */}
-      <div className="w-24 h-24 bg-primary-foreground rounded-3xl flex items-center justify-center mb-8 p-4">
+      <div className="w-24 h-24 flex items-center justify-center mb-8">
         <img 
           src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
           alt="Fits Logo" 
