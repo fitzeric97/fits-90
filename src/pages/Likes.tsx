@@ -146,7 +146,15 @@ export default function Likes() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setLikes(data || []);
+      
+      const newLikes = data || [];
+      console.log('Fetched likes with images:', newLikes.map(like => ({
+        id: like.id,
+        title: like.title,
+        has_image: !!like.image_url
+      })));
+      
+      setLikes(newLikes);
     } catch (error) {
       console.error('Error fetching likes:', error);
       toast({
@@ -278,8 +286,19 @@ export default function Likes() {
 
       if (data.successCount > 0) {
         console.log(`Successfully refreshed image for like ${likeId}`);
-        // Silently refresh the likes data to show updated image
-        fetchLikes();
+        
+        // Force immediate UI update by updating the specific like in state
+        setLikes(prevLikes => 
+          prevLikes.map(like => {
+            if (like.id === likeId && data.results?.[0]?.image_url) {
+              return { ...like, image_url: data.results[0].image_url };
+            }
+            return like;
+          })
+        );
+        
+        // Also refresh all data to ensure consistency
+        setTimeout(() => fetchLikes(), 1000);
       } else {
         console.log(`Failed to refresh image for like ${likeId}`);
       }
@@ -493,12 +512,11 @@ export default function Likes() {
                 {filteredLikes.map((like) => {
                   // Debug logging for each like item
                   if (process.env.NODE_ENV === 'development') {
-                    console.log('Grid view like item:', {
-                      id: like.id,
+                    console.log(`Grid view rendering like ${like.id}:`, {
                       title: like.title,
-                      image_url: like.image_url,
-                      uploaded_image_url: like.uploaded_image_url,
-                      brand_name: like.brand_name
+                      has_image_url: !!like.image_url,
+                      image_url_preview: like.image_url?.substring(0, 50) + '...',
+                      has_uploaded_image: !!like.uploaded_image_url
                     });
                   }
                   return (
@@ -509,6 +527,7 @@ export default function Likes() {
                   >
                     <div className="aspect-square bg-muted overflow-hidden relative">
                       <FallbackImage
+                        key={`${like.id}-${like.image_url || 'no-img'}`}
                         src={like.image_url}
                         fallbackSrc={like.uploaded_image_url}
                         alt={like.title}
@@ -521,16 +540,6 @@ export default function Likes() {
                           </div>
                         }
                       />
-                      {/* Debug: Show direct image if URL exists (temporary) */}
-                      {process.env.NODE_ENV === 'development' && like.image_url && (
-                        <img 
-                          src={like.image_url} 
-                          alt="debug" 
-                          className="absolute top-0 right-0 w-4 h-4 opacity-50"
-                          onLoad={() => console.log('Debug img loaded:', like.image_url)}
-                          onError={() => console.log('Debug img failed:', like.image_url)}
-                        />
-                      )}
                     </div>
                     
                     {/* Action buttons that appear on hover */}
@@ -576,6 +585,7 @@ export default function Likes() {
                         {/* Image */}
                         <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                           <FallbackImage
+                            key={`${like.id}-${like.image_url || 'no-img'}`}
                             src={like.image_url}
                             fallbackSrc={like.uploaded_image_url}
                             alt={like.title}

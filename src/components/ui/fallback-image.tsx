@@ -23,6 +23,13 @@ export function FallbackImage({
   const [primaryFailed, setPrimaryFailed] = useState(false);
   const [fallbackFailed, setFallbackFailed] = useState(false);
   const [hasTriggeredFallback, setHasTriggeredFallback] = useState(false);
+
+  // Reset states when src or fallbackSrc changes (new image URL after refresh)
+  useEffect(() => {
+    setPrimaryFailed(false);
+    setFallbackFailed(false);
+    setHasTriggeredFallback(false);
+  }, [src, fallbackSrc]);
   
   // Debug logging for image URLs
   if (process.env.NODE_ENV === 'development') {
