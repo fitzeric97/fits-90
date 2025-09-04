@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Package } from "lucide-react";
 
 interface FallbackImageProps {
@@ -7,6 +7,8 @@ interface FallbackImageProps {
   alt: string;
   className?: string;
   fallbackIcon?: React.ReactNode;
+  onImageFallback?: () => void; // Callback when image fails and fallback is shown
+  autoRefreshDelay?: number; // Delay before triggering auto-refresh (ms)
 }
 
 export function FallbackImage({ 
@@ -14,10 +16,13 @@ export function FallbackImage({
   fallbackSrc, 
   alt, 
   className = "", 
-  fallbackIcon 
+  fallbackIcon,
+  onImageFallback,
+  autoRefreshDelay = 2000 // Default 2 second delay
 }: FallbackImageProps) {
   const [primaryFailed, setPrimaryFailed] = useState(false);
   const [fallbackFailed, setFallbackFailed] = useState(false);
+  const [hasTriggeredFallback, setHasTriggeredFallback] = useState(false);
   
   // Debug logging for image URLs
   if (process.env.NODE_ENV === 'development') {
@@ -47,6 +52,23 @@ export function FallbackImage({
   // Prioritize scraped image (src) first, then uploaded image (fallbackSrc)
   const primaryImage = src;
   const secondaryImage = fallbackSrc;
+
+  // Trigger automatic refresh when images fail and fallback is shown
+  useEffect(() => {
+    const shouldShowFallback = !primaryImage || (primaryFailed && (fallbackFailed || !secondaryImage));
+    
+    if (shouldShowFallback && !hasTriggeredFallback && onImageFallback) {
+      setHasTriggeredFallback(true);
+      
+      // Delay the callback to avoid triggering too quickly
+      const timer = setTimeout(() => {
+        console.log('Auto-triggering image refresh due to fallback display');
+        onImageFallback();
+      }, autoRefreshDelay);
+
+      return () => clearTimeout(timer);
+    }
+  }, [primaryFailed, fallbackFailed, primaryImage, secondaryImage, hasTriggeredFallback, onImageFallback, autoRefreshDelay]);
 
   // Show fallback icon if no images or both failed
   if (!primaryImage || (primaryFailed && (fallbackFailed || !secondaryImage))) {

@@ -90,6 +90,7 @@ export default function Likes() {
   const [selectedLike, setSelectedLike] = useState<Like | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [isRefreshingImages, setIsRefreshingImages] = useState(false);
+  const [refreshingLikeIds, setRefreshingLikeIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const directAccess = localStorage.getItem('direct_access') === 'true';
@@ -253,6 +254,46 @@ export default function Likes() {
       });
     } finally {
       setIsRefreshingImages(false);
+    }
+  };
+
+  const refreshSingleImage = async (likeId: string) => {
+    // Prevent duplicate requests for the same like
+    if (refreshingLikeIds.has(likeId)) {
+      console.log(`Already refreshing image for like ${likeId}, skipping`);
+      return;
+    }
+
+    try {
+      console.log(`Auto-refreshing image for like ${likeId}`);
+      
+      // Add to refreshing set
+      setRefreshingLikeIds(prev => new Set([...prev, likeId]));
+      
+      const { data, error } = await supabase.functions.invoke('refresh-like-images', {
+        body: { likeIds: [likeId] }
+      });
+
+      if (error) throw error;
+
+      if (data.successCount > 0) {
+        console.log(`Successfully refreshed image for like ${likeId}`);
+        // Silently refresh the likes data to show updated image
+        fetchLikes();
+      } else {
+        console.log(`Failed to refresh image for like ${likeId}`);
+      }
+    } catch (error) {
+      console.error(`Error auto-refreshing image for like ${likeId}:`, error);
+    } finally {
+      // Remove from refreshing set after delay to avoid immediate re-triggering
+      setTimeout(() => {
+        setRefreshingLikeIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(likeId);
+          return newSet;
+        });
+      }, 3000); // 3 second cooldown
     }
   };
 
@@ -472,6 +513,8 @@ export default function Likes() {
                         fallbackSrc={like.uploaded_image_url}
                         alt={like.title}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        onImageFallback={() => refreshSingleImage(like.id)}
+                        autoRefreshDelay={1500}
                         fallbackIcon={
                           <div className="w-full h-full flex items-center justify-center bg-gray-100">
                             <Heart className="h-12 w-12 text-muted-foreground" />
@@ -537,6 +580,8 @@ export default function Likes() {
                             fallbackSrc={like.uploaded_image_url}
                             alt={like.title}
                             className="w-full h-full object-cover"
+                            onImageFallback={() => refreshSingleImage(like.id)}
+                            autoRefreshDelay={1500}
                             fallbackIcon={
                               <div className="w-full h-full flex items-center justify-center bg-gray-100">
                                 <Heart className="h-8 w-8 text-muted-foreground" />
