@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { EditLikeDialog } from "@/components/likes/EditLikeDialog";
-import { ExternalLink, Heart, Calendar, Tag, Trash2, Edit } from "lucide-react";
+import { ExternalLink, Heart, Calendar, Tag, Trash2, Edit, Camera } from "lucide-react";
 import { useState } from "react";
 
 interface Like {
@@ -68,13 +68,25 @@ export function LikeDetailDialog({
           
           <div className="space-y-6">
             {/* Image */}
-            <div className="aspect-square w-full max-w-md mx-auto bg-muted rounded-lg overflow-hidden">
+            <div className="aspect-square w-full max-w-md mx-auto bg-muted rounded-lg overflow-hidden relative">
               <FallbackImage
                 src={like.image_url}
                 fallbackSrc={like.uploaded_image_url}
                 alt={like.title}
                 className="w-full h-full object-cover"
-                fallbackIcon={<Heart className="h-16 w-16 text-muted-foreground" />}
+                fallbackIcon={
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+                    <Heart className="h-16 w-16 text-muted-foreground mb-4" />
+                    <Button 
+                      onClick={handleEdit}
+                      size="sm"
+                      className="bg-fits-blue hover:bg-fits-blue/90"
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Add Photo
+                    </Button>
+                  </div>
+                }
               />
             </div>
             

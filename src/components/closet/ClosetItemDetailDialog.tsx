@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { EditClosetItemDialog } from "@/components/closet/EditClosetItemDialog";
-import { Package, Calendar, Tag, Ruler, Palette, Trash2, Edit } from "lucide-react";
+import { Package, Calendar, Tag, Ruler, Palette, Trash2, Edit, Camera } from "lucide-react";
 import { useState } from "react";
 
 interface ClosetItem {
@@ -75,10 +75,23 @@ export function ClosetItemDetailDialog({
             {/* Image */}
             <div className="aspect-square w-full max-w-md mx-auto bg-muted rounded-lg overflow-hidden">
               <FallbackImage
-                src={imageUrl}
+                src={item.product_image_url}
+                fallbackSrc={item.uploaded_image_url || (item.stored_image_path ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` : null)}
                 alt={item.product_name || item.brand_name}
                 className="w-full h-full object-cover"
-                fallbackIcon={<Package className="h-16 w-16 text-muted-foreground" />}
+                fallbackIcon={
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+                    <Package className="h-16 w-16 text-muted-foreground mb-4" />
+                    <Button 
+                      onClick={handleEdit}
+                      size="sm"
+                      className="bg-fits-blue hover:bg-fits-blue/90"
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Add Photo
+                    </Button>
+                  </div>
+                }
               />
             </div>
             
