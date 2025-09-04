@@ -146,13 +146,6 @@ export default function MobileLikes() {
               </button>
             </div>
           </div>
-          <div className="p-3">
-            <p className="font-medium text-sm truncate">{like.title}</p>
-            <p className="text-xs text-muted-foreground">{like.brand_name}</p>
-            {like.price && (
-              <p className="text-sm font-semibold mt-1">{like.price}</p>
-            )}
-          </div>
         </Card>
       );
     }

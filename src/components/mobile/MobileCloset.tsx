@@ -189,13 +189,6 @@ export default function MobileCloset() {
               }
             />
           </div>
-          <div className="p-3">
-            <p className="font-medium text-sm truncate">{item.product_name || "Unknown Item"}</p>
-            <p className="text-xs text-muted-foreground">{item.brand_name}</p>
-            {item.price && (
-              <p className="text-sm font-semibold mt-1">{item.price}</p>
-            )}
-          </div>
         </Card>
       );
     }
