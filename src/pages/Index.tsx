@@ -128,7 +128,7 @@ function AuthScreen() {
           </Button>
         </form>
         
-        {/* iOS-optimized Apple Login */}
+        {/* Apple Sign-In temporarily disabled - requires Apple Developer setup
         <AppleSignIn
           onLoading={setLoading}
           onError={setError}
@@ -139,6 +139,7 @@ function AuthScreen() {
           </svg>
           <span>Continue with Apple</span>
         </AppleSignIn>
+        -->
         
         {/* Preview Mode Option */}
         <div className="relative">
