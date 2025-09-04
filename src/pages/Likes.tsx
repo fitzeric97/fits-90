@@ -407,20 +407,45 @@ export default function Likes() {
             {/* Grid View */}
             {viewMode === "grid" && (
               <div className="grid grid-cols-3 gap-4">
-                {filteredLikes.map((like) => (
+                {filteredLikes.map((like) => {
+                  // Debug logging for each like item
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log('Grid view like item:', {
+                      id: like.id,
+                      title: like.title,
+                      image_url: like.image_url,
+                      uploaded_image_url: like.uploaded_image_url,
+                      brand_name: like.brand_name
+                    });
+                  }
+                  return (
                   <div 
                     key={like.id} 
                     className="relative group overflow-hidden rounded-lg cursor-pointer transition-transform hover:scale-105"
                     onClick={() => handleLikeClick(like)}
                   >
-                    <div className="aspect-square bg-muted overflow-hidden">
+                    <div className="aspect-square bg-muted overflow-hidden relative">
                       <FallbackImage
                         src={like.image_url}
                         fallbackSrc={like.uploaded_image_url}
                         alt={like.title}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        fallbackIcon={<Heart className="h-12 w-12 text-muted-foreground" />}
+                        fallbackIcon={
+                          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                            <Heart className="h-12 w-12 text-muted-foreground" />
+                          </div>
+                        }
                       />
+                      {/* Debug: Show direct image if URL exists (temporary) */}
+                      {process.env.NODE_ENV === 'development' && like.image_url && (
+                        <img 
+                          src={like.image_url} 
+                          alt="debug" 
+                          className="absolute top-0 right-0 w-4 h-4 opacity-50"
+                          onLoad={() => console.log('Debug img loaded:', like.image_url)}
+                          onError={() => console.log('Debug img failed:', like.image_url)}
+                        />
+                      )}
                     </div>
                     
                     {/* Action buttons that appear on hover */}
@@ -451,7 +476,8 @@ export default function Likes() {
                       </Button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -469,7 +495,11 @@ export default function Likes() {
                             fallbackSrc={like.uploaded_image_url}
                             alt={like.title}
                             className="w-full h-full object-cover"
-                            fallbackIcon={<Heart className="h-8 w-8 text-muted-foreground" />}
+                            fallbackIcon={
+                              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                <Heart className="h-8 w-8 text-muted-foreground" />
+                              </div>
+                            }
                           />
                         </div>
                         
