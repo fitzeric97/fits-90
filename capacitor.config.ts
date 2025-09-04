@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.020860e348a944e39426735365ec659b',
+  appId: 'app.fits.90',
   appName: 'fits-90',
   webDir: 'dist',
   // Comment out server config for native iOS app
