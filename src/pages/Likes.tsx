@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { useToast } from "@/hooks/use-toast";
 import { useBrandPromotions } from "@/hooks/useBrandPromotions";
-import { ExternalLink, Heart, Trash2, Plus, Tag, Search, X, ArrowUpDown, Gem, Shirt, ShirtIcon, Package, Archive, Scissors, Square, Footprints, Dumbbell, Sparkles, Grid, List, RefreshCw } from "lucide-react";
+import { ExternalLink, Heart, Trash2, Plus, Tag, Search, X, ArrowUpDown, Gem, Shirt, ShirtIcon, Package, Archive, Scissors, Square, Footprints, Dumbbell, Sparkles, Grid, List } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -89,8 +89,6 @@ export default function Likes() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedLike, setSelectedLike] = useState<Like | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
-  const [isRefreshingImages, setIsRefreshingImages] = useState(false);
-  const [refreshingLikeIds, setRefreshingLikeIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const directAccess = localStorage.getItem('direct_access') === 'true';
@@ -236,85 +234,6 @@ export default function Likes() {
     setShowDetailDialog(true);
   };
 
-  const refreshAllImages = async () => {
-    setIsRefreshingImages(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('refresh-like-images', {
-        body: { refreshAll: true }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Images Refreshed!",
-        description: `Successfully updated ${data.successCount} images${data.errorCount > 0 ? `, ${data.errorCount} failed` : ''}`,
-      });
-
-      // Refresh the likes data to show updated images
-      fetchLikes();
-    } catch (error) {
-      console.error('Error refreshing images:', error);
-      toast({
-        title: "Error",
-        description: "Failed to refresh images",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRefreshingImages(false);
-    }
-  };
-
-  const refreshSingleImage = async (likeId: string) => {
-    // Prevent duplicate requests for the same like
-    if (refreshingLikeIds.has(likeId)) {
-      console.log(`Already refreshing image for like ${likeId}, skipping`);
-      return;
-    }
-
-    try {
-      console.log(`Auto-refreshing image for like ${likeId}`);
-      
-      // Add to refreshing set
-      setRefreshingLikeIds(prev => new Set([...prev, likeId]));
-      
-      const { data, error } = await supabase.functions.invoke('refresh-like-images', {
-        body: { likeIds: [likeId] }
-      });
-
-      if (error) throw error;
-
-      if (data.successCount > 0) {
-        console.log(`Successfully refreshed image for like ${likeId}`);
-        
-        // Force immediate UI update by updating the specific like in state
-        setLikes(prevLikes => 
-          prevLikes.map(like => {
-            if (like.id === likeId && data.results?.[0]?.image_url) {
-              return { ...like, image_url: data.results[0].image_url };
-            }
-            return like;
-          })
-        );
-        
-        // Also refresh all data to ensure consistency
-        setTimeout(() => fetchLikes(), 1000);
-      } else {
-        console.log(`Failed to refresh image for like ${likeId}`);
-      }
-    } catch (error) {
-      console.error(`Error auto-refreshing image for like ${likeId}:`, error);
-    } finally {
-      // Remove from refreshing set after delay to avoid immediate re-triggering
-      setTimeout(() => {
-        setRefreshingLikeIds(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(likeId);
-          return newSet;
-        });
-      }, 3000); // 3 second cooldown
-    }
-  };
 
   // Use mobile version on mobile devices
   if (isMobile) {
@@ -358,18 +277,6 @@ export default function Likes() {
             </div>
             
             <div className="flex flex-wrap gap-2">
-              {likes.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={refreshAllImages}
-                  disabled={isRefreshingImages}
-                  className="border-cream-muted text-cream-text hover:bg-cream-muted"
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshingImages ? 'animate-spin' : ''}`} />
-                  {isRefreshingImages ? 'Refreshing...' : 'Fix Images'}
-                </Button>
-              )}
               <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                 <DialogTrigger asChild>
                   <Button className="bg-fits-blue hover:bg-fits-blue/90 text-fits-blue-foreground">
@@ -527,13 +434,10 @@ export default function Likes() {
                   >
                     <div className="aspect-square bg-muted overflow-hidden relative">
                       <FallbackImage
-                        key={`${like.id}-${like.image_url || 'no-img'}`}
                         src={like.image_url}
                         fallbackSrc={like.uploaded_image_url}
                         alt={like.title}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        onImageFallback={() => refreshSingleImage(like.id)}
-                        autoRefreshDelay={1500}
                         fallbackIcon={
                           <div className="w-full h-full flex items-center justify-center bg-gray-100">
                             <Heart className="h-12 w-12 text-muted-foreground" />
@@ -585,13 +489,10 @@ export default function Likes() {
                         {/* Image */}
                         <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                           <FallbackImage
-                            key={`${like.id}-${like.image_url || 'no-img'}`}
                             src={like.image_url}
                             fallbackSrc={like.uploaded_image_url}
                             alt={like.title}
                             className="w-full h-full object-cover"
-                            onImageFallback={() => refreshSingleImage(like.id)}
-                            autoRefreshDelay={1500}
                             fallbackIcon={
                               <div className="w-full h-full flex items-center justify-center bg-gray-100">
                                 <Heart className="h-8 w-8 text-muted-foreground" />
