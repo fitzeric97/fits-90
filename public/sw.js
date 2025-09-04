@@ -69,6 +69,14 @@ self.addEventListener('fetch', (event) => {
 
   // Handle different types of requests
   if (request.method === 'GET') {
+    // Auth callback routes - MUST use network first (critical for magic links)
+    if (url.pathname.startsWith('/auth/callback') || 
+        url.pathname.startsWith('/gmail-callback') || 
+        url.pathname.startsWith('/instagram-callback')) {
+      event.respondWith(networkFirst(request, DYNAMIC_CACHE));
+      return;
+    }
+
     // Static assets - cache first
     if (STATIC_ASSETS.some(asset => url.pathname === asset || url.pathname.endsWith(asset))) {
       event.respondWith(cacheFirst(request, STATIC_CACHE));
@@ -120,7 +128,7 @@ async function networkFirst(request, cacheName) {
   try {
     const networkResponse = await fetch(request);
     
-    if (networkResponse.ok) {
+    if (networkResponse && networkResponse.ok) {
       const cache = await caches.open(cacheName);
       cache.put(request, networkResponse.clone());
     }
@@ -128,8 +136,25 @@ async function networkFirst(request, cacheName) {
     return networkResponse;
   } catch (error) {
     console.log('Network first fallback to cache:', error);
-    const cache = await caches.open(cacheName);
-    return cache.match(request) || new Response('Offline', { status: 503 });
+    try {
+      const cache = await caches.open(cacheName);
+      const cachedResponse = await cache.match(request);
+      
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      
+      return new Response('Network error - content not available offline', { 
+        status: 503,
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    } catch (cacheError) {
+      console.error('Cache access failed:', cacheError);
+      return new Response('Service temporarily unavailable', { 
+        status: 503,
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    }
   }
 }
 
@@ -172,18 +197,46 @@ async function networkFirstAuthCache(request) {
 }
 
 async function staleWhileRevalidate(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cachedResponse = cache.match(request);
-  
-  const networkResponsePromise = fetch(request).then((networkResponse) => {
-    if (networkResponse.ok) {
-      cache.put(request, networkResponse.clone());
-    }
-    return networkResponse;
-  }).catch(() => null);
+  try {
+    const cache = await caches.open(cacheName);
+    const cachedResponsePromise = cache.match(request);
+    
+    const networkResponsePromise = fetch(request).then((networkResponse) => {
+      if (networkResponse && networkResponse.ok) {
+        cache.put(request, networkResponse.clone());
+      }
+      return networkResponse;
+    }).catch((error) => {
+      console.log('Network failed in staleWhileRevalidate:', error);
+      return null;
+    });
 
-  // Return cached response immediately if available, otherwise wait for network
-  return cachedResponse || networkResponsePromise || new Response('Offline', { status: 503 });
+    // Get cached response first
+    const cachedResponse = await cachedResponsePromise;
+    if (cachedResponse) {
+      // Return cached immediately, update in background
+      networkResponsePromise.catch(() => {}); // Prevent unhandled rejection
+      return cachedResponse;
+    }
+
+    // No cache, wait for network
+    const networkResponse = await networkResponsePromise;
+    if (networkResponse && networkResponse.ok) {
+      return networkResponse;
+    }
+
+    // Network failed and no cache - return fallback
+    return new Response('Content not available offline', { 
+      status: 503,
+      headers: { 'Content-Type': 'text/plain' }
+    });
+  } catch (error) {
+    console.error('staleWhileRevalidate error:', error);
+    return new Response('Service Worker Error', { 
+      status: 500,
+      headers: { 'Content-Type': 'text/plain' }
+    });
+  }
 }
 
 // Handle background sync for auth token refresh
