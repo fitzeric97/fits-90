@@ -125,11 +125,45 @@ serve(async (req: Request) => {
                            html.match(/data-price="([^"]+)"/i) ||
                            html.match(/price[^>]*:.*?(\$[\d,]+(?:\.\d{2})?)/i);
           
-          const imageMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i) ||
-                           html.match(/<img[^>]*class="[^"]*product[^"]*"[^>]*src="([^"]+)"/i) ||
-                           html.match(/<img[^>]*src="([^"]+)"[^>]*class="[^"]*product[^"]*"/i) ||
-                           html.match(/data-src="([^"]*\.(?:jpg|jpeg|png|webp)[^"]*)"/i) ||
-                           html.match(/<img[^>]*src="([^"]*\.(?:jpg|jpeg|png|webp)[^"]*)"/i);
+          // Enhanced image extraction patterns (prioritized by reliability)
+          const imagePatterns = [
+            // Open Graph image (most reliable)
+            /<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i,
+            
+            // Twitter card image
+            /<meta[^>]*name="twitter:image"[^>]*content="([^"]+)"/i,
+            
+            // Product-specific images
+            /<img[^>]*class="[^"]*product[^"]*"[^>]*src="([^"]+)"/i,
+            /<img[^>]*src="([^"]+)"[^>]*class="[^"]*product[^"]*"/i,
+            /<img[^>]*data-src="([^"]+)"[^>]*class="[^"]*product[^"]*"/i,
+            
+            // Common e-commerce patterns
+            /data-zoom-image="([^"]+)"/i,
+            /data-large-image="([^"]+)"/i,
+            /"product_image":"([^"]+)"/i,
+            /"featured_image":"([^"]+)"/i,
+            /"image_url":"([^"]+)"/i,
+            
+            // Generic image patterns (last resort)
+            /<img[^>]*src="([^"]*\.(?:jpg|jpeg|png|webp)[^"]*)"/i,
+            /data-src="([^"]*\.(?:jpg|jpeg|png|webp)[^"]*)"/i,
+          ];
+          
+          let imageMatch = null;
+          for (const pattern of imagePatterns) {
+            const match = html.match(pattern);
+            if (match && match[1]) {
+              // Skip placeholder or invalid images
+              if (!match[1].includes('placeholder') && 
+                  !match[1].includes('loading') && 
+                  !match[1].includes('spinner') &&
+                  match[1].length > 10) {
+                imageMatch = match;
+                break;
+              }
+            }
+          }
           
           const descriptionMatch = html.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i) ||
                                  html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i) ||

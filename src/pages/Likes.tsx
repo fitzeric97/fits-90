@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { useToast } from "@/hooks/use-toast";
 import { useBrandPromotions } from "@/hooks/useBrandPromotions";
-import { ExternalLink, Heart, Trash2, Plus, Tag, Search, X, ArrowUpDown, Gem, Shirt, ShirtIcon, Package, Archive, Scissors, Square, Footprints, Dumbbell, Sparkles, Grid, List } from "lucide-react";
+import { ExternalLink, Heart, Trash2, Plus, Tag, Search, X, ArrowUpDown, Gem, Shirt, ShirtIcon, Package, Archive, Scissors, Square, Footprints, Dumbbell, Sparkles, Grid, List, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -89,6 +89,7 @@ export default function Likes() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedLike, setSelectedLike] = useState<Like | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [isRefreshingImages, setIsRefreshingImages] = useState(false);
 
   useEffect(() => {
     const directAccess = localStorage.getItem('direct_access') === 'true';
@@ -226,6 +227,35 @@ export default function Likes() {
     setShowDetailDialog(true);
   };
 
+  const refreshAllImages = async () => {
+    setIsRefreshingImages(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('refresh-like-images', {
+        body: { refreshAll: true }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Images Refreshed!",
+        description: `Successfully updated ${data.successCount} images${data.errorCount > 0 ? `, ${data.errorCount} failed` : ''}`,
+      });
+
+      // Refresh the likes data to show updated images
+      fetchLikes();
+    } catch (error) {
+      console.error('Error refreshing images:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh images",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshingImages(false);
+    }
+  };
+
   // Use mobile version on mobile devices
   if (isMobile) {
     return <MobileLikes />;
@@ -268,6 +298,18 @@ export default function Likes() {
             </div>
             
             <div className="flex flex-wrap gap-2">
+              {likes.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={refreshAllImages}
+                  disabled={isRefreshingImages}
+                  className="border-cream-muted text-cream-text hover:bg-cream-muted"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshingImages ? 'animate-spin' : ''}`} />
+                  {isRefreshingImages ? 'Refreshing...' : 'Fix Images'}
+                </Button>
+              )}
               <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                 <DialogTrigger asChild>
                   <Button className="bg-fits-blue hover:bg-fits-blue/90 text-fits-blue-foreground">
