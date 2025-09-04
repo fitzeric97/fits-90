@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { Camera, Plus, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -176,17 +177,16 @@ export default function MobileFits() {
           <div className="flex">
             {/* Main Image */}
             <div className="aspect-[3/4] flex-1 relative">
-              {fit.image_url ? (
-                <img
-                  src={fit.image_url}
-                  alt={fit.caption || "Outfit"}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <Camera className="h-8 w-8 text-muted-foreground" />
-                </div>
-              )}
+              <FallbackImage
+                src={fit.image_url}
+                alt={fit.caption || "Outfit"}
+                className="w-full h-full object-cover"
+                fallbackIcon={
+                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                    <Camera className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                }
+              />
             </div>
             
             {/* Tagged Items Sidebar */}
@@ -194,20 +194,19 @@ export default function MobileFits() {
               <div className="w-16 p-2 bg-muted/20 border-l border-border">
                 <div className="space-y-1">
                   {taggedItems.slice(0, 4).map((item) => {
-                    const imageUrl = item.uploaded_image_url || item.product_image_url || item.stored_image_path;
                     return (
                       <div key={item.tagId} className="w-12 h-12 rounded-sm overflow-hidden bg-muted">
-                        {imageUrl ? (
-                          <img
-                            src={imageUrl}
-                            alt={item.product_name || item.brand_name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="h-3 w-3 text-muted-foreground" />
-                          </div>
-                        )}
+                        <FallbackImage
+                          src={item.product_image_url}
+                          fallbackSrc={item.uploaded_image_url || (item.stored_image_path ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` : null)}
+                          alt={item.product_name || item.brand_name}
+                          className="w-full h-full object-cover"
+                          fallbackIcon={
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                              <Package className="h-3 w-3 text-muted-foreground" />
+                            </div>
+                          }
+                        />
                       </div>
                     );
                   })}
@@ -234,17 +233,16 @@ export default function MobileFits() {
       <Card key={fit.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleFitClick(fit)}>
         <div className="flex gap-3">
           <div className="w-20 h-28 rounded-lg overflow-hidden flex-shrink-0">
-            {fit.image_url ? (
-              <img
-                src={fit.image_url}
-                alt={fit.caption || "Outfit"}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
-                <Camera className="h-6 w-6 text-muted-foreground" />
-              </div>
-            )}
+            <FallbackImage
+              src={fit.image_url}
+              alt={fit.caption || "Outfit"}
+              className="w-full h-full object-cover"
+              fallbackIcon={
+                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                  <Camera className="h-6 w-6 text-muted-foreground" />
+                </div>
+              }
+            />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium">Outfit</p>
@@ -265,20 +263,19 @@ export default function MobileFits() {
           {taggedItems.length > 0 && (
             <div className="flex flex-col gap-1">
               {taggedItems.slice(0, 2).map((item) => {
-                const imageUrl = item.uploaded_image_url || item.product_image_url || item.stored_image_path;
                 return (
                   <div key={item.tagId} className="w-8 h-8 rounded-sm overflow-hidden bg-muted">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt={item.product_name || item.brand_name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="h-2 w-2 text-muted-foreground" />
-                      </div>
-                    )}
+                    <FallbackImage
+                      src={item.product_image_url}
+                      fallbackSrc={item.uploaded_image_url || (item.stored_image_path ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` : null)}
+                      alt={item.product_name || item.brand_name}
+                      className="w-full h-full object-cover"
+                      fallbackIcon={
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                          <Package className="h-2 w-2 text-muted-foreground" />
+                        </div>
+                      }
+                    />
                   </div>
                 );
               })}

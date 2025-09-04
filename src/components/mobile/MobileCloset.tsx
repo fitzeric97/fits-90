@@ -4,6 +4,7 @@ import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
 import { QuickAddFlow } from "@/components/shared/QuickAddFlow";
 import { ClosetItemDetailDialog } from "@/components/closet/ClosetItemDetailDialog";
 import { Card } from "@/components/ui/card";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { Package, Plus, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -171,24 +172,22 @@ export default function MobileCloset() {
     }
   };
 
-  const renderClosetItem = (item: any, viewMode: 'grid' | 'list') => {
-    const imageUrl = item.uploaded_image_url || item.product_image_url || item.stored_image_path;
-    
+  const renderClosetItem = (item: any, viewMode: 'grid' | 'list') => {    
     if (viewMode === 'grid') {
       return (
         <Card key={item.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleItemClick(item)}>
           <div className="aspect-square relative">
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt={item.product_name || "Closet item"}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
-                <Package className="h-8 w-8 text-muted-foreground" />
-              </div>
-            )}
+            <FallbackImage
+              src={item.product_image_url}
+              fallbackSrc={item.uploaded_image_url || (item.stored_image_path ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` : null)}
+              alt={item.product_name || "Closet item"}
+              className="w-full h-full object-cover"
+              fallbackIcon={
+                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                  <Package className="h-8 w-8 text-muted-foreground" />
+                </div>
+              }
+            />
           </div>
           <div className="p-3">
             <p className="font-medium text-sm truncate">{item.product_name || "Unknown Item"}</p>
@@ -206,17 +205,17 @@ export default function MobileCloset() {
       <Card key={item.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleItemClick(item)}>
         <div className="flex gap-3">
           <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt={item.product_name || "Closet item"}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
-                <Package className="h-6 w-6 text-muted-foreground" />
-              </div>
-            )}
+            <FallbackImage
+              src={item.product_image_url}
+              fallbackSrc={item.uploaded_image_url || (item.stored_image_path ? `https://ijawvesjgyddyiymiahk.supabase.co/storage/v1/object/public/closet-items/${item.stored_image_path}` : null)}
+              alt={item.product_name || "Closet item"}
+              className="w-full h-full object-cover"
+              fallbackIcon={
+                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                  <Package className="h-6 w-6 text-muted-foreground" />
+                </div>
+              }
+            />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium truncate">{item.product_name || "Unknown Item"}</p>

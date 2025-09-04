@@ -4,6 +4,7 @@ import { MobileItemGrid } from "@/components/mobile/MobileItemGrid";
 import { AddLikeDialog } from "@/components/likes/AddLikeDialog";
 import { LikeDetailDialog } from "@/components/likes/LikeDetailDialog";
 import { Card } from "@/components/ui/card";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { Heart, ExternalLink, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -122,17 +123,17 @@ export default function MobileLikes() {
       return (
         <Card key={like.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleLikeClick(like)}>
           <div className="aspect-square relative">
-            {like.image_url || like.uploaded_image_url ? (
-              <img
-                src={like.uploaded_image_url || like.image_url}
-                alt={like.title}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
-                <Heart className="h-8 w-8 text-muted-foreground" />
-              </div>
-            )}
+            <FallbackImage
+              src={like.image_url}
+              fallbackSrc={like.uploaded_image_url}
+              alt={like.title}
+              className="w-full h-full object-cover"
+              fallbackIcon={
+                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                  <Heart className="h-8 w-8 text-muted-foreground" />
+                </div>
+              }
+            />
             <div className="absolute top-2 right-2">
               <button 
                 onClick={(e) => {
@@ -161,17 +162,17 @@ export default function MobileLikes() {
       <Card key={like.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleLikeClick(like)}>
         <div className="flex gap-3">
           <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-            {like.image_url || like.uploaded_image_url ? (
-              <img
-                src={like.uploaded_image_url || like.image_url}
-                alt={like.title}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
-                <Heart className="h-6 w-6 text-muted-foreground" />
-              </div>
-            )}
+            <FallbackImage
+              src={like.image_url}
+              fallbackSrc={like.uploaded_image_url}
+              alt={like.title}
+              className="w-full h-full object-cover"
+              fallbackIcon={
+                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                  <Heart className="h-6 w-6 text-muted-foreground" />
+                </div>
+              }
+            />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium truncate">{like.title}</p>
