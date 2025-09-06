@@ -65,6 +65,12 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  
+  // Skip chrome-extension and other unsupported schemes
+  if (!request.url.startsWith('http://') && !request.url.startsWith('https://')) {
+    return;
+  }
+  
   const url = new URL(request.url);
 
   // Handle different types of requests
@@ -112,8 +118,10 @@ async function cacheFirst(request, cacheName) {
 
     const networkResponse = await fetch(request);
     
-    if (networkResponse.ok) {
-      cache.put(request, networkResponse.clone());
+    if (networkResponse.ok && (request.url.startsWith('http://') || request.url.startsWith('https://'))) {
+      cache.put(request, networkResponse.clone()).catch((cacheError) => {
+        console.log('Cache put failed:', cacheError);
+      });
     }
     
     return networkResponse;
@@ -128,9 +136,11 @@ async function networkFirst(request, cacheName) {
   try {
     const networkResponse = await fetch(request);
     
-    if (networkResponse && networkResponse.ok) {
+    if (networkResponse && networkResponse.ok && (request.url.startsWith('http://') || request.url.startsWith('https://'))) {
       const cache = await caches.open(cacheName);
-      cache.put(request, networkResponse.clone());
+      cache.put(request, networkResponse.clone()).catch((cacheError) => {
+        console.log('Cache put failed:', cacheError);
+      });
     }
     
     return networkResponse;
@@ -166,8 +176,11 @@ async function networkFirstAuthCache(request) {
       // Cache auth responses for offline recovery
       const cache = await caches.open(DYNAMIC_CACHE);
       // Only cache successful auth responses
-      if (request.url.includes('/user') || request.url.includes('/token')) {
-        cache.put(request, networkResponse.clone());
+      if ((request.url.includes('/user') || request.url.includes('/token')) && 
+          (request.url.startsWith('http://') || request.url.startsWith('https://'))) {
+        cache.put(request, networkResponse.clone()).catch((cacheError) => {
+          console.log('Auth cache put failed:', cacheError);
+        });
       }
     }
     
@@ -203,7 +216,12 @@ async function staleWhileRevalidate(request, cacheName) {
     
     const networkResponsePromise = fetch(request).then((networkResponse) => {
       if (networkResponse && networkResponse.ok) {
-        cache.put(request, networkResponse.clone());
+        // Only cache HTTP/HTTPS requests
+        if (request.url.startsWith('http://') || request.url.startsWith('https://')) {
+          cache.put(request, networkResponse.clone()).catch((cacheError) => {
+            console.log('Cache put failed:', cacheError);
+          });
+        }
       }
       return networkResponse;
     }).catch((error) => {

@@ -4,9 +4,29 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": null,
+  "headers": [
+    {
+      "source": "/(.*)\\.js$",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.css$",
+      "headers": [
+        {
+          "key": "Content-Type", 
+          "value": "text/css"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!assets|lovable-uploads|manifest\\.json|sw\\.js).*)",
       "destination": "/index.html"
     }
   ]
