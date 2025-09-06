@@ -229,15 +229,15 @@ export default function Auth() {
 
   if (mode === "select") {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <div className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center mb-8">
-          <span className="text-primary-foreground font-bold text-4xl">F</span>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:p-6">
+        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-primary rounded-3xl flex items-center justify-center mb-6 sm:mb-8">
+          <span className="text-primary-foreground font-bold text-3xl sm:text-4xl">F</span>
         </div>
         
-        <div className="max-w-sm w-full space-y-4">
+        <div className="max-w-sm w-full space-y-3 sm:space-y-4">
           <Button 
             onClick={() => setMode("demo")}
-            className="w-full h-14 text-lg font-medium bg-blue-600 hover:bg-blue-700 text-white"
+            className="w-full h-12 sm:h-14 text-base sm:text-lg font-medium bg-blue-600 hover:bg-blue-700 text-white touch-manipulation"
           >
             🎭 Demo Access
           </Button>
@@ -255,7 +255,7 @@ export default function Auth() {
           
           <Button 
             onClick={() => setMode("joined")}
-            className="w-full h-12 text-base font-medium"
+            className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium touch-manipulation"
             variant="default"
           >
             Joined
@@ -263,7 +263,7 @@ export default function Auth() {
           
           <Button 
             onClick={() => setMode("join")}
-            className="w-full h-12 text-base font-medium"
+            className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium touch-manipulation"
             variant="outline"
           >
             Join Us
@@ -273,7 +273,7 @@ export default function Auth() {
           <Button 
             onClick={handleDevLogin}
             disabled={loading}
-            className="w-full h-10 text-sm bg-red-600 hover:bg-red-700 text-white"
+            className="w-full h-9 sm:h-10 text-xs sm:text-sm bg-red-600 hover:bg-red-700 text-white touch-manipulation"
           >
             {loading ? "Logging in..." : "🔧 Dev Login (fitzeric97@gmail.com)"}
           </Button>
@@ -284,43 +284,43 @@ export default function Auth() {
 
   if (mode === "demo") {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <div className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center mb-8">
-          <span className="text-primary-foreground font-bold text-4xl">F</span>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:p-6">
+        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-primary rounded-3xl flex items-center justify-center mb-6 sm:mb-8">
+          <span className="text-primary-foreground font-bold text-3xl sm:text-4xl">F</span>
         </div>
         
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold mb-2">🎭 Demo Access</h2>
-          <p className="text-muted-foreground">Enter the demo password to explore the full Fits experience</p>
+        <div className="text-center mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold mb-2">🎭 Demo Access</h2>
+          <p className="text-sm sm:text-base text-muted-foreground px-2">Enter the demo password to explore the full Fits experience</p>
         </div>
         
         <div className="max-w-sm w-full">
-          <form onSubmit={handleDemoLogin} className="space-y-6">
+          <form onSubmit={handleDemoLogin} className="space-y-5 sm:space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="demoPassword" className="text-lg">Demo Password</Label>
+              <Label htmlFor="demoPassword" className="text-base sm:text-lg">Demo Password</Label>
               <Input
                 id="demoPassword"
                 type="password"
                 placeholder="Enter demo password"
                 value={demoPassword}
                 onChange={(e) => setDemoPassword(e.target.value)}
-                className="h-12 text-lg"
+                className="h-11 sm:h-12 text-base sm:text-lg"
                 required
               />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground px-1">
                 This will give you access to explore all app features
               </p>
             </div>
 
             {error && (
               <Alert>
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription className="text-sm">{error}</AlertDescription>
               </Alert>
             )}
             
             <Button 
               type="submit" 
-              className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700"
+              className="w-full h-11 sm:h-12 text-base sm:text-lg bg-blue-600 hover:bg-blue-700 touch-manipulation"
               disabled={loading}
             >
               {loading ? "Accessing Demo..." : "🚀 Enter Demo"}
@@ -330,7 +330,7 @@ export default function Auth() {
               type="button"
               variant="ghost" 
               onClick={() => setMode("select")}
-              className="w-full"
+              className="w-full touch-manipulation"
             >
               ← Back to Login Options
             </Button>
