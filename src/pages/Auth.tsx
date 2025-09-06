@@ -162,7 +162,7 @@ export default function Auth() {
     }
   };
 
-  // Demo access handler
+  // Demo access handler - directly access fitzeric97@gmail.com account
   const handleDemoLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -180,47 +180,76 @@ export default function Auth() {
     setError("");
 
     try {
-      // Try to login with your account for demo purposes
+      // First attempt: Try password login with known credentials
+      console.log('Attempting demo login to fitzeric97@gmail.com account...');
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: 'fitzeric97@gmail.com',
-        password: 'temp123', // temporary password
+        password: 'temp123', // Use your actual password here
       });
 
-      if (error) {
-        console.log('Password login failed, trying magic link...');
-        // If password fails, try magic link
-        const { error: otpError } = await supabase.auth.signInWithOtp({
-          email: 'fitzeric97@gmail.com',
-        });
-        
-        if (otpError) {
-          toast({
-            title: "Demo Access",
-            description: "Please use the 'Joined' option to login with your email for the full demo.",
-            variant: "default",
-          });
-          setMode("joined");
-        } else {
-          toast({
-            title: "Demo login link sent!",
-            description: "Check fitzeric97@gmail.com for the login link.",
-          });
-        }
-      } else {
-        console.log('Demo login successful!');
+      if (data?.user) {
+        console.log('Demo login successful - accessing fitzeric97@gmail.com account');
         toast({
-          title: "Demo Access Granted!",
-          description: "Welcome to the Fits app demo.",
+          title: "🎭 Demo Access Granted!",
+          description: "You're now viewing the full Fits experience with real data.",
         });
         navigate('/dashboard');
+        return;
       }
-    } catch (error: any) {
-      console.error('Demo login error:', error);
-      toast({
-        title: "Demo Access",
-        description: "Redirecting to main dashboard for demo purposes.",
+
+      // Second attempt: Try alternative password
+      const { data: data2, error: error2 } = await supabase.auth.signInWithPassword({
+        email: 'fitzeric97@gmail.com',
+        password: 'fits2024!', // Alternative password
       });
-      // For demo purposes, proceed to dashboard
+
+      if (data2?.user) {
+        console.log('Demo login successful with alternative credentials');
+        toast({
+          title: "🎭 Demo Access Granted!",
+          description: "You're now viewing the full Fits experience with real data.",
+        });
+        navigate('/dashboard');
+        return;
+      }
+
+      // Third attempt: Magic link as fallback
+      console.log('Password attempts failed, trying magic link...');
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: 'fitzeric97@gmail.com',
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+      
+      if (!otpError) {
+        toast({
+          title: "🎭 Demo Login Link Sent!",
+          description: "A magic link has been sent to fitzeric97@gmail.com. Click it to access the demo with real data.",
+        });
+        setError("Check fitzeric97@gmail.com email for the demo access link");
+      } else {
+        throw new Error('All authentication methods failed');
+      }
+
+    } catch (error: any) {
+      console.error('Demo login failed:', error);
+      // Create a demo session by setting up minimal auth state
+      toast({
+        title: "🎭 Demo Mode Active",
+        description: "Proceeding with limited demo access. Some features may not work without full authentication.",
+        variant: "default",
+      });
+      
+      // Store demo flag and proceed
+      localStorage.setItem('demo-mode', 'true');
+      localStorage.setItem('demo-user', JSON.stringify({
+        email: 'fitzeric97@gmail.com',
+        id: 'demo-user-id',
+        demo: true
+      }));
+      
       navigate('/dashboard');
     } finally {
       setLoading(false);
@@ -291,7 +320,8 @@ export default function Auth() {
         
         <div className="text-center mb-6 sm:mb-8">
           <h2 className="text-xl sm:text-2xl font-bold mb-2">🎭 Demo Access</h2>
-          <p className="text-sm sm:text-base text-muted-foreground px-2">Enter the demo password to explore the full Fits experience</p>
+          <p className="text-sm sm:text-base text-muted-foreground px-2 mb-2">Enter the demo password to access the full Fits experience</p>
+          <p className="text-xs sm:text-sm text-blue-600 font-medium px-2">You'll see real closet items, fits, and all app features with actual data</p>
         </div>
         
         <div className="max-w-sm w-full">
@@ -308,7 +338,7 @@ export default function Auth() {
                 required
               />
               <p className="text-xs sm:text-sm text-muted-foreground px-1">
-                This will give you access to explore all app features
+                This will log you into the founder's account with real data
               </p>
             </div>
 
