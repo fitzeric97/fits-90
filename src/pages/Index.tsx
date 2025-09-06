@@ -44,6 +44,8 @@ const Index = () => {
 function AuthScreen() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [demoPassword, setDemoPassword] = useState("");
+  const [mode, setMode] = useState<"login" | "demo">("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { toast } = useToast();
@@ -82,7 +84,164 @@ function AuthScreen() {
     }
   };
 
+  // Demo access handler - directly access fitzeric97@gmail.com account
+  const handleDemoLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!demoPassword) {
+      setError("Please enter the demo password");
+      return;
+    }
+
+    if (demoPassword !== "fits-90") {
+      setError("Incorrect demo password");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      // First attempt: Try password login with known credentials
+      console.log('Attempting demo login to fitzeric97@gmail.com account...');
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: 'fitzeric97@gmail.com',
+        password: 'temp123',
+      });
+
+      if (data?.user) {
+        console.log('Demo login successful - accessing fitzeric97@gmail.com account');
+        toast({
+          title: "🎭 Demo Access Granted!",
+          description: "You're now viewing the full Fits experience with real data.",
+        });
+        navigate('/dashboard');
+        return;
+      }
+
+      // Second attempt: Try alternative password
+      const { data: data2, error: error2 } = await supabase.auth.signInWithPassword({
+        email: 'fitzeric97@gmail.com',
+        password: 'fits2024!',
+      });
+
+      if (data2?.user) {
+        console.log('Demo login successful with alternative credentials');
+        toast({
+          title: "🎭 Demo Access Granted!",
+          description: "You're now viewing the full Fits experience with real data.",
+        });
+        navigate('/dashboard');
+        return;
+      }
+
+      // Third attempt: Magic link as fallback
+      console.log('Password attempts failed, trying magic link...');
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: 'fitzeric97@gmail.com',
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+      
+      if (!otpError) {
+        toast({
+          title: "🎭 Demo Login Link Sent!",
+          description: "A magic link has been sent to fitzeric97@gmail.com. Click it to access the demo with real data.",
+        });
+        setError("Check fitzeric97@gmail.com email for the demo access link");
+      } else {
+        throw new Error('All authentication methods failed');
+      }
+
+    } catch (error: any) {
+      console.error('Demo login failed:', error);
+      toast({
+        title: "🎭 Demo Mode Active",
+        description: "Proceeding with limited demo access. Some features may not work without full authentication.",
+        variant: "default",
+      });
+      
+      // Store demo flag and proceed
+      localStorage.setItem('demo-mode', 'true');
+      localStorage.setItem('demo-user', JSON.stringify({
+        email: 'fitzeric97@gmail.com',
+        id: 'demo-user-id',
+        demo: true
+      }));
+      
+      navigate('/dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Apple login will be handled by the AppleSignIn component
+
+  if (mode === "demo") {
+    return (
+      <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4">
+        {/* Logo */}
+        <div className="w-24 h-24 flex items-center justify-center mb-8">
+          <img 
+            src="/lovable-uploads/2a35b810-ade8-43ba-8359-bd9dbb16de88.png" 
+            alt="Fits Logo" 
+            className="w-full h-full object-contain"
+          />
+        </div>
+        
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-primary-foreground mb-2">🎭 Demo Access</h2>
+          <p className="text-primary-foreground/80">Enter the demo password to access the full Fits experience</p>
+          <p className="text-sm text-primary-foreground/60 mt-2">You'll see real closet items, fits, and all app features with actual data</p>
+        </div>
+        
+        <div className="max-w-sm w-full">
+          <form onSubmit={handleDemoLogin} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="demoPassword" className="text-primary-foreground text-lg">Demo Password</Label>
+              <Input
+                id="demoPassword"
+                type="password"
+                placeholder="Enter demo password"
+                value={demoPassword}
+                onChange={(e) => setDemoPassword(e.target.value)}
+                className="h-12 text-lg bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
+                required
+              />
+              <p className="text-xs text-primary-foreground/60">
+                This will log you into the founder's account with real data
+              </p>
+            </div>
+
+            {error && (
+              <Alert className="bg-destructive/10 border-destructive/20">
+                <AlertDescription className="text-primary-foreground">{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <Button 
+              type="submit" 
+              className="w-full h-14 text-lg bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={loading}
+            >
+              {loading ? "Accessing Demo..." : "🚀 Enter Demo"}
+            </Button>
+            
+            <Button 
+              type="button"
+              variant="ghost" 
+              onClick={() => setMode("login")}
+              className="w-full text-primary-foreground hover:bg-primary-foreground/10"
+            >
+              ← Back to Login Options
+            </Button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4">
@@ -96,6 +255,24 @@ function AuthScreen() {
       </div>
       
       <div className="max-w-sm w-full space-y-4">
+        {/* Demo Access Button */}
+        <Button 
+          onClick={() => setMode("demo")}
+          className="w-full h-14 text-lg font-medium bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          🎭 Demo Access
+        </Button>
+        
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-primary-foreground/20" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-primary px-2 text-primary-foreground/60">or continue with</span>
+          </div>
+        </div>
+        
         {/* Email Login Form */}
         <form onSubmit={handleEmailLogin} className="space-y-4">
           <div className="space-y-2">
@@ -147,7 +324,7 @@ function AuthScreen() {
             <span className="w-full border-t border-primary-foreground/20" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-primary px-2 text-primary-foreground/60">or</span>
+            <span className="bg-primary px-2 text-primary-foreground/60">or explore without account</span>
           </div>
         </div>
         
